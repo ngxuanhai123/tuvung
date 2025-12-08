@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Flashcard Pro - Aurora Science Edition (Stats & Login Fix)</title>
+<title>Flashcard Pro - Aurora Rank Master</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;600;700&family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
@@ -35,7 +35,7 @@
     color: var(--text-color);
     min-height: 100vh;
     display: flex; flex-direction: column; align-items: center;
-    padding-bottom: 100px;
+    padding-bottom: 110px;
     overflow-x: hidden;
     position: relative;
   }
@@ -252,7 +252,71 @@
   }
   #toast.show { transform: translateX(-50%) translateY(20px); }
 
-  /* --- LEADERBOARD & USER STYLES --- */
+  /* --- NEW LEADERBOARD STYLES --- */
+  .podium-container {
+    display: flex; justify-content: center; align-items: flex-end;
+    padding: 30px 10px 40px 10px; gap: 10px;
+  }
+  
+  .podium-item {
+    display: flex; flex-direction: column; align-items: center;
+    position: relative;
+  }
+  
+  .podium-avatar {
+    width: 60px; height: 60px; border-radius: 50%; 
+    border: 3px solid #fff; object-fit: cover;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.3); z-index: 2;
+    margin-bottom: -15px; transition: transform 0.3s;
+  }
+  .podium-item:nth-child(2) .podium-avatar { width: 80px; height: 80px; border-color: #ffd700; z-index: 3; }
+  
+  .podium-stage {
+    width: 80px; border-radius: 15px 15px 0 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+    padding-top: 25px; color: #fff; text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    position: relative;
+    backdrop-filter: blur(10px);
+  }
+  
+  .rank-1-stage { height: 140px; background: linear-gradient(to bottom, rgba(255, 215, 0, 0.6), rgba(255, 215, 0, 0.2)); border-top: 2px solid rgba(255, 215, 0, 0.8); order: 2; }
+  .rank-2-stage { height: 100px; background: linear-gradient(to bottom, rgba(192, 192, 192, 0.6), rgba(192, 192, 192, 0.2)); border-top: 2px solid rgba(192, 192, 192, 0.8); order: 1; }
+  .rank-3-stage { height: 80px; background: linear-gradient(to bottom, rgba(205, 127, 50, 0.6), rgba(205, 127, 50, 0.2)); border-top: 2px solid rgba(205, 127, 50, 0.8); order: 3; }
+
+  .podium-rank { font-size: 2rem; font-weight: 800; opacity: 0.8; line-height: 1; }
+  .podium-name { font-size: 0.7rem; font-weight: 700; margin-top: 5px; max-width: 75px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .podium-score { font-size: 0.8rem; font-weight: 600; color: #fff; margin-top: 2px; background: rgba(0,0,0,0.3); padding: 2px 8px; border-radius: 10px; }
+
+  .rank-badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 3px 8px; border-radius: 8px; font-size: 0.65rem; font-weight: 700; text-transform: uppercase;
+    margin-top: 4px; border: 1px solid rgba(255,255,255,0.3);
+  }
+
+  .leaderboard-row {
+    display: grid; 
+    grid-template-columns: 30px 45px 1fr auto; 
+    align-items: center; gap: 10px;
+    padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.05);
+    transition: 0.2s;
+  }
+  .leaderboard-row:last-child { border-bottom: none; }
+  
+  .rank-num { font-size: 0.9rem; font-weight: 700; color: #94a3b8; text-align: center; }
+  .lb-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); }
+  
+  .lb-info { display: flex; flex-direction: column; overflow: hidden; }
+  .lb-name { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: white; }
+  .lb-meta { display: flex; gap: 5px; margin-top: 2px; }
+
+  .lb-stats { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+  .lb-score { font-weight: 800; color: #34d399; font-size: 1rem; }
+  .lb-time { font-size: 0.7rem; color: #60a5fa; font-weight: 600; margin-top: 2px; }
+
+  /* Crown animation for top 1 */
+  .crown-icon { position: absolute; top: -25px; font-size: 1.5rem; color: #ffd700; filter: drop-shadow(0 0 10px rgba(255,215,0,0.8)); animation: floatCrown 2s ease-in-out infinite; }
+  @keyframes floatCrown { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
+
   .user-badge {
     display: flex; align-items: center; gap: 12px;
     background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 30px;
@@ -261,30 +325,6 @@
   }
   .user-badge:active { transform: scale(0.95); }
   .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
-  
-  .leaderboard-row {
-    display: grid; 
-    grid-template-columns: 40px 45px 1fr auto; 
-    align-items: center; gap: 10px;
-    padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.1);
-    transition: 0.2s;
-  }
-  .leaderboard-row:last-child { border-bottom: none; }
-  
-  .rank-num { font-size: 1.1rem; font-weight: 800; color: #94a3b8; text-align: center; }
-  .rank-1 { color: #facc15; text-shadow: 0 0 10px rgba(250, 204, 21, 0.5); font-size: 1.4rem; }
-  .rank-2 { color: #e2e8f0; font-size: 1.3rem; }
-  .rank-3 { color: #fb923c; font-size: 1.2rem; }
-  
-  .lb-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); }
-  
-  .lb-info { display: flex; flex-direction: column; overflow: hidden; }
-  .lb-name { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .lb-meta { font-size: 0.7rem; opacity: 0.6; }
-
-  .lb-stats { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
-  .lb-score { font-weight: 800; color: #34d399; font-size: 1rem; }
-  .lb-time { font-size: 0.7rem; color: #60a5fa; font-weight: 600; margin-top: 2px; }
 
 </style>
 </head>
@@ -295,7 +335,7 @@
 
 <header>
   <h1>Flashcard Pro</h1>
-  <div id="status-msg" style="font-size:0.85rem; opacity:0.8; font-weight: 600;">Aurora Science Edition</div>
+  <div id="status-msg" style="font-size:0.85rem; opacity:0.8; font-weight: 600;">Aurora Rank Master</div>
 </header>
 
 <div id="appContainer" style="width: 100%; display: flex; justify-content: center;">
@@ -370,21 +410,24 @@
   </div>
 
   <div id="view-leaderboard" class="view-container animate__animated animate__fadeIn" style="display:none;">
-      <h2 style="margin-bottom: 10px; padding-left: 10px; text-align:center;"><i class="fas fa-trophy" style="color:#fbbf24"></i> Bảng Vàng</h2>
-      <div style="text-align:center; font-size:0.85rem; opacity:0.8; margin-bottom:20px;">Top học viên chăm chỉ nhất</div>
+      <h2 style="margin-bottom: 5px; padding-left: 10px; text-align:center;"><i class="fas fa-crown" style="color:#fbbf24"></i> Đấu Trường Tri Thức</h2>
+      <div style="text-align:center; font-size:0.85rem; opacity:0.8; margin-bottom:10px;">Vinh danh những học giả xuất sắc nhất</div>
       
-      <div class="glass-panel" style="padding: 0; overflow: hidden;">
-          <div style="display: grid; grid-template-columns: 40px 45px 1fr auto; padding: 12px 15px; background: rgba(255,255,255,0.05); font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">
+      <div id="podiumContainer" class="podium-container" style="display:none;">
+          </div>
+
+      <div class="glass-panel" style="padding: 0; overflow: hidden; min-height: 200px;">
+          <div style="display: grid; grid-template-columns: 30px 45px 1fr auto; padding: 12px 15px; background: rgba(0,0,0,0.2); font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">
              <div style="text-align:center">#</div>
              <div></div>
-             <div>Thành viên</div>
-             <div style="text-align:right">Điểm & Giờ</div>
+             <div>Học viên & Cấp bậc</div>
+             <div style="text-align:right">Điểm</div>
           </div>
           <div id="leaderboardList">
-              <div style="padding:20px; text-align:center;">Đang tải dữ liệu...</div>
+              <div style="padding:40px; text-align:center; opacity: 0.7;"><i class="fas fa-spinner fa-spin"></i> Đang tải bảng vàng...</div>
           </div>
       </div>
-      <button class="btn-primary" style="margin-top:20px; background: rgba(59, 130, 246, 0.4);" onclick="window.fetchLeaderboard()"><i class="fas fa-sync"></i> Cập nhật</button>
+      <button class="btn-primary" style="margin-top:20px; background: rgba(59, 130, 246, 0.4);" onclick="window.fetchLeaderboard()"><i class="fas fa-sync"></i> Cập nhật bảng xếp hạng</button>
   </div>
 
   <div id="view-topics" class="view-container animate__animated animate__fadeIn" style="display:none;">
@@ -453,7 +496,7 @@
     <i class="fas fa-home"></i> <span>Home</span>
   </div>
   <div class="tab-item" data-target="view-leaderboard" onclick="window.navTo('view-leaderboard')">
-    <i class="fas fa-trophy"></i> <span>Top 10</span>
+    <i class="fas fa-trophy"></i> <span>Xếp hạng</span>
   </div>
   <div class="tab-item" data-target="view-topics" onclick="window.navTo('view-topics')">
     <i class="fas fa-book-open"></i> <span>Library</span>
@@ -472,7 +515,7 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// !!! LƯU Ý: Đây là config của bạn. Để an toàn, hãy giới hạn domain trên Firebase Console.
+// !!! FIREBASE CONFIG !!!
 const firebaseConfig = {
   apiKey: "AIzaSyDtaVYb_72YvoGzvcERJZypUGS-u3skz2M",
   authDomain: "tuvung-88e8d.firebaseapp.com",
@@ -499,16 +542,24 @@ function formatTime(seconds) {
     if(seconds < 60) return seconds + 's';
     const h = Math.floor(seconds / 3600);
     const m = Math.floor((seconds % 3600) / 60);
-    if(h > 0) return `${h}h ${m}m`;
+    if(h > 0) return `${h}h${m}`;
     return `${m}m`;
 }
 
-// --- FIREBASE FUNCTIONS EXPORTED TO WINDOW ---
+// --- HELPER: RANK CALCULATION SYSTEM ---
+function getRankInfo(score) {
+    if (score >= 1000) return { title: 'HUYỀN THOẠI', color: '#ffd700', bg: 'rgba(255, 215, 0, 0.2)', icon: 'fas fa-dragon' };
+    if (score >= 500) return { title: 'ĐẠI SƯ', color: '#f87171', bg: 'rgba(248, 113, 113, 0.2)', icon: 'fas fa-chess-king' };
+    if (score >= 200) return { title: 'TINH ANH', color: '#c084fc', bg: 'rgba(192, 132, 252, 0.2)', icon: 'fas fa-gem' };
+    if (score >= 50) return { title: 'HỌC GIẢ', color: '#60a5fa', bg: 'rgba(96, 165, 250, 0.2)', icon: 'fas fa-book-reader' };
+    return { title: 'TẬP SỰ', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.2)', icon: 'fas fa-seedling' };
+}
+
+// --- FIREBASE FUNCTIONS ---
 window.loginGoogle = () => {
     signInWithPopup(auth, provider)
     .then((result) => {
         showToast("Đăng nhập thành công!", "success");
-        // Trigger sync immediately after login
         syncScoreToFirebase();
     }).catch((error) => {
         console.error(error);
@@ -520,7 +571,7 @@ window.logoutGoogle = () => {
     if(confirm("Bạn muốn đăng xuất?")) {
         signOut(auth).then(() => {
             showToast("Đã đăng xuất");
-            renderDashboard(); // Re-render to clear user specific view
+            renderDashboard(); 
         });
     }
 };
@@ -535,7 +586,6 @@ onAuthStateChanged(auth, (user) => {
         profile.style.display = 'flex';
         document.getElementById('userImg').src = user.photoURL;
         document.getElementById('userName').innerText = user.displayName;
-        // Auto sync when state restored
         syncScoreToFirebase(); 
     } else {
         btn.style.display = 'block';
@@ -546,82 +596,109 @@ onAuthStateChanged(auth, (user) => {
 async function syncScoreToFirebase() {
     if(!currentUser) return;
     const score = Object.keys(JSON.parse(localStorage.getItem('fp_aurora_mastered') || '{}')).length;
-    // accumulatedTime is global variable updated by timer
     
     try {
         await setDoc(doc(db, "leaderboard", currentUser.uid), {
             displayName: currentUser.displayName,
             photoURL: currentUser.photoURL,
             score: score,
-            studyTime: accumulatedTime, // NEW: Sync time
+            studyTime: accumulatedTime,
             lastUpdated: Date.now()
         }, { merge: true });
-        console.log("Synced: Score", score, "Time", accumulatedTime);
     } catch(e) {
         console.error("Error syncing score", e);
     }
 }
 
+// --- NEW LEADERBOARD LOGIC WITH PODIUM ---
 window.fetchLeaderboard = async () => {
     const listDiv = document.getElementById('leaderboardList');
-    listDiv.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
+    const podiumDiv = document.getElementById('podiumContainer');
+    listDiv.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.7;"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>';
     
     try {
-        // Sort by Score descending. 
-        // Note: Adding a second sort field (studyTime) might require a composite index in Firestore Console.
-        // We stick to score for safety, but display both.
-        const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(10));
+        const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(20));
         const querySnapshot = await getDocs(q);
         
-        let html = '';
-        let rank = 1;
-        
         if (querySnapshot.empty) {
-             listDiv.innerHTML = '<div style="text-align:center; padding:20px;">Chưa có dữ liệu bảng xếp hạng</div>';
+             listDiv.innerHTML = '<div style="text-align:center; padding:20px;">Chưa có dữ liệu. Hãy là người đầu tiên!</div>';
+             podiumDiv.style.display = 'none';
              return;
         }
 
-        querySnapshot.forEach((doc) => {
-            const d = doc.data();
-            const rankClass = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
-            const isMe = currentUser && doc.id === currentUser.uid ? 'background:rgba(59, 130, 246, 0.2); border:1px solid rgba(59,130,246,0.4);' : '';
-            
-            // Calculate title based on score
-            let levelTitle = "Tập sự";
-            if(d.score > 50) levelTitle = "Học giả";
-            if(d.score > 200) levelTitle = "Thông thái";
-            if(d.score > 500) levelTitle = "Đại sư";
+        const users = [];
+        querySnapshot.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
 
-            html += `
-                <div class="leaderboard-row" style="${isMe}">
-                    <div class="rank-num ${rankClass}">${rank}</div>
-                    <img src="${d.photoURL}" class="lb-avatar">
+        // Render Podium (Top 3)
+        let podiumHTML = '';
+        if(users.length > 0) {
+            podiumDiv.style.display = 'flex';
+            
+            // Reorder for podium visual: 2nd - 1st - 3rd
+            const order = [1, 0, 2]; // Indices from sorted array
+            
+            order.forEach(idx => {
+                if(!users[idx]) return;
+                const u = users[idx];
+                const rank = idx + 1;
+                const rankObj = getRankInfo(u.score);
+                
+                let avatarHTML = `<img src="${u.photoURL}" class="podium-avatar">`;
+                if(rank === 1) avatarHTML = `<i class="fas fa-crown crown-icon"></i>` + avatarHTML;
+                
+                podiumHTML += `
+                    <div class="podium-item rank-${rank}-stage">
+                        ${avatarHTML}
+                        <div class="podium-name">${u.displayName.split(' ')[0]}</div>
+                        <div class="podium-score">${u.score}</div>
+                        <div class="podium-rank">${rank}</div>
+                    </div>
+                `;
+            });
+            podiumDiv.innerHTML = podiumHTML;
+        }
+
+        // Render List (Rest of users)
+        let listHTML = '';
+        users.forEach((u, index) => {
+            const rank = index + 1;
+            if (rank <= 3) return; // Skip top 3, they are on podium
+
+            const isMe = currentUser && u.id === currentUser.uid ? 'background:rgba(59, 130, 246, 0.15); border-left: 3px solid #60a5fa;' : '';
+            const rankObj = getRankInfo(u.score);
+
+            listHTML += `
+                <div class="leaderboard-row animate__animated animate__fadeInUp" style="${isMe} animation-delay: ${index * 0.05}s">
+                    <div class="rank-num">${rank}</div>
+                    <img src="${u.photoURL}" class="lb-avatar">
                     <div class="lb-info">
-                        <div class="lb-name">${d.displayName}</div>
-                        <div class="lb-meta" style="color:${rank === 1 ? '#facc15' : '#94a3b8'}">${levelTitle}</div>
+                        <div class="lb-name">${u.displayName}</div>
+                        <div class="lb-meta">
+                            <span class="rank-badge" style="color:${rankObj.color}; background:${rankObj.bg}; border-color:${rankObj.color}">
+                                <i class="${rankObj.icon}"></i> ${rankObj.title}
+                            </span>
+                        </div>
                     </div>
                     <div class="lb-stats">
-                        <div class="lb-score">${d.score} từ</div>
-                        <div class="lb-time"><i class="far fa-clock"></i> ${formatTime(d.studyTime || 0)}</div>
+                        <div class="lb-score">${u.score}</div>
+                        <div class="lb-time">${formatTime(u.studyTime || 0)}</div>
                     </div>
                 </div>
             `;
-            rank++;
         });
         
-        listDiv.innerHTML = html;
+        listDiv.innerHTML = listHTML || '<div style="text-align:center; padding:20px; opacity:0.6; font-size:0.8rem;">Chưa có thêm người chơi khác</div>';
         
     } catch(e) {
         console.error(e);
-        listDiv.innerHTML = '<div style="text-align:center; color:#ff5252">Lỗi tải dữ liệu. Hãy kiểm tra kết nối mạng.</div>';
+        listDiv.innerHTML = '<div style="text-align:center; color:#ff5252">Lỗi tải dữ liệu.</div>';
     }
 };
 
 /* -------------------------------------------------------------------------
-   APP LOGIC & AUDIO ENGINE 
+   APP LOGIC & AUDIO ENGINE (GIỮ NGUYÊN)
    ------------------------------------------------------------------------- */
 
-// --- AUDIO ENGINE ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let masterGain = null;
 
@@ -701,15 +778,12 @@ window.initApp = function() {
     applyTheme();
     updateConfigUI();
     window.fetchTopics(); 
-    
-    // Display initial time
     document.getElementById('dashTime').innerText = formatTime(accumulatedTime);
     
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
         window.speechSynthesis.onvoiceschanged = setupVoice;
     }
     setTimeout(setupVoice, 1000);
-    
     window.navTo('view-home');
     updateMuteIcon();
 }
@@ -734,7 +808,7 @@ window.navTo = function(viewId) {
     const target = document.getElementById(viewId);
     target.style.display = 'block';
     target.classList.remove('animate__fadeIn');
-    void target.offsetWidth; // trigger reflow
+    void target.offsetWidth; 
     target.classList.add('animate__fadeIn');
     
     document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
@@ -777,7 +851,7 @@ window.fetchTopics = async function(manual = false) {
             }
         }
         
-        status.innerText = "Aurora Science Edition • Ready";
+        status.innerText = "Aurora Rank Master • Ready";
         if(!currentTopicKey || !allTopics[currentTopicKey]) currentTopicKey = Object.keys(allTopics)[0];
         
         if(manual) showToast("Đồng bộ thành công!", "success");
@@ -793,7 +867,7 @@ function getWordKey(w) {
     return (w.english + '_' + (w.vietnamese || '').substring(0,3)).toLowerCase().replace(/\s/g,'');
 }
 
-// --- CORE: SCIENTIFIC LEARNING ALGORITHM ---
+// --- GAME LOGIC START ---
 window.startSmartSession = function() {
     if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
     playSound(SFX.POP);
@@ -859,7 +933,6 @@ window.processResult = function(isCorrect) {
         
         srsData[key] = data;
         localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
-        
         setTimeout(() => { isProcessing = false; nextStep(); }, 600);
         
     } else {
@@ -896,24 +969,22 @@ function openGameOverlay() {
     document.getElementById('gameOverlay').style.display = 'flex';
     document.getElementById('gameOverlay').classList.add('animate__animated', 'animate__fadeIn');
     updateProgress();
-    startTimer(); // Start tracking time
+    startTimer(); 
 }
 
 window.closeGame = function() {
     document.getElementById('gameOverlay').style.display = 'none';
     window.speechSynthesis.cancel();
-    stopTimer(); // Stop tracking time
-    syncScoreToFirebase(); // Sync score and time
+    stopTimer(); 
+    syncScoreToFirebase(); 
     renderDashboard();
 }
 
-// --- TIMER LOGIC ---
 function startTimer() {
     if(studyTimer) clearInterval(studyTimer);
     studyTimer = setInterval(() => {
         accumulatedTime++;
         localStorage.setItem('fp_aurora_time', accumulatedTime);
-        // We don't update UI every second to save performance, only on close or dashboard render
     }, 1000);
 }
 
@@ -960,7 +1031,7 @@ function nextStep() {
     }
 }
 
-// --- GAME MODE: FLASHCARD ---
+// --- CARD RENDERERS ---
 function renderFlashcard() {
     const w = sessionQueue[sessionIndex];
     isFlipped = false;
@@ -1019,7 +1090,6 @@ window.flipCard = function() {
     playSound(SFX.FLIP);
 }
 
-// --- GAME MODE: FILL ---
 function renderFill() {
     isProcessing = false;
     const w = sessionQueue[sessionIndex];
@@ -1061,7 +1131,6 @@ window.checkFill = function(ans) {
     }
 }
 
-// --- GAME MODE: MATCHING ---
 function setupMatching() {
     const subset = sessionQueue.slice(0, 4);
     if(subset.length < 2) { showToast("Cần tối thiểu 2 từ!", "error"); window.closeGame(); return; }
@@ -1123,7 +1192,6 @@ window.matchClick = function(idx, id) {
     }
 }
 
-// --- GAME MODE: QUIZ ---
 function setupQuiz() {
     isProcessing = false;
     const w = sessionQueue[sessionIndex];
@@ -1165,7 +1233,6 @@ window.handleQuiz = function(el, isCorrect) {
 }
 
 // --- UTILITIES ---
-
 window.startGame = function(mode) {
     if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
     playSound(SFX.POP);
@@ -1279,10 +1346,7 @@ window.markMastered = function() {
     delete srsData[key];
     localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
     localStorage.setItem('fp_aurora_mastered', JSON.stringify(masteredWords));
-    
-    // SYNC TO FIREBASE
     syncScoreToFirebase();
-    
     playSound(SFX.WIN);
     showToast("Đã chuyển vào kho Tinh thông!", "success");
     nextStep();
@@ -1328,7 +1392,6 @@ function updateConfigUI() {
     document.getElementById('cfgReviewLimit').value = config.reviewLimit;
     document.getElementById('dispLimitReview').innerText = config.reviewLimit;
 }
-
 </script>
 </body>
 </html>

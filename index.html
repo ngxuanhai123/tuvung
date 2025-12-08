@@ -191,7 +191,15 @@
     width: 100%; padding: 20px;
     display: flex; justify-content: space-between; align-items: center;
   }
-  .close-btn { color: var(--error); width: 40px; height: 40px; display: grid; place-items: center; font-size: 1.5rem; border-radius: 50%; cursor: pointer; }
+  .control-group { display: flex; gap: 10px; align-items: center; }
+  .control-btn { 
+    width: 40px; height: 40px; display: grid; place-items: center; 
+    font-size: 1.5rem; border-radius: 50%; cursor: pointer;
+  }
+  .close-btn { color: var(--error); }
+  .mute-btn { color: var(--accent); font-size: 1.2rem; }
+  .mute-btn.muted { color: var(--text-sub); }
+
 
   /* --- FLASHCARD SPECIFIC --- */
   .scene {
@@ -304,9 +312,9 @@
     
     <div class="game-mode-grid">
         <button class="neu-btn mode-btn flashcard" onclick="startGame('flashcard')"><i class="fas fa-layer-group"></i> Flashcard</button>
-        <button class="neu-btn mode-btn fill" onclick="startGame('fill')"><i class="fas fa-font"></i> Điền từ</button>
-        <button class="neu-btn mode-btn matching" onclick="startGame('matching')"><i class="fas fa-exchange-alt"></i> Ghép đôi</button>
-        <button class="neu-btn mode-btn quiz" onclick="startGame('quiz')"><i class="fas fa-check-square"></i> Trắc nghiệm</button>
+        <button class="neu-btn mode-btn fill" onclick="startGame('fill')"><i class="fas fa-font"></i> Điền từ (Đã thuộc)</button>
+        <button class="neu-btn mode-btn matching" onclick="startGame('matching')"><i class="fas fa-exchange-alt"></i> Ghép đôi (Đã thuộc)</button>
+        <button class="neu-btn mode-btn quiz" onclick="startGame('quiz')"><i class="fas fa-check-square"></i> Trắc nghiệm (Đã thuộc)</button>
     </div>
   </div>
 
@@ -352,14 +360,18 @@
 <div id="gameOverlay">
   <div class="game-header">
     <h2 id="gameTitle" style="color:var(--accent)">Chủ đề</h2>
-    <div style="display:flex; gap:10px; align-items:center;">
+    <div class="control-group">
+      <div id="muteBtn" class="neu-box control-btn mute-btn" onclick="toggleMute()">
+          <i class="fas fa-volume-up"></i>
+      </div>
+
       <label for="speedRate" style="font-size:0.9rem; font-weight:bold;">Tốc độ:</label>
       <select id="speedRate" class="neu-select" style="width: 80px; height: 35px; padding: 5px;">
         <option value="0.75">0.75x</option>
         <option value="1" selected>1.0x</option>
         <option value="1.25">1.25x</option>
       </select>
-      <div class="neu-box close-btn" onclick="closeGame()"><i class="fas fa-times"></i></div>
+      <div class="neu-box close-btn control-btn" onclick="closeGame()"><i class="fas fa-times"></i></div>
     </div>
   </div>
   
@@ -380,6 +392,7 @@
   let currentWords = [];
   let currentMode = '';
   let currentIndex = 0;
+  let isMuted = localStorage.getItem('isMuted') === 'true'; // Thêm biến Mute
   
   const STORAGE_KEY_MASTERED = 'flashcard_mastered_v2';
   const STORAGE_KEY_HISTORY = 'flashcard_history_v2';
@@ -430,10 +443,19 @@
       return `${en}_${vn}`;
   }
 
+  // Lấy danh sách từ chưa thuộc
   function getUniqueWords(words) {
       return words.filter(word => {
           const key = getWordKey(word);
           return !masteredWords[key];
+      });
+  }
+
+  // Lấy danh sách từ đã thuộc
+  function getMasteredWords(words) {
+      return words.filter(word => {
+          const key = getWordKey(word);
+          return !!masteredWords[key];
       });
   }
 
@@ -451,7 +473,24 @@
     
     // Đặt view mặc định
     switchView('homeView');
+    
+    // Cập nhật trạng thái nút mute ban đầu
+    updateMuteButton();
   };
+  
+  function updateMuteButton() {
+    const muteBtn = document.getElementById('muteBtn');
+    muteBtn.classList.toggle('muted', isMuted);
+    muteBtn.innerHTML = isMuted ? '<i class="fas fa-volume-mute"></i>' : '<i class="fas fa-volume-up"></i>';
+  }
+
+  function toggleMute() {
+    isMuted = !isMuted;
+    localStorage.setItem('isMuted', isMuted);
+    updateMuteButton();
+    window.speechSynthesis.cancel(); // Dừng phát âm ngay lập tức nếu bật mute
+  }
+
 
   // --- GITHUB FETCHING ---
   async function fetchTopics(isManualUpdate = false) {
@@ -510,9 +549,10 @@
       
       status.innerText = `Tải thành công ${Object.keys(allTopics).length} chủ đề.`;
       
-      // Tự động chọn chủ đề sau khi tải xong
+      // Tự động chọn chủ đề sau khi tải xong và BẮT ĐẦU CHẾ ĐỘ MẶC ĐỊNH
       if (Object.keys(allTopics).length > 0) {
         autoSelectTopic();
+        startGame('flashcard'); // Tự động bắt đầu Flashcard khi tải xong
       }
 
     } catch (err) {
@@ -580,6 +620,7 @@
       // Chuyển về Home view và hiển thị trạng thái mới
       switchView('homeView');
       renderTopicStatus();
+      startGame('flashcard'); // Tự động bắt đầu Flashcard khi chọn chủ đề
   }
 
   function autoSelectTopic() {
@@ -595,6 +636,7 @@
       
       if (lastTopicKey && keys.includes(lastTopicKey)) {
           const lastTopic = allTopics[lastTopicKey];
+          // Nếu đã thuộc hết từ trong chủ đề cũ, chuyển sang chủ đề tiếp theo
           if (getUniqueWords(lastTopic.words).length === 0) {
               const lastIndex = keys.indexOf(lastTopicKey);
               nextKey = keys[(lastIndex + 1) % keys.length];
@@ -622,17 +664,26 @@
     
     currentMode = mode;
     const allWords = allTopics[currentTopicKey].words;
-    currentWords = getUniqueWords(allWords);
-    
+
+    // Logic lọc từ cho từng mode
+    if (mode === 'flashcard') {
+        currentWords = getUniqueWords(allWords); // Flashcard học từ MỚI/CHƯA THUỘC
+    } else {
+        currentWords = getMasteredWords(allWords); // Các mode khác ôn lại từ ĐÃ THUỘC
+    }
+
     if (currentWords.length === 0) {
-        alert("Tuyệt vời! Bạn đã thuộc hết từ vựng trong chủ đề này. Đang tự động chuyển sang chủ đề tiếp theo.");
-        autoSelectTopic();
-        // Kiểm tra lại sau khi chuyển chủ đề
-        if (!currentTopicKey || getUniqueWords(allTopics[currentTopicKey].words).length === 0) {
-            alert("Bạn đã học hết tất cả các chủ đề!");
-            return;
+        if (mode === 'flashcard') {
+            alert("Tuyệt vời! Bạn đã thuộc hết từ vựng trong chủ đề này. Đang tự động chuyển sang chủ đề tiếp theo.");
+            autoSelectTopic();
+            if (!currentTopicKey || getUniqueWords(allTopics[currentTopicKey].words).length === 0) {
+                alert("Bạn đã học hết tất cả các chủ đề!");
+                return;
+            }
+            startGame(mode);
+        } else {
+            alert(`Bạn chưa có từ nào được đánh dấu là "Đã thuộc" trong chủ đề này để bắt đầu chế độ ${getModeName(mode)}.`);
         }
-        startGame(mode);
         return;
     }
 
@@ -646,7 +697,8 @@
     } else if (mode === 'matching') {
       setupMatching();
     } else if (mode === 'quiz') {
-      setupSmartQuiz(allWords);
+      // Quiz có logic lọc riêng (từ đã thuộc + từ cần ôn tập)
+      setupSmartQuiz(allWords); 
     }
     
     const displayControls = (mode === 'flashcard' || mode === 'fill');
@@ -657,14 +709,14 @@
   function getModeName(mode) {
       switch(mode) {
           case 'flashcard': return 'Flashcard';
-          case 'fill': return 'Điền từ';
-          case 'matching': return 'Ghép đôi';
-          case 'quiz': return 'Trắc nghiệm';
+          case 'fill': return 'Điền từ (Đã thuộc)';
+          case 'matching': return 'Ghép đôi (Đã thuộc)';
+          case 'quiz': return 'Trắc nghiệm (Ôn tập)';
           default: return 'Game';
       }
   }
 
-  // --- FLASHCARD & FILL IN THE BLANK LOGIC (Reduced for brevity, identical to previous) ---
+  // --- FLASHCARD & FILL IN THE BLANK LOGIC ---
   let isFlipped = false;
   
   function setupFlashcard() {
@@ -732,6 +784,9 @@
     document.getElementById('textOrdinalVn').innerText = w.ordinal_vn ? `(${w.ordinal_vn})` : "";
     
     document.getElementById('cardCounter').innerText = `${currentIndex + 1}/${currentWords.length}`;
+    
+    // Tự động phát âm khi thẻ mới được hiển thị
+    speakCurrentWord(); 
   }
   
   function renderFillInTheBlank() {
@@ -789,14 +844,24 @@
       if (currentIndex < currentWords.length - 1) {
         currentIndex++;
       } else {
-        alert("Bạn đã hoàn thành lượt học này! Đang chuyển sang chủ đề tiếp theo.");
-        autoSelectTopic();
-        if (Object.keys(allTopics).length > 0 && getUniqueWords(allTopics[currentTopicKey].words).length === 0) {
-            alert("Tuyệt vời, bạn đã học hết tất cả từ vựng!");
-            closeGame();
-            return;
+        if (currentMode === 'flashcard') {
+            alert("Bạn đã hoàn thành lượt học này! Đang chuyển sang chủ đề tiếp theo.");
+            autoSelectTopic();
+            if (Object.keys(allTopics).length > 0 && getUniqueWords(allTopics[currentTopicKey].words).length === 0) {
+                alert("Tuyệt vời, bạn đã học hết tất cả từ vựng!");
+                closeGame();
+                return;
+            }
+        } else {
+            alert("Bạn đã hoàn thành lượt ôn tập này!");
         }
-        startGame(currentMode);
+
+        // Tự động bắt đầu lại game trong chế độ flashcard nếu có từ mới
+        if (currentMode === 'flashcard') {
+            startGame(currentMode);
+        } else {
+            closeGame();
+        }
         return;
       }
       
@@ -815,10 +880,17 @@
     }
   }
   
-  // --- MATCHING GAME LOGIC (Reduced for brevity, identical to previous) ---
+  // --- MATCHING GAME LOGIC ---
   let matchingGame = { items: [], selected: null, matches: 0, totalPairs: 0 };
 
   function setupMatching() {
+      const mastered = getMasteredWords(allTopics[currentTopicKey].words);
+      if (mastered.length === 0) {
+          alert("Không có từ nào đã thuộc để luyện tập chế độ Ghép đôi.");
+          closeGame();
+          return;
+      }
+
       const content = document.getElementById('gameContent');
       content.innerHTML = `
           <div style="font-size:1.1rem; margin-bottom:15px;">Ghép Tiếng Anh và Tiếng Việt</div>
@@ -829,12 +901,12 @@
           </button>
       `;
       
-      const numPairs = Math.min(4, currentWords.length);
+      const numPairs = Math.min(4, mastered.length);
       matchingGame.totalPairs = numPairs;
       matchingGame.matches = 0;
       matchingGame.selected = null;
       
-      const shuffledWords = [...currentWords].sort(() => 0.5 - Math.random());
+      const shuffledWords = [...mastered].sort(() => 0.5 - Math.random());
       const selectedWords = shuffledWords.slice(0, numPairs);
       
       matchingGame.items = [];
@@ -902,7 +974,7 @@
       }
   }
 
-  // --- SMART QUIZ LOGIC (Reduced for brevity, identical to previous) ---
+  // --- SMART QUIZ LOGIC ---
   let quizGame = { words: [], currentWord: null, questionIndex: 0, totalQuestions: 0 };
   const RETENTION_MONTHS = 4;
 
@@ -919,20 +991,19 @@
       
       const fourMonthsAgo = Date.now() - (RETENTION_MONTHS * 30 * 24 * 60 * 60 * 1000);
       
+      // Lọc: Từ đã học (historyWords) VÀ KHÔNG nằm trong masteredWords
       quizGame.words = allWords.filter(word => {
           const key = getWordKey(word);
-          if (masteredWords[key]) return false; 
+          if (masteredWords[key]) return false; // Không ôn từ đã thuộc hoàn toàn
           const lastTime = historyWords[key] || 0;
-          return lastTime >= fourMonthsAgo;
+          return lastTime >= fourMonthsAgo; // Ôn từ đã học trong 4 tháng gần nhất (cần ôn lại)
       });
       
+      // Nếu không có từ nào cần ôn, lấy ngẫu nhiên 10 từ chưa thuộc để luyện tập
       if (quizGame.words.length === 0) {
           const uniqueWords = getUniqueWords(allWords);
           quizGame.words = uniqueWords.slice(0, Math.min(10, uniqueWords.length));
       }
-      
-      quizGame.words.sort(() => 0.5 - Math.random());
-      quizGame.words = quizGame.words.slice(0, 10);
       
       if (quizGame.words.length === 0) {
           document.getElementById('quizQuestion').innerText = "Tuyệt vời! Bạn đã thuộc hết từ vựng cần ôn tập.";
@@ -941,6 +1012,9 @@
           document.getElementById('cardCounter').style.display = 'none';
           return;
       }
+      
+      quizGame.words.sort(() => 0.5 - Math.random());
+      quizGame.words = quizGame.words.slice(0, 10); // Tối đa 10 câu hỏi
       
       quizGame.questionIndex = 0;
       quizGame.totalQuestions = quizGame.words.length;
@@ -1022,13 +1096,14 @@
       }
   }
 
-  // --- HISTORY & MASTERED LOGIC (Reduced for brevity, identical to previous) ---
+  // --- HISTORY & MASTERED LOGIC ---
   function updateHistory(word, isCorrect) {
       const key = getWordKey(word);
       historyWords[key] = Date.now();
       localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyWords));
       
       if (!isCorrect) {
+          // Nếu trả lời sai, gỡ khỏi danh sách đã thuộc (nếu có)
           if (masteredWords[key]) {
              delete masteredWords[key];
              localStorage.setItem(STORAGE_KEY_MASTERED, JSON.stringify(masteredWords));
@@ -1047,15 +1122,17 @@
           alert(`Đã đánh dấu "${word.english}" là đã thuộc!`);
           if (currentMode === 'flashcard' || currentMode === 'fill') {
               updateHistory(word, true); 
-              nextCard(true); 
+              nextCard(true); // Tự động chuyển sang từ tiếp theo khi đánh dấu thuộc
           }
       }
       localStorage.setItem(STORAGE_KEY_MASTERED, JSON.stringify(masteredWords));
       renderTopicStatus();
   }
   
-  // --- TEXT TO SPEECH (Reduced for brevity, identical to previous) ---
+  // --- TEXT TO SPEECH ---
   function speakCurrentWord() {
+    if (isMuted) return; // Kiểm tra trạng thái mute
+
     let wordToSpeak = '';
     
     if (currentMode === 'flashcard' || currentMode === 'fill') {
@@ -1081,11 +1158,11 @@
 
         window.speechSynthesis.speak(utterance);
     } else {
-        alert("Trình duyệt của bạn không hỗ trợ Text-to-Speech.");
+        // alert("Trình duyệt của bạn không hỗ trợ Text-to-Speech."); // Bỏ alert để tránh phiền
     }
   }
 
-  // --- KEYBOARD CONTROLS (Reduced for brevity, identical to previous) ---
+  // --- KEYBOARD CONTROLS ---
   document.addEventListener('keydown', (e) => {
     if(document.getElementById('gameOverlay').style.display === 'flex') {
       if (currentMode === 'flashcard' || currentMode === 'fill') {
@@ -1100,6 +1177,10 @@
       if(e.key === 'v' || e.key === 'V') {
           e.preventDefault();
           speakCurrentWord();
+      }
+      if(e.key === 'm' || e.key === 'M') {
+          e.preventDefault();
+          toggleMute();
       }
     }
   });

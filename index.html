@@ -7,16 +7,17 @@
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
   :root {
-    --bg-color: #f0f2f5;
-    --card-color: #f0f2f5;
+    --bg-color: #f0f4f8; /* Nền sáng */
+    --card-color: #f0f4f8;
     --text-main: #2d3436;
     --text-sub: #636e72;
-    --accent: #4834d4; /* Màu tím đậm hiện đại */
+    --accent: #4834d4; /* Màu tím đậm */
     --accent-hover: #686de0;
     --shadow-light: #ffffff;
     --shadow-dark: #d1d9e6;
-    --success: #2ecc71;
-    --error: #e74c3c;
+    --success: #2ecc71; /* Xanh lá */
+    --error: #e74c3c; /* Đỏ */
+    --warning: #f1c40f; /* Vàng */
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
@@ -29,7 +30,7 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding-bottom: 80px; /* Space for bottom bar */
+    padding-bottom: 80px;
   }
 
   /* --- NEUMORPHISM UTILS --- */
@@ -53,14 +54,19 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
+    font-size: 0.9rem;
   }
   .neu-btn:hover { transform: translateY(-2px); color: var(--accent-hover); }
   .neu-btn:active {
     box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
     transform: translateY(1px);
   }
+  .neu-btn.mastered { background-color: var(--success); color: white; }
+  .neu-btn.incorrect { background-color: var(--error); color: white; }
+  .neu-btn.correct { background-color: var(--success); color: white; }
 
-  .neu-input {
+
+  .neu-input, .neu-select {
     width: 100%;
     padding: 12px 20px;
     border-radius: 15px;
@@ -103,19 +109,24 @@
     cursor: pointer;
     transition: transform 0.3s;
     text-align: center;
+    position: relative;
+    border-left: 5px solid transparent;
   }
+  .topic-card.active { border-left: 5px solid var(--accent); }
   .topic-card:hover { transform: translateY(-5px); }
   .topic-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
   .topic-meta { font-size: 0.9rem; color: var(--text-sub); }
 
-  /* --- FLASHCARD GAME AREA --- */
+  /* --- GAME OVERLAY --- */
   #gameOverlay {
     position: fixed; inset: 0;
     background: var(--bg-color);
     z-index: 1000;
-    display: none; /* Hidden by default */
+    display: none;
     flex-direction: column;
     align-items: center;
+    overflow-y: auto;
+    padding-bottom: 50px;
   }
   
   .game-header {
@@ -124,7 +135,7 @@
   }
   .close-btn { color: var(--error); width: 40px; height: 40px; display: grid; place-items: center; font-size: 1.5rem; border-radius: 50%; cursor: pointer; }
 
-  /* 3D Flip Card */
+  /* --- FLASHCARD SPECIFIC --- */
   .scene {
     width: 320px; height: 450px;
     perspective: 1000px;
@@ -150,7 +161,6 @@
     align-items: center;
     padding: 20px;
     text-align: center;
-    /* Neumorphism for card face */
     background: var(--card-color);
     box-shadow: 10px 10px 20px var(--shadow-dark), -10px -10px 20px var(--shadow-light);
     border: 2px solid rgba(255,255,255,0.1);
@@ -168,40 +178,57 @@
     background: var(--accent); color: white;
     padding: 5px 10px; border-radius: 10px; font-size: 0.8rem;
   }
-
-  /* Controls */
-  .controls-area {
-    width: 90%; max-width: 400px;
-    display: flex; justify-content: space-between; align-items: center;
-    margin-top: 20px;
-  }
   
+  .mastered-btn-area {
+    width: 100%; display: flex; justify-content: center; margin-top: 15px;
+  }
+  /* --- TTS CONTROLS --- */
   .tts-controls {
     display: flex; gap: 10px; align-items: center;
     margin-bottom: 20px;
   }
-  select.neu-select {
-    padding: 8px; border-radius: 10px; border: none;
-    background: var(--bg-color);
-    box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light);
-    color: var(--text-main); font-weight: bold;
+
+  /* --- GAME CONTENT WRAPPER --- */
+  #gameContent {
+    width: 90%; max-width: 600px; margin: 20px auto;
+    display: flex; flex-direction: column; align-items: center;
   }
 
-  /* Responsive */
-  @media (max-width: 480px) {
-    .scene { width: 85%; height: 400px; }
-    .word-en { font-size: 2.5rem; }
-    h1 { font-size: 2rem; }
+  /* --- FILL IN THE BLANK SPECIFIC --- */
+  .fill-sentence { font-size: 1.4rem; text-align: center; margin-bottom: 20px; padding: 0 10px; }
+  .fill-input-area { display: flex; gap: 10px; width: 100%; justify-content: center; margin-top: 15px; }
+
+  /* --- MATCHING SPECIFIC --- */
+  .matching-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 500px;
   }
+  .match-btn {
+    padding: 15px; font-size: 1rem; text-align: center;
+    background: var(--card-color); border-radius: 15px;
+    box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
+    cursor: pointer; transition: all 0.1s;
+    height: 60px; /* Chiều cao cố định */
+    display: flex; align-items: center; justify-content: center;
+    word-break: break-word;
+  }
+  .match-btn.selected { border: 3px solid var(--accent); box-shadow: 0 0 15px var(--accent); }
+  .match-btn.matched { background: var(--success); color: white; pointer-events: none; }
+  .match-btn.mismatch { background: var(--error); color: white; pointer-events: none; }
+  
+  /* --- QUIZ SPECIFIC --- */
+  .quiz-question { font-size: 1.5rem; text-align: center; margin-bottom: 30px; font-weight: bold; }
+  .quiz-options-grid { display: grid; grid-template-columns: 1fr; gap: 15px; width: 100%; }
+  .quiz-option-btn { padding: 15px; font-size: 1.1rem; }
+  
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Học Tiếng Anh</h1>
+  <h1>Học Từ Vựng</h1>
   
   <div class="neu-box config-panel">
-    <div style="font-size:0.9rem; color:var(--accent); margin-bottom:5px;">Nhập thông tin GitHub chứa file JSON:</div>
+    <div style="font-size:0.9rem; color:var(--accent); margin-bottom:5px;">Kết nối GitHub:</div>
     <div class="input-group">
       <input type="text" id="gh-user" class="neu-input" placeholder="Username (VD: octocat)">
       <input type="text" id="gh-repo" class="neu-input" placeholder="Repository (VD: tu-vung)">
@@ -219,59 +246,74 @@
   </div>
 </div>
 
+<div class="game-bar" style="position:fixed; bottom:0; left:0; right:0; background:var(--bg-color); padding:15px; display:flex; justify-content:center; gap:10px; box-shadow:0 -5px 15px rgba(0,0,0,0.1);">
+  <button class="neu-btn" onclick="startGame('flashcard')"><i class="fas fa-layer-group"></i> Flashcard</button>
+  <button class="neu-btn" onclick="startGame('fill')"><i class="fas fa-font"></i> Điền từ</button>
+  <button class="neu-btn" onclick="startGame('matching')"><i class="fas fa-exchange-alt"></i> Ghép đôi</button>
+  <button class="neu-btn" onclick="startGame('quiz')"><i class="fas fa-check-square"></i> Trắc nghiệm</button>
+</div>
+
 <div id="gameOverlay">
   <div class="game-header">
     <h2 id="gameTitle" style="color:var(--accent)">Chủ đề</h2>
-    <div class="neu-box close-btn" onclick="closeGame()"><i class="fas fa-times"></i></div>
-  </div>
-
-  <div class="tts-controls">
-    <label for="speedRate" style="font-size:0.9rem; font-weight:bold;">Tốc độ:</label>
-    <select id="speedRate" class="neu-select">
-      <option value="0.75">0.75x (Chậm)</option>
-      <option value="1">1.0x (Bình thường)</option>
-    </select>
-    <button class="neu-btn" onclick="speakCurrentWord()">
-      <i class="fas fa-volume-up"></i> Phát âm
-    </button>
-  </div>
-
-  <div class="scene">
-    <div class="card" id="flashcard" onclick="flipCard()">
-      <div class="card__face card__face--front">
-        <div class="ordinal-badge" id="cardOrdinal"></div>
-        <div class="word-en" id="textEn">Word</div>
-        <div class="word-ipa" id="textIpa">/ipa/</div>
-        <div style="font-size:0.8rem; color:#aaa;">(Chạm để lật)</div>
-      </div>
-      <div class="card__face card__face--back">
-        <div class="word-vn" id="textVn">Từ vựng</div>
-        <div class="word-example" id="textEx">Ví dụ</div>
-        <div id="textOrdinalVn" style="margin-top:10px; font-size:0.9rem; color:var(--accent)"></div>
-      </div>
+    <div style="display:flex; gap:10px; align-items:center;">
+      <label for="speedRate" style="font-size:0.9rem; font-weight:bold;">Tốc độ:</label>
+      <select id="speedRate" class="neu-select" style="width: 80px; height: 35px; padding: 5px;">
+        <option value="0.75">0.75x</option>
+        <option value="1">1.0x</option>
+      </select>
+      <div class="neu-box close-btn" onclick="closeGame()"><i class="fas fa-times"></i></div>
     </div>
   </div>
 
+  <div id="gameContent">
+    </div>
+
   <div class="controls-area">
-    <button class="neu-btn" onclick="prevCard()"><i class="fas fa-arrow-left"></i> Trước</button>
-    <span id="cardCounter" style="font-weight:bold; font-size:1.2rem;">1/10</span>
-    <button class="neu-btn" onclick="nextCard()">Sau <i class="fas fa-arrow-right"></i></button>
+    <button class="neu-btn" id="btnPrev" onclick="prevCard()"><i class="fas fa-arrow-left"></i> Trước</button>
+    <span id="cardCounter" style="font-weight:bold; font-size:1.2rem;">0/0</span>
+    <button class="neu-btn" id="btnNext" onclick="nextCard()">Sau <i class="fas fa-arrow-right"></i></button>
   </div>
 </div>
 
 <script>
-  // --- VARIABLES ---
+  // --- VARIABLES & STORAGE ---
+  let allTopics = {};
+  let currentTopicKey = null;
   let currentWords = [];
+  let currentMode = '';
   let currentIndex = 0;
-  let isFlipped = false;
   
-  // Lưu thông tin repo vào localStorage để đỡ phải nhập lại
+  // Storage keys
+  const STORAGE_KEY_MASTERED = 'flashcard_mastered';
+  const STORAGE_KEY_HISTORY = 'flashcard_history';
+  
+  // Tải dữ liệu lịch sử đã học và từ đã thuộc
+  let masteredWords = JSON.parse(localStorage.getItem(STORAGE_KEY_MASTERED) || '{}');
+  let historyWords = JSON.parse(localStorage.getItem(STORAGE_KEY_HISTORY) || '{}'); // { "word_key": timestamp_ms }
+
+  // --- UTILS ---
+  function getWordKey(word) {
+      // Dùng english + 3 ký tự đầu của vietnamese để làm key duy nhất
+      const en = (word.english || '').replace(/\s/g, '').toLowerCase();
+      const vn = (word.vietnamese || '').substring(0, 3).replace(/\s/g, '').toLowerCase();
+      return `${en}_${vn}`;
+  }
+
+  function getUniqueWords(words) {
+      // Loại bỏ các từ đã được đánh dấu Mastered
+      return words.filter(word => {
+          const key = getWordKey(word);
+          return !masteredWords[key];
+      });
+  }
+
+  // --- GITHUB FETCHING ---
   window.onload = () => {
     if(localStorage.getItem('gh_user')) document.getElementById('gh-user').value = localStorage.getItem('gh_user');
     if(localStorage.getItem('gh_repo')) document.getElementById('gh-repo').value = localStorage.getItem('gh_repo');
   };
 
-  // --- FETCH DATA FROM GITHUB ---
   async function fetchTopics() {
     const user = document.getElementById('gh-user').value.trim();
     const repo = document.getElementById('gh-repo').value.trim();
@@ -284,178 +326,586 @@
       return;
     }
 
-    // Lưu lại
     localStorage.setItem('gh_user', user);
     localStorage.setItem('gh_repo', repo);
 
     status.style.color = 'var(--text-sub)';
     status.innerText = "Đang kết nối GitHub...";
-    listDiv.innerHTML = '<div class="neu-box" style="padding:20px; text-align:center;">Đang tải danh sách file...</div>';
+    listDiv.innerHTML = '<div class="neu-box" style="grid-column: 1/-1; padding:20px; text-align:center;">Đang tải danh sách file...</div>';
+    allTopics = {};
 
     try {
-      // 1. Lấy danh sách file trong thư mục gốc
       const apiURL = `https://api.github.com/repos/${user}/${repo}/contents/`;
       const res = await fetch(apiURL);
-      
-      if(!res.ok) throw new Error("Không tìm thấy Repo hoặc lỗi mạng.");
-      
+      if(!res.ok) throw new Error(`Lỗi ${res.status}: Không tìm thấy Repo hoặc lỗi mạng.`);
       const files = await res.json();
-      
-      // 2. Lọc file .json
-      const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+      const jsonFiles = files.filter(f => f.name.endsWith('.json')).sort((a,b) => a.name.localeCompare(b.name));
 
       if (jsonFiles.length === 0) {
-        listDiv.innerHTML = '<div style="text-align:center;">Không tìm thấy file .json nào trong repo này.</div>';
+        listDiv.innerHTML = '<div style="grid-column: 1/-1; text-align:center;">Không tìm thấy file .json nào trong repo này.</div>';
         status.innerText = "";
         return;
       }
 
-      // 3. Render danh sách
-      listDiv.innerHTML = '';
-      jsonFiles.forEach(file => {
-        // Tạo thẻ cho mỗi chủ đề
-        const div = document.createElement('div');
-        div.className = 'neu-box topic-card';
-        div.innerHTML = `
-          <div class="topic-title">${formatName(file.name)}</div>
-          <div class="topic-meta">File: ${file.name}</div>
-        `;
-        div.onclick = () => loadTopicContent(file.download_url, formatName(file.name));
-        listDiv.appendChild(div);
-      });
-      status.innerText = `Tìm thấy ${jsonFiles.length} chủ đề.`;
+      // Tải và lưu trữ nội dung từng file
+      for (const file of jsonFiles) {
+        const raw = await fetch(file.download_url);
+        const data = await raw.json();
+        
+        let words = [];
+        if (data.words && Array.isArray(data.words)) {
+            words = data.words;
+        } else if (Array.isArray(data)) {
+            words = data;
+        }
+        
+        if (words.length > 0) {
+            allTopics[file.name] = {
+                name: data.name || formatName(file.name),
+                words: words,
+                url: file.download_url
+            };
+        }
+      }
+      
+      renderTopicList();
+      status.innerText = `Tải thành công ${Object.keys(allTopics).length} chủ đề.`;
+      
+      // Tự động chọn chủ đề đầu tiên sau khi tải xong
+      if (Object.keys(allTopics).length > 0) {
+        autoSelectTopic();
+      }
 
     } catch (err) {
       console.error(err);
       status.style.color = 'var(--error)';
       status.innerText = "Lỗi: " + err.message;
-      listDiv.innerHTML = `<div style="text-align:center; color:var(--error)">Không thể tải dữ liệu.<br>Kiểm tra lại tên User/Repo.<br>(Lưu ý: Repo phải để Public)</div>`;
+      listDiv.innerHTML = `<div style="grid-column: 1/-1; text-align:center; color:var(--error)">Không thể tải dữ liệu. Kiểm tra lại tên User/Repo.</div>`;
     }
   }
-
-  // Helper: Làm đẹp tên file (bo-so-dem.json -> Bo So Dem)
+  
   function formatName(filename) {
-    return filename.replace('.json', '').replace(/[-_]/g, ' ').toUpperCase();
+    return filename.replace('.json', '').replace(/[-_]/g, ' ').split(' ').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
   }
-
-  // --- LOAD CONTENT ---
-  async function loadTopicContent(url, name) {
-    try {
-      const res = await fetch(url);
-      const data = await res.json();
+  
+  function renderTopicList() {
+      const listDiv = document.getElementById('topicList');
+      listDiv.innerHTML = '';
+      const keys = Object.keys(allTopics).sort(); // Sắp xếp theo tên file
       
-      // Xử lý cấu trúc JSON khác nhau
-      // Ưu tiên: data.words, nếu không thì coi data chính là mảng
-      if (data.words && Array.isArray(data.words)) {
-        currentWords = data.words;
-      } else if (Array.isArray(data)) {
-        currentWords = data;
-      } else {
-        alert("Cấu trúc file JSON không hợp lệ (cần mảng hoặc object có key 'words')");
-        return;
+      keys.forEach(key => {
+          const topic = allTopics[key];
+          const div = document.createElement('div');
+          div.className = `neu-box topic-card ${key === currentTopicKey ? 'active' : ''}`;
+          div.innerHTML = `
+            <div class="topic-title">${topic.name}</div>
+            <div class="topic-meta">(${getUniqueWords(topic.words).length}/${topic.words.length} từ chưa thuộc)</div>
+          `;
+          div.onclick = () => manualSelectTopic(key);
+          listDiv.appendChild(div);
+      });
+  }
+
+  function manualSelectTopic(key) {
+      currentTopicKey = key;
+      renderTopicList();
+      alert(`Đã chọn: ${allTopics[key].name}. Bấm nút chơi game để bắt đầu!`);
+  }
+
+  function autoSelectTopic() {
+      const keys = Object.keys(allTopics).sort();
+      if (keys.length > 0) {
+          const lastTopicKey = localStorage.getItem('last_topic_key');
+          let nextKey = keys[0]; // Mặc định là chủ đề đầu tiên
+          
+          if (lastTopicKey && keys.includes(lastTopicKey)) {
+              const lastIndex = keys.indexOf(lastTopicKey);
+              nextKey = keys[(lastIndex + 1) % keys.length]; // Chủ đề tiếp theo
+          }
+          
+          currentTopicKey = nextKey;
+          localStorage.setItem('last_topic_key', currentTopicKey);
+          renderTopicList();
+          document.getElementById('status-msg').innerText = `Tự động chọn chủ đề: ${allTopics[currentTopicKey].name}.`;
       }
+  }
 
-      if(currentWords.length === 0) {
-        alert("File này không có từ vựng nào!");
-        return;
-      }
-
-      // Start Game
-      document.getElementById('gameTitle').innerText = name || data.name || "Học Từ Vựng";
-      openGame();
-
-    } catch (e) {
-      alert("Lỗi khi đọc file JSON: " + e.message);
+  // --- GAME INITIALIZATION & CONTROL ---
+  function startGame(mode) {
+    if (!currentTopicKey) {
+      alert("Vui lòng tải dữ liệu từ GitHub và chọn chủ đề trước!");
+      return;
     }
-  }
+    
+    currentMode = mode;
+    const allWords = allTopics[currentTopicKey].words;
+    
+    // Loại trừ từ đã thuộc
+    currentWords = getUniqueWords(allWords);
+    
+    if (currentWords.length === 0) {
+        alert("Tuyệt vời! Bạn đã thuộc hết từ vựng trong chủ đề này. Đang chuyển sang chủ đề tiếp theo.");
+        autoSelectTopic();
+        startGame(mode); // Thử load game với chủ đề mới
+        return;
+    }
 
-  // --- GAME LOGIC ---
-  function openGame() {
-    currentIndex = 0;
     document.getElementById('gameOverlay').style.display = 'flex';
-    renderCard();
+    document.getElementById('gameTitle').innerText = `${allTopics[currentTopicKey].name} - ${getModeName(mode)}`;
+
+    // Tải nội dung game cụ thể
+    if (mode === 'flashcard') {
+      setupFlashcard();
+    } else if (mode === 'fill') {
+      setupFillInTheBlank();
+    } else if (mode === 'matching') {
+      setupMatching();
+    } else if (mode === 'quiz') {
+      setupSmartQuiz(allWords); // Quiz thông minh cần cả danh sách đã thuộc và chưa thuộc để làm distractors
+    }
+    
+    // Ẩn/Hiện nút điều hướng (chỉ cần cho Flashcard)
+    const displayControls = (mode === 'flashcard' || mode === 'fill');
+    document.getElementById('btnPrev').style.display = displayControls ? 'flex' : 'none';
+    document.getElementById('btnNext').style.display = displayControls ? 'flex' : 'none';
+    document.getElementById('cardCounter').style.display = displayControls ? 'block' : 'none';
+  }
+  
+  function getModeName(mode) {
+      switch(mode) {
+          case 'flashcard': return 'Flashcard';
+          case 'fill': return 'Điền từ';
+          case 'matching': return 'Ghép đôi';
+          case 'quiz': return 'Trắc nghiệm';
+          default: return 'Game';
+      }
   }
 
-  function closeGame() {
-    document.getElementById('gameOverlay').style.display = 'none';
+  // --- FLASHCARD & FILL IN THE BLANK LOGIC ---
+  let isFlipped = false;
+  
+  function setupFlashcard() {
+    const content = document.getElementById('gameContent');
+    content.innerHTML = `
+      <div class="scene">
+        <div class="card" id="flashcard" onclick="flipCard()">
+          <div class="card__face card__face--front">
+            <div class="ordinal-badge" id="cardOrdinal"></div>
+            <div class="word-en" id="textEn"></div>
+            <div class="word-ipa" id="textIpa"></div>
+            <div style="font-size:0.8rem; color:#aaa;">(Chạm để lật)</div>
+          </div>
+          <div class="card__face card__face--back">
+            <div class="word-vn" id="textVn"></div>
+            <div class="word-example" id="textEx"></div>
+            <div id="textOrdinalVn" style="margin-top:10px; font-size:0.9rem; color:var(--accent)"></div>
+          </div>
+        </div>
+      </div>
+      <div class="mastered-btn-area">
+          <button class="neu-btn" style="background-color: var(--warning); color: var(--text-main);" onclick="toggleMastered(currentWords[currentIndex])"><i class="fas fa-bookmark"></i> Đánh dấu Đã thuộc</button>
+      </div>
+    `;
+    currentIndex = 0;
+    renderFlashcard();
+  }
+  
+  function setupFillInTheBlank() {
+      const content = document.getElementById('gameContent');
+      content.innerHTML = `
+          <div class="fill-sentence" id="fillSentence"></div>
+          <div class="fill-input-area">
+              <input type="text" id="fillInput" class="neu-input" placeholder="Nhập từ còn thiếu (Tiếng Anh)">
+              <button class="neu-btn" style="width: 100px; color:white; background-color: var(--accent);" onclick="checkFillInTheBlank()"><i class="fas fa-check"></i> Check</button>
+          </div>
+          <div id="fillResult" style="margin-top: 15px; font-weight: bold;"></div>
+          <div id="fillAnswer" style="margin-top: 10px; font-size: 1.1rem; color: var(--text-main);"></div>
+      `;
+      currentIndex = 0;
+      renderFillInTheBlank();
   }
 
-  function renderCard() {
+  function renderFlashcard() {
     const w = currentWords[currentIndex];
     isFlipped = false;
     document.getElementById('flashcard').classList.remove('is-flipped');
 
-    // Reset nội dung
-    // Mặt trước
     document.getElementById('textEn').innerText = w.english || "???";
-    document.getElementById('textIpa').innerText = w.ipa ? w.ipa : "";
+    document.getElementById('textIpa').innerText = w.ipa || "";
     document.getElementById('cardOrdinal').style.display = w.ordinal ? 'block' : 'none';
     document.getElementById('cardOrdinal').innerText = w.ordinal || "";
 
-    // Mặt sau
-    // Xử lý fallback nếu JSON thiếu trường
     document.getElementById('textVn').innerText = w.vietnamese || "Chưa có nghĩa";
     document.getElementById('textEx').innerText = w.example || "Không có ví dụ";
+    document.getElementById('textOrdinalVn').innerText = w.ordinal_vn ? `(${w.ordinal_vn})` : "";
     
-    // Xử lý riêng cho số thứ tự (nếu có trong JSON của bạn)
-    const ordinalVn = w.ordinal_vn ? `(${w.ordinal_vn})` : "";
-    document.getElementById('textOrdinalVn').innerText = ordinalVn;
-
-    // Counter
     document.getElementById('cardCounter').innerText = `${currentIndex + 1}/${currentWords.length}`;
+  }
+  
+  function renderFillInTheBlank() {
+      const w = currentWords[currentIndex];
+      const sentence = w.example || `Dịch từ: ${w.vietnamese}`;
+      const englishWord = w.english || '';
+      
+      let blankedSentence = sentence;
+      if (englishWord) {
+          // Thay thế từ tiếng Anh bằng dấu chấm
+          blankedSentence = sentence.replace(new RegExp(`\\b${englishWord}\\b`, 'gi'), '_____');
+      }
+      
+      document.getElementById('fillSentence').innerHTML = `<i class="fas fa-quote-left" style="color:var(--accent);"></i> ${blankedSentence} <i class="fas fa-quote-right" style="color:var(--accent);"></i>`;
+      document.getElementById('fillInput').value = '';
+      document.getElementById('fillResult').innerText = '';
+      document.getElementById('fillAnswer').innerText = '';
+      document.getElementById('cardCounter').innerText = `${currentIndex + 1}/${currentWords.length}`;
+  }
+  
+  function checkFillInTheBlank() {
+      const w = currentWords[currentIndex];
+      const input = document.getElementById('fillInput').value.trim().toLowerCase();
+      const correct = (w.english || '').toLowerCase();
+      const resultDiv = document.getElementById('fillResult');
+      const answerDiv = document.getElementById('fillAnswer');
+
+      if (input === correct) {
+          resultDiv.style.color = 'var(--success)';
+          resultDiv.innerText = 'Chính xác! 🎉';
+          // Tự động chuyển
+          setTimeout(() => nextCard(true), 1500);
+      } else {
+          resultDiv.style.color = 'var(--error)';
+          resultDiv.innerText = 'Sai rồi. 😔';
+          answerDiv.style.color = 'var(--accent)';
+          answerDiv.innerText = `Đáp án đúng: ${w.english} (${w.vietnamese})`;
+          updateHistory(w, false);
+      }
   }
 
   function flipCard() {
-    isFlipped = !isFlipped;
-    document.getElementById('flashcard').classList.toggle('is-flipped');
-    
-    // Tự động phát âm khi lật sang mặt trước (tuỳ chọn, ở đây tôi tắt để người dùng tự bấm)
+    if (currentMode === 'flashcard') {
+      isFlipped = !isFlipped;
+      document.getElementById('flashcard').classList.toggle('is-flipped');
+    }
   }
 
-  function nextCard() {
-    if (currentIndex < currentWords.length - 1) {
-      currentIndex++;
-      renderCard();
-    } else {
-      // Loop lại từ đầu?
-      if(confirm("Bạn đã học hết danh sách. Học lại từ đầu?")) {
-        currentIndex = 0;
-        renderCard();
+  function nextCard(isCorrect = true) {
+    if (currentMode === 'fill') {
+        if (!isCorrect) return; // Không cho next nếu chưa check đúng
+    }
+    
+    if (currentMode === 'flashcard' || currentMode === 'fill') {
+      updateHistory(currentWords[currentIndex], isCorrect);
+
+      if (currentIndex < currentWords.length - 1) {
+        currentIndex++;
+      } else {
+        alert("Bạn đã hoàn thành lượt học này! Đang chuyển sang chủ đề tiếp theo.");
+        autoSelectTopic();
+        startGame(currentMode);
+        return;
       }
+      
+      if (currentMode === 'flashcard') renderFlashcard();
+      if (currentMode === 'fill') renderFillInTheBlank();
     }
   }
 
   function prevCard() {
-    if (currentIndex > 0) {
-      currentIndex--;
-      renderCard();
+    if (currentMode === 'flashcard' || currentMode === 'fill') {
+      if (currentIndex > 0) {
+        currentIndex--;
+      }
+      if (currentMode === 'flashcard') renderFlashcard();
+      if (currentMode === 'fill') renderFillInTheBlank();
     }
   }
+  
+  // --- MATCHING GAME LOGIC ---
+  let matchingGame = { items: [], selected: null, matches: 0, totalPairs: 0 };
 
+  function setupMatching() {
+      const content = document.getElementById('gameContent');
+      content.innerHTML = `
+          <div style="font-size:1.1rem; margin-bottom:15px;">Ghép Tiếng Anh và Tiếng Việt</div>
+          <div class="matching-grid" id="matchingGrid"></div>
+          <div id="matchingStatus" style="margin-top: 20px; font-weight: bold;"></div>
+          <button class="neu-btn" style="margin-top: 20px; color:white; background-color: var(--accent);" onclick="setupMatching()">
+              <i class="fas fa-sync-alt"></i> Chơi Lại/Từ khác
+          </button>
+      `;
+      
+      const numPairs = Math.min(3, currentWords.length); // Tối đa 3 cặp
+      matchingGame.totalPairs = numPairs;
+      matchingGame.matches = 0;
+      matchingGame.selected = null;
+      
+      // Chọn ngẫu nhiên các từ
+      const shuffledWords = [...currentWords].sort(() => 0.5 - Math.random());
+      const selectedWords = shuffledWords.slice(0, numPairs);
+      
+      matchingGame.items = [];
+      selectedWords.forEach(w => {
+          const key = getWordKey(w);
+          matchingGame.items.push({ text: w.english, type: 'en', key: key, word: w });
+          matchingGame.items.push({ text: w.vietnamese, type: 'vn', key: key, word: w });
+      });
+      
+      // Trộn lẫn
+      matchingGame.items.sort(() => 0.5 - Math.random());
+      renderMatchingGrid();
+  }
+  
+  function renderMatchingGrid() {
+      const grid = document.getElementById('matchingGrid');
+      grid.innerHTML = matchingGame.items.map((item, index) => `
+          <div class="match-btn neu-box" data-index="${index}" data-type="${item.type}" onclick="selectMatchItem(${index})">
+              ${item.text}
+          </div>
+      `).join('');
+      
+      document.getElementById('matchingStatus').innerText = `Đã ghép: ${matchingGame.matches}/${matchingGame.totalPairs}`;
+  }
+  
+  function selectMatchItem(index) {
+      const item = matchingGame.items[index];
+      const btn = document.querySelector(`.match-btn[data-index="${index}"]`);
+      
+      if (btn.classList.contains('matched') || btn.classList.contains('mismatch')) return;
+
+      if (!matchingGame.selected) {
+          // Chọn lần 1
+          matchingGame.selected = { index, item, btn };
+          btn.classList.add('selected');
+      } else if (matchingGame.selected.index === index) {
+          // Hủy chọn
+          matchingGame.selected.btn.classList.remove('selected');
+          matchingGame.selected = null;
+      } else {
+          // Chọn lần 2
+          const first = matchingGame.selected;
+          const second = { index, item, btn };
+          
+          first.btn.classList.remove('selected');
+          
+          if (first.item.key === second.item.key && first.item.type !== second.item.type) {
+              // Khớp đúng
+              first.btn.classList.add('matched');
+              second.btn.classList.add('matched');
+              matchingGame.matches++;
+              updateHistory(item.word, true); // Cập nhật lịch sử
+              
+              if (matchingGame.matches === matchingGame.totalPairs) {
+                  document.getElementById('matchingStatus').innerText = `Hoàn thành! 🎉`;
+                  // Tự động load game mới sau 2s
+                  setTimeout(() => setupMatching(), 2000); 
+              }
+              
+          } else {
+              // Khớp sai
+              first.btn.classList.add('mismatch');
+              second.btn.classList.add('mismatch');
+              updateHistory(item.word, false);
+              
+              setTimeout(() => {
+                  first.btn.classList.remove('mismatch');
+                  second.btn.classList.remove('mismatch');
+              }, 1000);
+          }
+          matchingGame.selected = null;
+      }
+  }
+
+  // --- SMART QUIZ LOGIC ---
+  let quizGame = { words: [], currentWord: null, questionIndex: 0, totalQuestions: 0 };
+  const RETENTION_MONTHS = 4; // Ôn tập trong 4 tháng
+
+  function setupSmartQuiz(allWords) {
+      const content = document.getElementById('gameContent');
+      content.innerHTML = `
+          <div class="quiz-question" id="quizQuestion"></div>
+          <div class="quiz-options-grid" id="quizOptions"></div>
+          <div id="quizResult" style="margin-top: 20px; font-weight: bold;"></div>
+          <button class="neu-btn" style="margin-top: 20px; color:white; background-color: var(--accent);" onclick="nextQuizQuestion()">
+              <i class="fas fa-arrow-right"></i> Tiếp theo
+          </button>
+      `;
+      
+      // 1. Lọc từ cần ôn tập (Chưa Mastered VÀ học trong 4 tháng gần nhất)
+      const fourMonthsAgo = Date.now() - (RETENTION_MONTHS * 30 * 24 * 60 * 60 * 1000);
+      
+      quizGame.words = allWords.filter(word => {
+          const key = getWordKey(word);
+          // Loại từ đã thuộc
+          if (masteredWords[key]) return false; 
+          
+          // Giữ lại từ đã học gần đây
+          const lastTime = historyWords[key] || 0;
+          return lastTime >= fourMonthsAgo;
+      });
+      
+      // Nếu không có từ ôn tập, lấy ngẫu nhiên 10 từ chưa thuộc
+      if (quizGame.words.length === 0) {
+          quizGame.words = getUniqueWords(allWords).slice(0, 10);
+      }
+      
+      // Trộn lẫn và giới hạn 10 câu hỏi
+      quizGame.words.sort(() => 0.5 - Math.random());
+      quizGame.words = quizGame.words.slice(0, 10);
+      
+      if (quizGame.words.length === 0) {
+          document.getElementById('quizQuestion').innerText = "Không có từ nào để ôn tập!";
+          document.getElementById('quizOptions').innerHTML = '';
+          return;
+      }
+      
+      quizGame.questionIndex = 0;
+      quizGame.totalQuestions = quizGame.words.length;
+      nextQuizQuestion(true);
+  }
+
+  function nextQuizQuestion(isInit = false) {
+      if (!isInit) {
+          // Check nếu đã trả lời xong câu trước
+          const resultDiv = document.getElementById('quizResult');
+          if (!resultDiv.innerText.includes('Chính xác') && !resultDiv.innerText.includes('Sai rồi')) {
+              alert("Vui lòng trả lời câu hỏi trước.");
+              return;
+          }
+          quizGame.questionIndex++;
+      }
+
+      if (quizGame.questionIndex >= quizGame.totalQuestions) {
+          document.getElementById('quizQuestion').innerText = "Hoàn thành bài Quiz! 🎉";
+          document.getElementById('quizOptions').innerHTML = '';
+          document.getElementById('quizResult').innerText = "Bạn đã hoàn thành lượt ôn tập này.";
+          setTimeout(() => closeGame(), 3000);
+          return;
+      }
+      
+      quizGame.currentWord = quizGame.words[quizGame.questionIndex];
+      renderQuizQuestion();
+  }
+
+  function renderQuizQuestion() {
+      const w = quizGame.currentWord;
+      const allWords = allTopics[currentTopicKey].words;
+      
+      // Lấy 3 từ nhiễu (distractors)
+      let distractors = allWords.filter(item => getWordKey(item) !== getWordKey(w))
+                                .sort(() => 0.5 - Math.random())
+                                .slice(0, 3);
+      
+      // Tạo các lựa chọn (sử dụng nghĩa Tiếng Việt)
+      let options = [
+          { text: w.vietnamese, isCorrect: true, word: w }
+      ];
+      distractors.forEach(d => {
+          options.push({ text: d.vietnamese, isCorrect: false, word: d });
+      });
+      
+      options.sort(() => 0.5 - Math.random()); // Trộn các lựa chọn
+
+      document.getElementById('quizQuestion').innerText = `Dịch từ tiếng Anh: "${w.english}"`;
+      document.getElementById('quizResult').innerText = '';
+      
+      document.getElementById('quizOptions').innerHTML = options.map((opt, index) => `
+          <button class="neu-btn quiz-option-btn" data-correct="${opt.isCorrect}" data-key="${getWordKey(opt.word)}" onclick="checkQuizAnswer(this, ${opt.isCorrect})">
+              ${opt.text}
+          </button>
+      `).join('');
+      
+      document.getElementById('cardCounter').innerText = `${quizGame.questionIndex + 1}/${quizGame.totalQuestions}`;
+  }
+
+  function checkQuizAnswer(button, isCorrect) {
+      const resultDiv = document.getElementById('quizResult');
+      const allButtons = document.querySelectorAll('.quiz-option-btn');
+      
+      // Vô hiệu hóa tất cả các nút sau khi chọn
+      allButtons.forEach(btn => btn.disabled = true);
+      
+      if (isCorrect) {
+          button.classList.add('correct');
+          resultDiv.style.color = 'var(--success)';
+          resultDiv.innerText = 'Chính xác! 🎉';
+          updateHistory(quizGame.currentWord, true);
+      } else {
+          button.classList.add('incorrect');
+          // Highlight đáp án đúng
+          document.querySelector('.quiz-option-btn[data-correct="true"]').classList.add('correct');
+          resultDiv.style.color = 'var(--error)';
+          resultDiv.innerText = `Sai rồi. 😔 Đáp án đúng là: "${quizGame.currentWord.vietnamese}"`;
+          updateHistory(quizGame.currentWord, false);
+      }
+  }
+
+  // --- HISTORY & MASTERED LOGIC ---
+  function updateHistory(word, isCorrect) {
+      const key = getWordKey(word);
+      // Cập nhật lịch sử (thời gian học gần nhất)
+      historyWords[key] = Date.now();
+      localStorage.setItem(STORAGE_KEY_HISTORY, JSON.stringify(historyWords));
+      
+      // Nếu trả lời sai, đảm bảo từ này không bị Mastered
+      if (!isCorrect) {
+          if (masteredWords[key]) {
+             delete masteredWords[key];
+             localStorage.setItem(STORAGE_KEY_MASTERED, JSON.stringify(masteredWords));
+             renderTopicList(); // Cập nhật số từ
+          }
+      }
+  }
+  
+  function toggleMastered(word) {
+      const key = getWordKey(word);
+      if (masteredWords[key]) {
+          delete masteredWords[key];
+          alert(`Đã gỡ "${word.english}" khỏi danh sách đã thuộc.`);
+      } else {
+          masteredWords[key] = true;
+          alert(`Đã đánh dấu "${word.english}" là đã thuộc!`);
+          // Tự động chuyển sang từ tiếp theo nếu đang ở flashcard
+          if (currentMode === 'flashcard') {
+              nextCard(); 
+          }
+      }
+      localStorage.setItem(STORAGE_KEY_MASTERED, JSON.stringify(masteredWords));
+      renderTopicList(); // Cập nhật số từ
+  }
+  
   // --- TEXT TO SPEECH ---
   function speakCurrentWord() {
-    const w = currentWords[currentIndex];
-    if (!w || !w.english) return;
-
-    // Hủy các lời nói cũ đang chờ
-    window.speechSynthesis.cancel();
-
-    const utterance = new SpeechSynthesisUtterance(w.english);
+    let wordToSpeak = '';
     
-    // Lấy tốc độ
+    // Lấy từ cần nói tùy theo mode
+    if (currentMode === 'flashcard' || currentMode === 'fill') {
+        wordToSpeak = currentWords[currentIndex].english;
+    } else if (currentMode === 'quiz' && quizGame.currentWord) {
+        wordToSpeak = quizGame.currentWord.english;
+    }
+
+    if (!wordToSpeak) return;
+
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(wordToSpeak);
+    
     const rate = parseFloat(document.getElementById('speedRate').value);
     utterance.rate = rate;
-    utterance.lang = 'en-US'; // Giọng Mỹ
+    utterance.lang = 'en-US';
 
     window.speechSynthesis.speak(utterance);
   }
 
-  // Hỗ trợ phím mũi tên
+  // --- KEYBOARD CONTROLS ---
   document.addEventListener('keydown', (e) => {
     if(document.getElementById('gameOverlay').style.display === 'flex') {
       if(e.key === 'ArrowRight') nextCard();
       if(e.key === 'ArrowLeft') prevCard();
-      if(e.key === ' ' || e.key === 'Enter') flipCard();
+      if(e.key === ' ' || e.key === 'Enter') {
+          if (currentMode === 'flashcard') flipCard();
+          if (currentMode === 'fill') checkFillInTheBlank();
+      }
+      if(e.key === 'v' || e.key === 'V') speakCurrentWord();
     }
   });
 

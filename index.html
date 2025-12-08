@@ -149,9 +149,19 @@
     background: rgba(255, 255, 255, 0.9);
     border: 2px solid rgba(255, 255, 255, 0.6);
     box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    /* [FIX START] Thêm màu chữ tối cho chế độ sáng */
+    color: #1e293b;
+    /* [FIX END] */
   }
   
-  body.dark-mode .card__face { background: rgba(30, 41, 59, 0.95); border-color: rgba(255,255,255,0.15); }
+  body.dark-mode .card__face { 
+    background: rgba(30, 41, 59, 0.95); 
+    border-color: rgba(255,255,255,0.15); 
+    /* [FIX START] Đặt lại màu chữ trắng cho chế độ tối */
+    color: #ffffff;
+    /* [FIX END] */
+  }
+
   .card__face--back { transform: rotateY(180deg); background: #ffffff; }
   body.dark-mode .card__face--back { background: #1e293b; }
   

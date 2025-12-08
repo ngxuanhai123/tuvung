@@ -3,17 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Neumorphism Từ Vựng Tiếng Anh</title>
+<title>Học Từ Vựng Tiếng Anh</title>
 <style>
   :root {
     --bg: #e0e5ec;
     --card: #e0e5ec;
-    --shadow-dark: #a3b1c6;
-    --shadow-light: #ffffff;
-    --primary: #6c5ce7;
+    --sd: #a3b1c6;
+    --sl: #ffffff;
+    --accent: #6c5ce7;
     --text: #2d3436;
-    --correct: #00b894;
-    --wrong: #d63031;
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body {
@@ -21,93 +19,103 @@
     background: var(--bg);
     color: var(--text);
     min-height: 100vh;
+    display: grid;
+    place-items: center;
   }
 
-  .container {
-    max-width: 1200px;
-    margin: 0 auto;
-    padding: 30px 20px;
-  }
-
-  header {
+  .home {
     text-align: center;
-    margin-bottom: 50px;
+    animation: fadeIn 1s;
   }
   h1 {
-    font-size: 3rem;
-    font-weight: 800;
+    font-size: 4rem;
+    font-weight: 900;
     background: linear-gradient(135deg, #6c5ce7, #a29bfe);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
-    margin-bottom: 10px;
+    margin-bottom: 20px;
   }
   .subtitle {
-    font-size: 1.3rem;
+    font-size: 1.5rem;
     color: #636e72;
+    margin-bottom: 50px;
   }
 
-  /* Neumorphism Card */
-  .neu-card {
+  .btn-big {
+    padding: 22px 60px;
+    font-size: 1.6rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 60px;
     background: var(--card);
-    border-radius: 25px;
-    padding: 25px;
-    margin: 20px 0;
-    box-shadow: 
-      12px 12px 24px var(--shadow-dark),
-      -12px -12px 24px var(--shadow-light);
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 15px 15px 30px var(--sd), -15px -15px 30px var(--sl);
+    cursor: pointer;
+    transition: all 0.4s;
   }
-  .neu-card:hover {
-    box-shadow: 
-      8px 8px 16px var(--shadow-dark),
-      -8px -8px 16px var(--shadow-light);
+  .btn-big:hover {
+    transform: translateY(-10px);
+    box-shadow: 25px 25px 50px var(--sd), -25px -25px 50px var(--sl);
   }
-  .neu-inset {
-    background: var(--bg);
-    box-shadow: inset 8px 8px 16px var(--shadow-dark),
-                inset -8px -8px 16px var(--shadow-light);
+  .btn-big:active {
+    box-shadow: inset 10px 10px 20px var(--sd), inset -10px -10px 20px var(--sl);
+  }
+
+  /* Panel chọn chủ đề */
+  #topicPanel {
+    position: fixed;
+    inset: 0;
+    background: rgba(224,229,236,0.98);
+    backdrop-filter: blur(20px);
+    display: none;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+    overflow-y: auto;
+    z-index: 1000;
+  }
+  .panel-box {
+    width: 100%;
+    max-width: 1200px;
+    background: var(--card);
+    border-radius: 35px;
+    padding: 50px;
+    box-shadow: 30px 30px 80px var(--sd), -30px -30px 80px var(--sl);
+  }
+  .panel-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 40px;
+  }
+  .close-panel {
+    width: 60px; height: 60px;
+    border-radius: 50%;
+    background: var(--card);
+    box-shadow: 8px 8px 16px var(--sd), -8px -8px 16px var(--sl);
+    font-size: 2rem;
+    cursor: pointer;
   }
 
   .topics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
     gap: 30px;
-    padding: 20px 0;
   }
-
   .topic-card {
     background: var(--card);
-    border-radius: 25px;
-    padding: 30px 25px;
+    border-radius: 28px;
+    padding: 40px 25px;
     text-align: center;
     cursor: pointer;
+    box-shadow: 15px 15px 30px var(--sd), -15px -15px 30px var(--sl);
     transition: all 0.4s;
-    box-shadow: 
-      15px 15px 30px var(--shadow-dark),
-      -15px -15px 30px var(--shadow-light);
   }
   .topic-card:hover {
-    transform: translateY(-15px);
-    box-shadow: 
-      20px 20px 40px var(--shadow-dark),
-      -20px -20px 40px var(--shadow-light);
+    transform: translateY(-20px);
+    box-shadow: 25px 25px 50px var(--sd), -25px -25px 50px var(--sl);
   }
-  .topic-card:active {
-    transform: translateY(-5px);
-    box-shadow: 
-      8px 8px 16px var(--shadow-dark),
-      -8px -8px 16px var(--shadow-light);
-  }
-  .topic-name {
-    font-size: 1.8rem;
-    font-weight: 700;
-    margin-bottom: 15px;
-  }
-  .word-count {
-    font-size: 1.3rem;
-    color: #74b9ff;
-    font-weight: 600;
-  }
+  .topic-name { font-size: 1.9rem; font-weight: 700; margin-bottom: 12px; }
+  .word-count { font-size: 1.4rem; color: #74b9ff; }
 
   .game-bar {
     position: fixed;
@@ -117,274 +125,147 @@
     display: flex;
     justify-content: center;
     gap: 20px;
-    box-shadow: 
-      0 -10px 20px var(--shadow-dark);
-    z-index: 100;
+    box-shadow: 0 -12px 24px var(--sd);
   }
-  .btn-neu {
-    padding: 16px 32px;
+  .btn-game {
+    padding: 16px 34px;
     font-size: 1.1rem;
     font-weight: 600;
     border: none;
     border-radius: 50px;
     background: var(--card);
-    color: var(--text);
-    cursor: pointer;
-    box-shadow: 
-      8px 8px 16px var(--shadow-dark),
-      -8px -8px 16px var(--shadow-light);
-    transition: all 0.3s;
-  }
-  .btn-neu:hover {
-    box-shadow: 
-      4px 4px 8px var(--shadow-dark),
-      -4px -4px 8px var(--shadow-light);
-  }
-  .btn-neu:active {
-    box-shadow: inset 6px 6px 12px var(--shadow-dark),
-                inset -6px -6px 12px var(--shadow-light);
-  }
-
-  #gameArea {
-    position: fixed;
-    inset: 0;
-    background: rgba(224, 229, 236, 0.97);
-    backdrop-filter: blur(15px);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    padding: 40px;
-    overflow-y: auto;
-  }
-  .game-container {
-    width: 100%;
-    max-width: 800px;
-    background: var(--card);
-    border-radius: 30px;
-    padding: 40px;
-    box-shadow: 
-      20px 20px 60px var(--shadow-dark),
-      -20px -20px 60px var(--shadow-light);
-  }
-  .close-btn {
-    position: absolute;
-    top: 30px; right: 40px;
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    background: var(--card);
-    box-shadow: 
-      8px 8px 16px var(--shadow-dark),
-      -8px -8px 16px var(--shadow-light);
-    display: grid;
-    place-items: center;
-    font-size: 2rem;
+    box-shadow: 8px 8px 16px var(--sd), -8px -8px 16px var(--sl);
     cursor: pointer;
   }
-
-  .flashcard {
-    width: 420px; height: 280px;
-    background: var(--card);
-    border-radius: 30px;
-    margin: 40px auto;
-    cursor: pointer;
-    box-shadow: 
-      15px 15px 30px var(--shadow-dark),
-      -15px -15px 30px var(--shadow-light);
-    position: relative;
-    transform-style: preserve-3d;
-    transition: transform 0.8s;
-  }
-  .flashcard.flipped { transform: rotateY(180deg); }
-  .front, .back {
-    position: absolute;
-    width: 100%; height: 100%;
-    backface-visibility: hidden;
-    border-radius: 30px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 30px;
-    font-size: 2.2rem;
-    font-weight: 700;
-  }
-  .front { box-shadow: inset 8px 8px 16px var(--shadow-dark), inset -8px -8px 16px var(--shadow-light); }
-  .back {
-    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-    color: white;
-    transform: rotateY(180deg);
+  .btn-game:active {
+    box-shadow: inset 6px 6px 12px var(--sd), inset -6px -6px 12px var(--sl);
   }
 
-  #score {
-    position: fixed;
-    top: 30px; left: 40px;
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--primary);
-    z-index: 1001;
-  }
+  @keyframes fadeIn { from {opacity:0; transform:scale(0.9);} to {opacity:1; transform:scale(1);} }
 </style>
 </head>
 <body>
 
-<div class="container">
-  <header>
-    <h1>Neumorphism Vocabulary</h1>
-    <p class="subtitle">Tự động tải tất cả chủ đề trong thư mục • Chạm để học</p>
-  </header>
-
-  <div id="topicsList" class="topics-grid"></div>
+<!-- Trang chủ -->
+<div class="home">
+  <h1>Học Từ Vựng</h1>
+  <p class="subtitle">Tiếng Anh nhớ lâu – chơi mà học</p>
+  <button class="btn-big" onclick="document.getElementById('topicPanel').style.display='flex'">
+    Chọn chủ đề
+  </button>
 </div>
 
+<!-- Panel chọn chủ đề (ẩn lúc đầu) -->
+<div id="topicPanel">
+  <div class="panel-box">
+    <div class="panel-header">
+      <h2 style="font-size:2.5rem;">Chọn chủ đề để học</h2>
+      <div class="close-panel" onclick="document.getElementById('topicPanel').style.display='none'">×</div>
+    </div>
+    <div id="topicsGrid" class="topics-grid"></div>
+  </div>
+</div>
+
+<!-- Thanh chơi game cố định dưới -->
 <div class="game-bar">
-  <button class="btn-neu" onclick="startGame('flashcard')">Flashcard</button>
-  <button class="btn-neu" onclick="startGame('fill')">Điền từ</button>
-  <button class="btn-neu" onclick="startGame('matching')">Ghép đôi</button>
-  <button class="btn-neu" onclick="startGame('quiz')">Trắc nghiệm</button>
-</div>
-
-<div id="score"></div>
-<div id="gameArea">
-  <div class="close-btn" onclick="closeGame()">×</div>
-  <div class="game-container" id="gameContent"></div>
+  <button class="btn-game" onclick="start('flashcard')">Flashcard</button>
+  <button class="btn-game" onclick="start('fill')">Điền từ</button>
+  <button class="btn-game" onclick="start('matching')">Ghép đôi</button>
+  <button class="btn-game" onclick="start('quiz')">Trắc nghiệm</button>
 </div>
 
 <script>
-// Dữ liệu + tự động load
-let allTopics = {};
 let currentWords = [];
-let currentTopicName = "";
-let currentIndex = 0, score = 0, totalQuestions = 0;
+let currentName = "";
 
-// Mẫu 8 chủ đề đẹp nếu mở file trực tiếp vẫn chạy
-const sampleTopics = {
-  "cơ_bản.json": {name:"Từ vựng cơ bản A1-A2", words:[
-    {english:"hello",vietnamese:"xin chào",example:"Hello! How are you?"},
-    {english:"family",vietnamese:"gia đình",example:"I love my family."},
-    {english:"happy",vietnamese:"vui vẻ",example:"I'm very happy today!"}
-  ]},
-  "ẩm_thực.json": {name:"Ẩm thực", words:[
-    {english:"delicious",vietnamese:"ngon",example:"This phở is delicious!"},
-    {english:"hungry",vietnamese:"đói",example:"I'm hungry!"}
-  ]},
-  "du_lịch.json": {name:"Du lịch", words:[
-    {english:"travel",vietnamese:"du lịch",example:"I love to travel."},
-    {english:"hotel",vietnamese:"khách sạn",example:"The hotel is beautiful."}
-  ]},
-  "công_việc.json": {name:"Công việc", words:[
-    {english:"meeting",vietnamese:"cuộc họp",example:"We have a meeting."},
-    {english:"salary",vietnamese:"lương",example:"My salary is good."}
-  ]},
-  "cơ_thể.json": {name:"Cơ thể người", words:[
-    {english:"head",vietnamese:"đầu"},
-    {english:"heart",vietnamese:"trái tim"}
-  ]},
-  "thời_tiết.json": {name:"Thời tiết", words:[
-    {english:"sunny",vietnamese:"nắng"},
-    {english:"rain",vietnamese:"mưa"}
-  ]},
-  "mua_sắm.json": {name:"Mua sắm", words:[
-    {english:"expensive",vietnamese:"đắt"},
-    {english:"sale",vietnamese:"giảm giá"}
-  ]},
-  "cảm_xúc.json": {name:"Cảm xúc", words:[
-    {english:"love",vietnamese:"yêu"},
-    {english:"sad",vietnamese:"buồn"}
-  ]}
-};
+// Tự động tải từ GitHub (thay repo của bạn vào đây)
+const REPO = "yourusername/your-repo"; // ← SỬA DÒNG NÀY
 
-async function loadAllTopics() {
-  if (location.protocol === 'file:') {
-    allTopics = sampleTopics;
-  } else {
-    // Nếu chạy trên server, thử quét file .json (cần mở bằng Live Server hoặc web server)
+async function loadTopics() {
+  let topics = {};
+
+  // 1. Thử lấy từ GitHub
+  if (REPO !== "yourusername/your-repo") {
     try {
-      const res = await fetch('./');
-      const html = await res.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const links = [...doc.querySelectorAll('a')].map(a => a.href).filter(h => h.endsWith('.json'));
-      for (let url of links) {
-        try {
-          const r = await fetch(url);
-          const data = await r.json();
-          const name = url.split('/').pop().replace('.json','').replace(/_/g,' ').replace(/-/g,' ');
-          allTopics[url] = {
+      const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
+      const files = await res.json();
+      for (let f of files) {
+        if (f.name.endsWith('.json')) {
+          const raw = await fetch(f.download_url);
+          const data = await raw.json();
+          const name = f.name.replace('.json','').replace(/[_-]/g,' ').trim();
+          topics[f.name] = {
             name: name.charAt(0).toUpperCase() + name.slice(1),
-            words: Array.isArray(data) ? data : data.words || []
+            words: Array.isArray(data) ? data : (data.words || [])
           };
-        } catch(e) {}
+        }
       }
     } catch(e) {}
-    if (Object.keys(allTopics).length === 0) allTopics = sampleTopics;
   }
-  displayTopics();
+
+  // 2. Nếu không có → dùng mẫu đẹp
+  if (Object.keys(topics).length === 0) {
+    topics = {
+      "cơ_bản.json": {name:"Cơ bản A1-A2", words:[
+        {english:"hello",vietnamese:"xin chào",example:"Hello!"},
+        {english:"family",vietnamese:"gia đình"}
+      ]},
+      "food.json": {name:"Ẩm thực", words:[
+        {english:"delicious",vietnamese:"ngon"},
+        {english:"coffee",vietnamese:"cà phê"}
+      ]},
+      "travel.json": {name:"Du lịch", words:[
+        {english:"passport",vietnamese:"hộ chiếu"},
+        {english:"beach",vietnamese:"bãi biển"}
+      ]}
+    };
+  }
+
+  // Hiển thị
+  const grid = document.getElementById('topicsGrid');
+  grid.innerHTML = Object.values(topics).map(t => `
+    <div class="topic-card" onclick="selectTopic('${t.name}', ${JSON.stringify(t.words)})">
+      <div class="topic-name">${t.name}</div>
+      <div class="word-count">${t.words.length} từ</div>
+    </div>
+  `).join('');
 }
 
-function displayTopics() {
-  const grid = document.getElementById('topicsList');
-  let html = '';
-  Object.values(allTopics).forEach(t => {
-    html += `
-      <div class="topic-card onclick="selectTopic('${t.name}', ${JSON.stringify(t.words).split('"').join('&quot;')})">
-        <div class="topic-name">${t.name}</div>
-        <div class="word-count">${t.words.length} từ vựng</div>
-      </div>`;
-  });
-  grid.innerHTML = html || '<div style="grid-column:1/-1;text-align:center;font-size:2rem;color:#636e72;">Đang tải chủ đề...</div>';
+function selectTopic(name, words) {
+  currentWords = words;
+  currentName = name;
+  document.getElementById('topicPanel').style.display = 'none';
+  alert(`Đã chọn: ${name} (${words.length} từ)`);
 }
 
-function selectTopic(name, wordsArray) {
-  currentWords = wordsArray;
-  currentTopicName = name;
-  document.getElementById('gameArea').style.display = 'flex';
-  document.getElementById('gameContent').innerHTML = `<h2 style="text-align:center;margin-bottom:30px;">${name} • ${wordsArray.length} từ</h2><p style="text-align:center;font-size:1.3rem;">Chọn trò chơi ở dưới để bắt đầu</p>`;
-  resetGame();
-}
-
-function closeGame() {
-  document.getElementById('gameArea').style.display = 'none';
-  resetGame();
-}
-
-function resetGame() {
-  currentIndex = 0; score = 0; totalQuestions = 0;
-  document.getElementById('score').innerHTML = '';
-}
-
-// ================= TRÒ CHƠI (chỉ để ví dụ – bạn có thể thêm đầy đủ như trước) =================
-function startGame(type) {
-  if (!currentWords.length) return alert("Chưa chọn chủ đề!");
-  resetGame();
-  const content = document.getElementById('gameContent');
-
+// Ví dụ Flashcard nhanh (bạn có thể thêm 3 trò còn lại)
+function start(type) {
+  if (!currentWords.length) return alert("Vui lòng chọn chủ đề trước!");
   if (type === 'flashcard') {
-    showFlashcard();
-    function showFlashcard() {
-      if (currentIndex >= currentWords.length) currentIndex = 0;
-      const w = currentWords[currentIndex];
-      content.innerHTML = `
-        <h2 style="text-align:center;margin:30px 0;color:var(--primary)">${currentTopicName}</h2>
-        <div class="flashcard" id="card" onclick="this.classList.toggle('flipped')">
-          <div class="front">${w.english}</div>
-          <div class="back">
-            <div>${w.vietnamese}</div>
-            <small style="margin-top:20px;font-size:1rem;opacity:0.9;">${w.example || ''}</small>
-          </div>
+    let i = 0;
+    const show = () => {
+      const w = currentWords[i];
+      const html = `
+        <h2 style="text-align:center;color:var(--accent);margin-bottom:30px;">${currentName}</h2>
+        <div style="width:460px;height:300px;margin:40px auto;background:var(--card);border-radius:30px;
+             box-shadow:20px 20px 40px var(--sd),-20px -20px 40px var(--sl);
+             display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:3rem;font-weight:700;cursor:pointer;"
+             onclick="this.innerHTML=this.innerHTML.includes('vietnamese')?'${w.english}':'${w.vietnamese}<br><small style=font-size:1rem;margin-top:20px>${w.example||''}</small>'">
+          ${w.english}
         </div>
-        <div style="text-align:center;margin-top:40px;">
-          <button class="btn-neu" onclick="currentIndex--;if(currentIndex<0)currentIndex=currentWords.length-1;showFlashcard()">Trước</button>
-          <span style="margin:0 40px;font-size:1.5rem;">${currentIndex+1} / ${currentWords.length}</span>
-          <button class="btn-neu" onclick="currentIndex++;showFlashcard()">Sau</button>
+        <div style="text-align:center;">
+          <button class="btn-game" onclick="i--;if(i<0)i=currentWords.length-1;show()">Trước</button>
+          <span style="margin:0 40px;font-size:2rem;">${i+1}/${currentWords.length}</span>
+          <button class="btn-game" onclick="i=(i+1)%currentWords.length;show()">Sau</button>
         </div>`;
-    }
+      document.body.insertAdjacentHTML('beforeend', `<div style="position:fixed;inset:0;background:rgba(0,0,0,0.8);display:grid;place-items:center;z-index:9999;">${html}<div style="position:absolute;top:30px;right:40px;font-size:3rem;color:white;cursor:pointer" onclick="this.parentElement.remove()">×</div></div>`);
+    };
+    show();
   }
-  // Bạn có thể dán thêm 3 trò còn lại vào đây giống phiên bản trước
 }
 
 // Khởi động
-loadAllTopics();
+loadTopics();
 </script>
 </body>
 </html>

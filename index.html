@@ -692,7 +692,11 @@ function processResult(isCorrect) {
             flipCard();
         }
         
-        setTimeout(() => { isProcessing = false; /* Wait for user to click Next */ }, 500);
+        // --- FIXED HERE: Auto move next after 2.5s ---
+        setTimeout(() => { 
+            isProcessing = false; 
+            nextStep();
+        }, 2500);
     }
 }
 

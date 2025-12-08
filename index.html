@@ -1393,5 +1393,67 @@ function updateConfigUI() {
     document.getElementById('dispLimitReview').innerText = config.reviewLimit;
 }
 </script>
+  <a href="https://ngxuanhai123.github.io/" class="floating-home-btn">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    </svg>
+    <span>Trang chủ</span>
+</a>
+
+<style>
+    /* CSS CHO NÚT QUAY VỀ */
+    .floating-home-btn {
+        position: fixed;
+        top: 20px;
+        left: 20px;
+        z-index: 1000;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50px;
+        color: white;
+        text-decoration: none;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease;
+        overflow: hidden;
+    }
+
+    .floating-home-btn svg {
+        width: 24px;
+        height: 24px;
+        transition: transform 0.3s ease;
+    }
+
+    /* Hiệu ứng Hover */
+    .floating-home-btn:hover {
+        background: linear-gradient(90deg, #4facfe, #00f2fe);
+        transform: translateY(2px);
+        box-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
+        border-color: transparent;
+        color: #0f172a; /* Đổi màu chữ khi hover cho dễ đọc */
+    }
+
+    .floating-home-btn:hover svg {
+        transform: scale(1.1);
+    }
+
+    /* Ẩn chữ trên mobile để gọn màn hình */
+    @media (max-width: 640px) {
+        .floating-home-btn span {
+            display: none;
+        }
+        .floating-home-btn {
+            padding: 12px;
+            border-radius: 50%;
+        }
+    }
+</style>
 </body>
 </html>

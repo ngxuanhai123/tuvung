@@ -186,7 +186,19 @@
   .tts-controls {
     display: flex; gap: 10px; align-items: center;
     margin-bottom: 20px;
+    justify-content: center; /* Thêm căn giữa */
   }
+  .tts-btn {
+    border: none;
+    background: var(--accent);
+    color: white;
+    padding: 10px 15px;
+    border-radius: 50px;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-size: 0.9rem;
+  }
+  .tts-btn:hover { background: var(--accent-hover); }
 
   /* --- GAME CONTENT WRAPPER --- */
   #gameContent {
@@ -230,19 +242,19 @@
   <div class="neu-box config-panel">
     <div style="font-size:0.9rem; color:var(--accent); margin-bottom:5px;">Kết nối GitHub:</div>
     <div class="input-group">
-      <input type="text" id="gh-user" class="neu-input" placeholder="Username (VD: octocat)">
-      <input type="text" id="gh-repo" class="neu-input" placeholder="Repository (VD: tu-vung)">
+      <input type="text" id="gh-user" class="neu-input" placeholder="Username (VD: octocat)" value="ngxuanhai123">
+      <input type="text" id="gh-repo" class="neu-input" placeholder="Repository (VD: tu-vung)" value="tuvung">
     </div>
     <button class="neu-btn" style="justify-content:center; width:100%" onclick="fetchTopics()">
       <i class="fas fa-cloud-download-alt"></i> Tải dữ liệu
     </button>
-    <div id="status-msg" style="font-size:0.8rem; color:var(--text-sub);"></div>
+    <div id="status-msg" style="font-size:0.8rem; color:var(--text-sub);">Vui lòng bấm Tải dữ liệu hoặc chờ 3 giây để tự động tải.</div>
   </div>
 </header>
 
 <div id="topicList" class="grid-container">
   <div style="grid-column: 1/-1; text-align: center; color: var(--text-sub); margin-top: 50px;">
-    Vui lòng nhập Github Info và bấm "Tải dữ liệu" để bắt đầu.
+    Đang tải dữ liệu từ GitHub...
   </div>
 </div>
 
@@ -260,18 +272,19 @@
       <label for="speedRate" style="font-size:0.9rem; font-weight:bold;">Tốc độ:</label>
       <select id="speedRate" class="neu-select" style="width: 80px; height: 35px; padding: 5px;">
         <option value="0.75">0.75x</option>
-        <option value="1">1.0x</option>
+        <option value="1" selected>1.0x</option>
+        <option value="1.25">1.25x</option>
       </select>
       <div class="neu-box close-btn" onclick="closeGame()"><i class="fas fa-times"></i></div>
     </div>
   </div>
-
+  
   <div id="gameContent">
     </div>
 
-  <div class="controls-area">
+  <div class="controls-area" style="display:flex; gap:20px; margin-top:30px;">
     <button class="neu-btn" id="btnPrev" onclick="prevCard()"><i class="fas fa-arrow-left"></i> Trước</button>
-    <span id="cardCounter" style="font-weight:bold; font-size:1.2rem;">0/0</span>
+    <span id="cardCounter" style="font-weight:bold; font-size:1.2rem; align-self:center;">0/0</span>
     <button class="neu-btn" id="btnNext" onclick="nextCard()">Sau <i class="fas fa-arrow-right"></i></button>
   </div>
 </div>
@@ -285,14 +298,20 @@
   let currentIndex = 0;
   
   // Storage keys
-  const STORAGE_KEY_MASTERED = 'flashcard_mastered';
-  const STORAGE_KEY_HISTORY = 'flashcard_history';
+  const STORAGE_KEY_MASTERED = 'flashcard_mastered_v2'; // Thay đổi key để tránh xung đột
+  const STORAGE_KEY_HISTORY = 'flashcard_history_v2'; // Thay đổi key để tránh xung đột
   
   // Tải dữ liệu lịch sử đã học và từ đã thuộc
   let masteredWords = JSON.parse(localStorage.getItem(STORAGE_KEY_MASTERED) || '{}');
   let historyWords = JSON.parse(localStorage.getItem(STORAGE_KEY_HISTORY) || '{}'); // { "word_key": timestamp_ms }
 
   // --- UTILS ---
+  function closeGame() {
+    document.getElementById('gameOverlay').style.display = 'none';
+    window.speechSynthesis.cancel(); // Dừng đọc khi thoát game
+    renderTopicList(); // Cập nhật lại số từ chưa thuộc
+  }
+
   function getWordKey(word) {
       // Dùng english + 3 ký tự đầu của vietnamese để làm key duy nhất
       const en = (word.english || '').replace(/\s/g, '').toLowerCase();
@@ -310,8 +329,18 @@
 
   // --- GITHUB FETCHING ---
   window.onload = () => {
-    if(localStorage.getItem('gh_user')) document.getElementById('gh-user').value = localStorage.getItem('gh_user');
-    if(localStorage.getItem('gh_repo')) document.getElementById('gh-repo').value = localStorage.getItem('gh_repo');
+    // Tự động sử dụng giá trị mặc định nếu chưa lưu trong localStorage
+    if(!localStorage.getItem('gh_user')) localStorage.setItem('gh_user', document.getElementById('gh-user').value);
+    if(!localStorage.getItem('gh_repo')) localStorage.setItem('gh_repo', document.getElementById('gh-repo').value);
+    
+    // Load lại giá trị đã lưu nếu có
+    document.getElementById('gh-user').value = localStorage.getItem('gh_user');
+    document.getElementById('gh-repo').value = localStorage.getItem('gh_repo');
+    
+    // Tự động tải dữ liệu
+    setTimeout(() => {
+        fetchTopics();
+    }, 100);
   };
 
   async function fetchTopics() {
@@ -323,6 +352,7 @@
     if(!user || !repo) {
       status.style.color = 'var(--error)';
       status.innerText = "Vui lòng nhập đủ User và Repo!";
+      listDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-sub); margin-top: 50px;">Vui lòng nhập Github Info và bấm "Tải dữ liệu" để bắt đầu.</div>';
       return;
     }
 
@@ -337,13 +367,13 @@
     try {
       const apiURL = `https://api.github.com/repos/${user}/${repo}/contents/`;
       const res = await fetch(apiURL);
-      if(!res.ok) throw new Error(`Lỗi ${res.status}: Không tìm thấy Repo hoặc lỗi mạng.`);
+      if(!res.ok) throw new Error(`Lỗi ${res.status}: Không tìm thấy Repo hoặc lỗi mạng. (URL: ${apiURL})`);
       const files = await res.json();
       const jsonFiles = files.filter(f => f.name.endsWith('.json')).sort((a,b) => a.name.localeCompare(b.name));
 
       if (jsonFiles.length === 0) {
         listDiv.innerHTML = '<div style="grid-column: 1/-1; text-align:center;">Không tìm thấy file .json nào trong repo này.</div>';
-        status.innerText = "";
+        status.innerText = "Repo không có file .json.";
         return;
       }
 
@@ -393,13 +423,20 @@
       listDiv.innerHTML = '';
       const keys = Object.keys(allTopics).sort(); // Sắp xếp theo tên file
       
+      if(keys.length === 0) {
+          listDiv.innerHTML = '<div style="grid-column: 1/-1; text-align: center; color: var(--text-sub); margin-top: 50px;">Không có chủ đề nào được tải.</div>';
+          return;
+      }
+      
       keys.forEach(key => {
           const topic = allTopics[key];
+          const wordsCount = topic.words.length;
+          const uniqueCount = getUniqueWords(topic.words).length;
           const div = document.createElement('div');
           div.className = `neu-box topic-card ${key === currentTopicKey ? 'active' : ''}`;
           div.innerHTML = `
             <div class="topic-title">${topic.name}</div>
-            <div class="topic-meta">(${getUniqueWords(topic.words).length}/${topic.words.length} từ chưa thuộc)</div>
+            <div class="topic-meta">(${uniqueCount}/${wordsCount} từ chưa thuộc)</div>
           `;
           div.onclick = () => manualSelectTopic(key);
           listDiv.appendChild(div);
@@ -409,7 +446,8 @@
   function manualSelectTopic(key) {
       currentTopicKey = key;
       renderTopicList();
-      alert(`Đã chọn: ${allTopics[key].name}. Bấm nút chơi game để bắt đầu!`);
+      document.getElementById('status-msg').style.color = 'var(--accent)';
+      document.getElementById('status-msg').innerText = `Đã chọn: ${allTopics[key].name}. Bấm nút chơi game để bắt đầu!`;
   }
 
   function autoSelectTopic() {
@@ -419,13 +457,20 @@
           let nextKey = keys[0]; // Mặc định là chủ đề đầu tiên
           
           if (lastTopicKey && keys.includes(lastTopicKey)) {
-              const lastIndex = keys.indexOf(lastTopicKey);
-              nextKey = keys[(lastIndex + 1) % keys.length]; // Chủ đề tiếp theo
+              // Tìm chủ đề tiếp theo chỉ khi chủ đề trước đã thuộc hết
+              const lastTopic = allTopics[lastTopicKey];
+              if (getUniqueWords(lastTopic.words).length === 0) {
+                  const lastIndex = keys.indexOf(lastTopicKey);
+                  nextKey = keys[(lastIndex + 1) % keys.length]; // Chủ đề tiếp theo
+              } else {
+                  nextKey = lastTopicKey; // Tiếp tục với chủ đề cũ nếu chưa học xong
+              }
           }
           
           currentTopicKey = nextKey;
           localStorage.setItem('last_topic_key', currentTopicKey);
           renderTopicList();
+          document.getElementById('status-msg').style.color = 'var(--accent)';
           document.getElementById('status-msg').innerText = `Tự động chọn chủ đề: ${allTopics[currentTopicKey].name}.`;
       }
   }
@@ -446,6 +491,11 @@
     if (currentWords.length === 0) {
         alert("Tuyệt vời! Bạn đã thuộc hết từ vựng trong chủ đề này. Đang chuyển sang chủ đề tiếp theo.");
         autoSelectTopic();
+        // Kiểm tra lại sau khi chuyển chủ đề
+        if (getUniqueWords(allTopics[currentTopicKey].words).length === 0) {
+            alert("Bạn đã học hết tất cả các chủ đề!");
+            return;
+        }
         startGame(mode); // Thử load game với chủ đề mới
         return;
     }
@@ -464,11 +514,14 @@
       setupSmartQuiz(allWords); // Quiz thông minh cần cả danh sách đã thuộc và chưa thuộc để làm distractors
     }
     
-    // Ẩn/Hiện nút điều hướng (chỉ cần cho Flashcard)
+    // Ẩn/Hiện nút điều hướng (chỉ cần cho Flashcard và Fill)
     const displayControls = (mode === 'flashcard' || mode === 'fill');
-    document.getElementById('btnPrev').style.display = displayControls ? 'flex' : 'none';
-    document.getElementById('btnNext').style.display = displayControls ? 'flex' : 'none';
-    document.getElementById('cardCounter').style.display = displayControls ? 'block' : 'none';
+    const controlsArea = document.querySelector('.controls-area');
+    if (displayControls) {
+        controlsArea.style.display = 'flex';
+    } else {
+        controlsArea.style.display = 'none';
+    }
   }
   
   function getModeName(mode) {
@@ -493,7 +546,7 @@
             <div class="ordinal-badge" id="cardOrdinal"></div>
             <div class="word-en" id="textEn"></div>
             <div class="word-ipa" id="textIpa"></div>
-            <div style="font-size:0.8rem; color:#aaa;">(Chạm để lật)</div>
+            <div style="font-size:0.8rem; color:#aaa; margin-top:20px;">(Chạm để lật)</div>
           </div>
           <div class="card__face card__face--back">
             <div class="word-vn" id="textVn"></div>
@@ -501,6 +554,9 @@
             <div id="textOrdinalVn" style="margin-top:10px; font-size:0.9rem; color:var(--accent)"></div>
           </div>
         </div>
+      </div>
+      <div class="tts-controls">
+          <button class="tts-btn neu-box" onclick="speakCurrentWord()"><i class="fas fa-volume-up"></i> Phát âm (V)</button>
       </div>
       <div class="mastered-btn-area">
           <button class="neu-btn" style="background-color: var(--warning); color: var(--text-main);" onclick="toggleMastered(currentWords[currentIndex])"><i class="fas fa-bookmark"></i> Đánh dấu Đã thuộc</button>
@@ -513,13 +569,19 @@
   function setupFillInTheBlank() {
       const content = document.getElementById('gameContent');
       content.innerHTML = `
+          <div class="tts-controls">
+              <button class="tts-btn neu-box" onclick="speakCurrentWord()"><i class="fas fa-volume-up"></i> Phát âm (V)</button>
+          </div>
           <div class="fill-sentence" id="fillSentence"></div>
           <div class="fill-input-area">
-              <input type="text" id="fillInput" class="neu-input" placeholder="Nhập từ còn thiếu (Tiếng Anh)">
+              <input type="text" id="fillInput" class="neu-input" placeholder="Nhập từ còn thiếu (Tiếng Anh)" onkeydown="if(event.key === 'Enter') checkFillInTheBlank()">
               <button class="neu-btn" style="width: 100px; color:white; background-color: var(--accent);" onclick="checkFillInTheBlank()"><i class="fas fa-check"></i> Check</button>
           </div>
           <div id="fillResult" style="margin-top: 15px; font-weight: bold;"></div>
           <div id="fillAnswer" style="margin-top: 10px; font-size: 1.1rem; color: var(--text-main);"></div>
+          <div class="mastered-btn-area">
+              <button class="neu-btn" style="background-color: var(--warning); color: var(--text-main);" onclick="toggleMastered(currentWords[currentIndex])"><i class="fas fa-bookmark"></i> Đánh dấu Đã thuộc</button>
+          </div>
       `;
       currentIndex = 0;
       renderFillInTheBlank();
@@ -550,7 +612,9 @@
       let blankedSentence = sentence;
       if (englishWord) {
           // Thay thế từ tiếng Anh bằng dấu chấm
-          blankedSentence = sentence.replace(new RegExp(`\\b${englishWord}\\b`, 'gi'), '_____');
+          // Dùng regex để thay thế (bao gồm cả trường hợp có dấu chấm, phẩy...)
+          const cleanEnglishWord = englishWord.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          blankedSentence = sentence.replace(new RegExp(`\\b${cleanEnglishWord}(?:[\\.,!?:;])?\\b`, 'gi'), '_____');
       }
       
       document.getElementById('fillSentence').innerHTML = `<i class="fas fa-quote-left" style="color:var(--accent);"></i> ${blankedSentence} <i class="fas fa-quote-right" style="color:var(--accent);"></i>`;
@@ -558,18 +622,21 @@
       document.getElementById('fillResult').innerText = '';
       document.getElementById('fillAnswer').innerText = '';
       document.getElementById('cardCounter').innerText = `${currentIndex + 1}/${currentWords.length}`;
+      document.getElementById('fillInput').focus(); // Focus vào input
   }
   
   function checkFillInTheBlank() {
       const w = currentWords[currentIndex];
       const input = document.getElementById('fillInput').value.trim().toLowerCase();
-      const correct = (w.english || '').toLowerCase();
+      // Xử lý các dạng từ (ví dụ: số ít, số nhiều) nếu có thể, tạm thời chỉ lấy từ gốc
+      const correct = (w.english || '').toLowerCase().split(',').map(s => s.trim()); 
       const resultDiv = document.getElementById('fillResult');
       const answerDiv = document.getElementById('fillAnswer');
 
-      if (input === correct) {
+      if (correct.includes(input)) {
           resultDiv.style.color = 'var(--success)';
           resultDiv.innerText = 'Chính xác! 🎉';
+          updateHistory(w, true); // Cập nhật ngay khi trả lời đúng
           // Tự động chuyển
           setTimeout(() => nextCard(true), 1500);
       } else {
@@ -589,18 +656,30 @@
   }
 
   function nextCard(isCorrect = true) {
-    if (currentMode === 'fill') {
-        if (!isCorrect) return; // Không cho next nếu chưa check đúng
+    if (currentMode === 'fill' && !isCorrect) {
+        // Nếu là fill in the blank và chưa trả lời đúng, không cho next
+        return; 
+    }
+    
+    if (currentMode === 'flashcard') {
+        // Cập nhật lịch sử chỉ khi ở flashcard và bấm next (giả định đã xem)
+        updateHistory(currentWords[currentIndex], isCorrect);
     }
     
     if (currentMode === 'flashcard' || currentMode === 'fill') {
-      updateHistory(currentWords[currentIndex], isCorrect);
+      
 
       if (currentIndex < currentWords.length - 1) {
         currentIndex++;
       } else {
         alert("Bạn đã hoàn thành lượt học này! Đang chuyển sang chủ đề tiếp theo.");
         autoSelectTopic();
+        // Kiểm tra lại sau khi chuyển chủ đề
+        if (Object.keys(allTopics).length > 0 && getUniqueWords(allTopics[currentTopicKey].words).length === 0) {
+            alert("Tuyệt vời, bạn đã học hết tất cả từ vựng!");
+            closeGame();
+            return;
+        }
         startGame(currentMode);
         return;
       }
@@ -634,7 +713,7 @@
           </button>
       `;
       
-      const numPairs = Math.min(3, currentWords.length); // Tối đa 3 cặp
+      const numPairs = Math.min(4, currentWords.length); // Tối đa 4 cặp
       matchingGame.totalPairs = numPairs;
       matchingGame.matches = 0;
       matchingGame.selected = null;
@@ -745,7 +824,8 @@
       
       // Nếu không có từ ôn tập, lấy ngẫu nhiên 10 từ chưa thuộc
       if (quizGame.words.length === 0) {
-          quizGame.words = getUniqueWords(allWords).slice(0, 10);
+          const uniqueWords = getUniqueWords(allWords);
+          quizGame.words = uniqueWords.slice(0, Math.min(10, uniqueWords.length));
       }
       
       // Trộn lẫn và giới hạn 10 câu hỏi
@@ -753,13 +833,18 @@
       quizGame.words = quizGame.words.slice(0, 10);
       
       if (quizGame.words.length === 0) {
-          document.getElementById('quizQuestion').innerText = "Không có từ nào để ôn tập!";
+          document.getElementById('quizQuestion').innerText = "Tuyệt vời! Bạn đã thuộc hết từ vựng cần ôn tập.";
           document.getElementById('quizOptions').innerHTML = '';
+          document.querySelector(".controls-area").style.display = 'none';
+          document.getElementById('cardCounter').style.display = 'none';
           return;
       }
       
       quizGame.questionIndex = 0;
       quizGame.totalQuestions = quizGame.words.length;
+      document.querySelector(".controls-area").style.display = 'none';
+      document.getElementById('cardCounter').style.display = 'block';
+
       nextQuizQuestion(true);
   }
 
@@ -778,6 +863,7 @@
           document.getElementById('quizQuestion').innerText = "Hoàn thành bài Quiz! 🎉";
           document.getElementById('quizOptions').innerHTML = '';
           document.getElementById('quizResult').innerText = "Bạn đã hoàn thành lượt ôn tập này.";
+          document.getElementById('cardCounter').innerText = `${quizGame.totalQuestions}/${quizGame.totalQuestions}`;
           setTimeout(() => closeGame(), 3000);
           return;
       }
@@ -864,9 +950,11 @@
       } else {
           masteredWords[key] = true;
           alert(`Đã đánh dấu "${word.english}" là đã thuộc!`);
-          // Tự động chuyển sang từ tiếp theo nếu đang ở flashcard
-          if (currentMode === 'flashcard') {
-              nextCard(); 
+          // Tự động chuyển sang từ tiếp theo nếu đang ở flashcard/fill
+          if (currentMode === 'flashcard' || currentMode === 'fill') {
+              // Cập nhật lịch sử là đúng trước khi next
+              updateHistory(word, true); 
+              nextCard(true); 
           }
       }
       localStorage.setItem(STORAGE_KEY_MASTERED, JSON.stringify(masteredWords));
@@ -879,33 +967,52 @@
     
     // Lấy từ cần nói tùy theo mode
     if (currentMode === 'flashcard' || currentMode === 'fill') {
-        wordToSpeak = currentWords[currentIndex].english;
+        if(currentWords[currentIndex]) {
+            wordToSpeak = currentWords[currentIndex].english;
+        }
     } else if (currentMode === 'quiz' && quizGame.currentWord) {
         wordToSpeak = quizGame.currentWord.english;
     }
 
     if (!wordToSpeak) return;
 
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(wordToSpeak);
-    
-    const rate = parseFloat(document.getElementById('speedRate').value);
-    utterance.rate = rate;
-    utterance.lang = 'en-US';
+    // Fix bug: Không chạy TTS trên một số trình duyệt nếu không có hàm này
+    if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(wordToSpeak);
+        
+        const rate = parseFloat(document.getElementById('speedRate').value || 1.0);
+        utterance.rate = rate;
+        utterance.lang = 'en-US';
+        
+        // Thêm event lắng nghe để tránh bug không đọc lần đầu
+        utterance.onend = () => {};
+        utterance.onerror = (e) => console.error('TTS Error:', e);
 
-    window.speechSynthesis.speak(utterance);
+        window.speechSynthesis.speak(utterance);
+    } else {
+        alert("Trình duyệt của bạn không hỗ trợ Text-to-Speech.");
+    }
   }
 
   // --- KEYBOARD CONTROLS ---
   document.addEventListener('keydown', (e) => {
     if(document.getElementById('gameOverlay').style.display === 'flex') {
-      if(e.key === 'ArrowRight') nextCard();
-      if(e.key === 'ArrowLeft') prevCard();
-      if(e.key === ' ' || e.key === 'Enter') {
-          if (currentMode === 'flashcard') flipCard();
-          if (currentMode === 'fill') checkFillInTheBlank();
+      // Các phím điều hướng chỉ dùng cho Flashcard và Fill
+      if (currentMode === 'flashcard' || currentMode === 'fill') {
+          if(e.key === 'ArrowRight') nextCard();
+          if(e.key === 'ArrowLeft') prevCard();
       }
-      if(e.key === 'v' || e.key === 'V') speakCurrentWord();
+      
+      if(e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault(); // Ngăn cuộn trang
+          if (currentMode === 'flashcard') flipCard();
+          // Đối với Fill, Enter được xử lý trong input
+      }
+      if(e.key === 'v' || e.key === 'V') {
+          e.preventDefault();
+          speakCurrentWord();
+      }
     }
   });
 

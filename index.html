@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Flashcard Pro - Aurora Science Edition</title>
+<title>Flashcard Pro - Aurora Science Edition (Firebase)</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;600;700&family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
@@ -149,17 +149,13 @@
     background: rgba(255, 255, 255, 0.9);
     border: 2px solid rgba(255, 255, 255, 0.6);
     box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-    /* [FIX START] Thêm màu chữ tối cho chế độ sáng */
     color: #1e293b;
-    /* [FIX END] */
   }
   
   body.dark-mode .card__face { 
     background: rgba(30, 41, 59, 0.95); 
     border-color: rgba(255,255,255,0.15); 
-    /* [FIX START] Đặt lại màu chữ trắng cho chế độ tối */
     color: #ffffff;
-    /* [FIX END] */
   }
 
   .card__face--back { transform: rotateY(180deg); background: #ffffff; }
@@ -223,7 +219,7 @@
   /* Tab Bar */
   .tab-bar {
     position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
-    width: 92%; max-width: 420px; height: 70px;
+    width: 95%; max-width: 450px; height: 70px;
     background: rgba(15, 23, 42, 0.8);
     backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
     border: 1px solid rgba(255,255,255,0.15); border-radius: 40px;
@@ -276,9 +272,33 @@
     background: rgba(255,255,255,0.3); border-radius: 10px;
   }
 
+  /* --- NEW: USER & LEADERBOARD STYLES --- */
+  .user-badge {
+    display: flex; align-items: center; gap: 12px;
+    background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 30px;
+    border: 1px solid rgba(255,255,255,0.2); margin-bottom: 20px;
+    cursor: pointer; transition: 0.2s;
+  }
+  .user-badge:active { transform: scale(0.95); }
+  .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
+  
+  .leaderboard-row {
+    display: flex; align-items: center; gap: 15px;
+    padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);
+    transition: 0.2s;
+  }
+  .leaderboard-row:last-child { border-bottom: none; }
+  .rank-num { font-size: 1.2rem; font-weight: 800; width: 30px; color: #94a3b8; }
+  .rank-1 { color: #facc15; text-shadow: 0 0 10px rgba(250, 204, 21, 0.5); font-size: 1.5rem; }
+  .rank-2 { color: #e2e8f0; font-size: 1.4rem; }
+  .rank-3 { color: #fb923c; font-size: 1.3rem; }
+  
+  .lb-name { flex-grow: 1; font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lb-score { font-weight: 800; color: #34d399; }
+
 </style>
 </head>
-<body onload="initApp()">
+<body onload="window.initApp()">
 
 <div class="aurora-bg"></div>
 <div id="particles"></div>
@@ -291,6 +311,20 @@
 <div id="appContainer" style="width: 100%; display: flex; justify-content: center;">
   
   <div id="view-home" class="view-container animate__animated animate__fadeIn">
+    
+    <div id="userSection" style="display: flex; justify-content: center;">
+        <button id="btnLogin" class="btn-primary" style="margin-bottom: 20px; padding: 12px; font-size: 0.9rem; background: rgba(255,255,255,0.15);" onclick="window.loginGoogle()">
+            <i class="fab fa-google"></i> &nbsp; Đăng nhập để xếp hạng
+        </button>
+        <div id="userProfile" class="user-badge" style="display: none;" onclick="window.logoutGoogle()">
+            <img id="userImg" src="" class="user-avatar" alt="Avt">
+            <div style="text-align: left;">
+                <div id="userName" style="font-weight: 700; font-size: 0.9rem;">Guest</div>
+                <div style="font-size: 0.7rem; opacity: 0.7;">Chạm để đăng xuất</div>
+            </div>
+        </div>
+    </div>
+
     <div class="glass-panel" style="padding: 24px; position: relative; overflow: hidden;">
         <div style="position:absolute; top:-10px; right:-10px; width:80px; height:80px; background:white; opacity:0.1; border-radius:50%; filter:blur(20px);"></div>
         
@@ -313,7 +347,7 @@
         </div>
     </div>
     
-    <button class="btn-primary animate__animated animate__pulse animate__infinite" style="margin-top: 30px; animation-duration: 2s;" onclick="startSmartSession()">
+    <button class="btn-primary animate__animated animate__pulse animate__infinite" style="margin-top: 30px; animation-duration: 2s;" onclick="window.startSmartSession()">
         <i class="fas fa-brain"></i> &nbsp; HỌC NGAY
     </button>
     <div style="font-size:0.75rem; opacity:0.7; text-align:center; margin-top:12px;">
@@ -322,23 +356,35 @@
 
     <h3 style="margin-top: 35px; margin-bottom: 15px; font-size:1.2rem; padding-left:10px;">Luyện tập Game</h3>
     <div class="mode-grid">
-        <div class="mode-btn" onclick="startGame('fill')">
+        <div class="mode-btn" onclick="window.startGame('fill')">
             <i class="fas fa-keyboard"></i>
             <span>Điền từ</span>
         </div>
-        <div class="mode-btn" onclick="startGame('matching')">
+        <div class="mode-btn" onclick="window.startGame('matching')">
             <i class="fas fa-puzzle-piece"></i>
             <span>Ghép thẻ</span>
         </div>
-        <div class="mode-btn" onclick="startGame('quiz')">
+        <div class="mode-btn" onclick="window.startGame('quiz')">
             <i class="fas fa-question-circle"></i>
             <span>Trắc nghiệm</span>
         </div>
-        <div class="mode-btn" onclick="startGame('flashcard_all')">
+        <div class="mode-btn" onclick="window.startGame('flashcard_all')">
             <i class="fas fa-layer-group"></i>
             <span>Xem tất cả</span>
         </div>
     </div>
+  </div>
+
+  <div id="view-leaderboard" class="view-container animate__animated animate__fadeIn" style="display:none;">
+      <h2 style="margin-bottom: 20px; padding-left: 10px; text-align:center;"><i class="fas fa-trophy" style="color:#fbbf24"></i> Bảng Xếp Hạng</h2>
+      <div style="text-align:center; font-size:0.85rem; opacity:0.8; margin-bottom:20px;">Top những người "Thuộc lòng" nhiều từ nhất</div>
+      
+      <div class="glass-panel" style="padding: 10px;">
+          <div id="leaderboardList">
+              <div style="padding:20px; text-align:center;">Đang tải dữ liệu...</div>
+          </div>
+      </div>
+      <button class="btn-primary" style="margin-top:20px; background: rgba(59, 130, 246, 0.4);" onclick="window.fetchLeaderboard()"><i class="fas fa-sync"></i> Cập nhật</button>
   </div>
 
   <div id="view-topics" class="view-container animate__animated animate__fadeIn" style="display:none;">
@@ -352,7 +398,7 @@
         
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
             <span>Giao diện tối (Dark Mode)</span>
-            <button class="action-btn" style="width:50px; height:50px; padding:0; flex:none; background:rgba(255,255,255,0.1);" onclick="toggleTheme()" id="themeBtn"><i class="fas fa-moon"></i></button>
+            <button class="action-btn" style="width:50px; height:50px; padding:0; flex:none; background:rgba(255,255,255,0.1);" onclick="window.toggleTheme()" id="themeBtn"><i class="fas fa-moon"></i></button>
         </div>
         
         <hr style="border:0; border-top:1px solid var(--glass-border); margin: 20px 0;">
@@ -360,7 +406,7 @@
         <h4 style="margin-bottom:15px; color:#60A5FA;">Kho dữ liệu (GitHub)</h4>
         <input type="text" id="gh-user" class="input-glass" placeholder="Username" value="ngxuanhai123">
         <input type="text" id="gh-repo" class="input-glass" placeholder="Repository" value="tuvung">
-        <button class="btn-primary" style="padding: 12px; font-size: 0.9rem; background: rgba(59, 130, 246, 0.5);" onclick="fetchTopics(true)">
+        <button class="btn-primary" style="padding: 12px; font-size: 0.9rem; background: rgba(59, 130, 246, 0.5);" onclick="window.fetchTopics(true)">
             <i class="fas fa-sync-alt"></i> Đồng bộ dữ liệu
         </button>
 
@@ -372,13 +418,13 @@
             <small>Từ mới mỗi lần học</small>
             <strong id="dispLimitNew">5</strong>
         </div>
-        <input type="range" id="cfgNewLimit" min="0" max="15" value="5" oninput="saveConfig()">
+        <input type="range" id="cfgNewLimit" min="0" max="15" value="5" oninput="window.saveConfig()">
         
         <div style="display:flex; justify-content:space-between; margin-top:20px; margin-bottom:5px;">
             <small>Giới hạn ôn tập</small>
             <strong id="dispLimitReview">20</strong>
         </div>
-        <input type="range" id="cfgReviewLimit" min="5" max="50" value="20" oninput="saveConfig()">
+        <input type="range" id="cfgReviewLimit" min="5" max="50" value="20" oninput="window.saveConfig()">
         
         <div style="margin-top:20px; font-size:0.8rem; opacity:0.6; text-align:center;">
             Sound FX Engine v2.0 &bull; Web Audio API
@@ -390,12 +436,12 @@
 
 <div id="gameOverlay">
   <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; width: 100%;">
-    <button style="background:none; border:none; color:white; font-size:1.5rem; opacity:0.8;" onclick="closeGame()"><i class="fas fa-times"></i></button>
+    <button style="background:none; border:none; color:white; font-size:1.5rem; opacity:0.8;" onclick="window.closeGame()"><i class="fas fa-times"></i></button>
     <div class="progress-track">
         <div id="gameProgressBar" class="progress-bar"></div>
         <div style="position:absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shine 2s infinite;"></div>
     </div>
-    <button style="background:none; border:none; color:white; font-size:1.3rem; opacity:0.8;" onclick="toggleMute()"><i id="muteIcon" class="fas fa-volume-up"></i></button>
+    <button style="background:none; border:none; color:white; font-size:1.3rem; opacity:0.8;" onclick="window.toggleMute()"><i id="muteIcon" class="fas fa-volume-up"></i></button>
   </div>
 
   <div id="gameContent" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; perspective: 1000px;">
@@ -403,22 +449,136 @@
 </div>
 
 <div class="tab-bar">
-  <div class="tab-item active" data-target="view-home" onclick="navTo('view-home')">
+  <div class="tab-item active" data-target="view-home" onclick="window.navTo('view-home')">
     <i class="fas fa-home"></i> <span>Home</span>
   </div>
-  <div class="tab-item" data-target="view-topics" onclick="navTo('view-topics')">
+  <div class="tab-item" data-target="view-leaderboard" onclick="window.navTo('view-leaderboard')">
+    <i class="fas fa-trophy"></i> <span>Top 10</span>
+  </div>
+  <div class="tab-item" data-target="view-topics" onclick="window.navTo('view-topics')">
     <i class="fas fa-book-open"></i> <span>Library</span>
   </div>
-  <div class="tab-item" data-target="view-settings" onclick="navTo('view-settings')">
+  <div class="tab-item" data-target="view-settings" onclick="window.navTo('view-settings')">
     <i class="fas fa-sliders-h"></i> <span>Config</span>
   </div>
 </div>
 
 <div id="toast"><span id="toast-icon"></span> <span id="toast-msg">Message</span></div>
 
-<script>
+<script type="module">
+// --- FIREBASE SETUP ---
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
+import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDtaVYb_72YvoGzvcERJZypUGS-u3skz2M",
+  authDomain: "tuvung-88e8d.firebaseapp.com",
+  projectId: "tuvung-88e8d",
+  storageBucket: "tuvung-88e8d.firebasestorage.app",
+  messagingSenderId: "722559465686",
+  appId: "1:722559465686:web:bae1a77791205d372db177",
+  measurementId: "G-T785TQ3V32"
+};
+
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+
+let currentUser = null;
+
+// --- FIREBASE FUNCTIONS EXPORTED TO WINDOW ---
+window.loginGoogle = () => {
+    signInWithPopup(auth, provider)
+    .then((result) => {
+        showToast("Đăng nhập thành công!", "success");
+    }).catch((error) => {
+        console.error(error);
+        showToast("Lỗi đăng nhập: " + error.message, "error");
+    });
+};
+
+window.logoutGoogle = () => {
+    if(confirm("Bạn muốn đăng xuất?")) {
+        signOut(auth).then(() => showToast("Đã đăng xuất"));
+    }
+};
+
+onAuthStateChanged(auth, (user) => {
+    currentUser = user;
+    const btn = document.getElementById('btnLogin');
+    const profile = document.getElementById('userProfile');
+    
+    if (user) {
+        btn.style.display = 'none';
+        profile.style.display = 'flex';
+        document.getElementById('userImg').src = user.photoURL;
+        document.getElementById('userName').innerText = user.displayName;
+        syncScoreToFirebase(); // Sync score whenever login
+    } else {
+        btn.style.display = 'block';
+        profile.style.display = 'none';
+    }
+});
+
+async function syncScoreToFirebase() {
+    if(!currentUser) return;
+    const score = Object.keys(JSON.parse(localStorage.getItem('fp_aurora_mastered') || '{}')).length;
+    
+    try {
+        await setDoc(doc(db, "leaderboard", currentUser.uid), {
+            displayName: currentUser.displayName,
+            photoURL: currentUser.photoURL,
+            score: score,
+            lastUpdated: Date.now()
+        }, { merge: true });
+        console.log("Score synced:", score);
+    } catch(e) {
+        console.error("Error syncing score", e);
+    }
+}
+
+window.fetchLeaderboard = async () => {
+    const listDiv = document.getElementById('leaderboardList');
+    listDiv.innerHTML = '<div style="text-align:center;">Đang tải...</div>';
+    
+    try {
+        const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(10));
+        const querySnapshot = await getDocs(q);
+        
+        let html = '';
+        let rank = 1;
+        querySnapshot.forEach((doc) => {
+            const d = doc.data();
+            const rankClass = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
+            const isMe = currentUser && doc.id === currentUser.uid ? 'background:rgba(59, 130, 246, 0.2); border-radius:10px;' : '';
+            
+            html += `
+                <div class="leaderboard-row" style="${isMe}">
+                    <div class="rank-num ${rankClass}">${rank}</div>
+                    <img src="${d.photoURL}" class="user-avatar" style="width:35px; height:35px;">
+                    <div class="lb-name">${d.displayName}</div>
+                    <div class="lb-score">${d.score}</div>
+                </div>
+            `;
+            rank++;
+        });
+        
+        if(html === '') html = '<div style="text-align:center; padding:20px;">Chưa có dữ liệu bảng xếp hạng</div>';
+        listDiv.innerHTML = html;
+        
+    } catch(e) {
+        console.error(e);
+        listDiv.innerHTML = '<div style="text-align:center; color:#ff5252">Lỗi tải bảng xếp hạng</div>';
+    }
+};
+
 /* -------------------------------------------------------------------------
-   APP LOGIC & AUDIO ENGINE
+   APP LOGIC & AUDIO ENGINE (REFACTORED FOR MODULE)
    ------------------------------------------------------------------------- */
 
 // --- AUDIO ENGINE (SYNTHESIZER) ---
@@ -461,22 +621,18 @@ function playSound(sfx) {
 
     switch(sfx) {
         case SFX.CORRECT:
-            // Major Chord Arpeggio (C5, E5, G5)
             playTone(523.25, 'sine', 0.4, now, 0.2);
             playTone(659.25, 'sine', 0.4, now + 0.1, 0.2);
             playTone(783.99, 'sine', 0.6, now + 0.2, 0.2);
             break;
         case SFX.WRONG:
-            // Low Dissonant (Sawtooth)
             playTone(150, 'sawtooth', 0.4, now, 0.15);
             playTone(140, 'sawtooth', 0.4, now + 0.1, 0.15);
             break;
         case SFX.FLIP:
-            // Quick Snap
             playTone(800, 'triangle', 0.1, now, 0.05);
             break;
         case SFX.WIN:
-            // Victory Fanfare
             [523, 659, 783, 1046].forEach((f, i) => playTone(f, 'square', 0.6, now + i*0.1, 0.1));
             break;
         case SFX.POP:
@@ -498,7 +654,7 @@ let config = {
     muted: localStorage.getItem('fp_aurora_muted') === 'true'
 };
 
-let sessionQueue = []; // Queue containing words
+let sessionQueue = []; 
 let sessionIndex = 0;
 let currentMode = '';
 let isProcessing = false;
@@ -506,18 +662,18 @@ let isFlipped = false;
 let selectedVoice = null;
 
 // --- INITIALIZATION ---
-function initApp() {
+window.initApp = function() {
     createParticles();
     applyTheme();
     updateConfigUI();
-    fetchTopics(); 
+    window.fetchTopics(); 
     
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
         window.speechSynthesis.onvoiceschanged = setupVoice;
     }
     setTimeout(setupVoice, 1000);
     
-    navTo('view-home');
+    window.navTo('view-home');
     updateMuteIcon();
 }
 
@@ -536,7 +692,7 @@ function createParticles() {
 }
 
 // --- NAVIGATION ---
-function navTo(viewId) {
+window.navTo = function(viewId) {
     document.querySelectorAll('.view-container').forEach(el => el.style.display = 'none');
     const target = document.getElementById(viewId);
     target.style.display = 'block';
@@ -549,10 +705,11 @@ function navTo(viewId) {
 
     if(viewId === 'view-home') renderDashboard();
     if(viewId === 'view-topics') renderTopicList();
+    if(viewId === 'view-leaderboard') window.fetchLeaderboard();
 }
 
 // --- DATA & SYNC ---
-async function fetchTopics(manual = false) {
+window.fetchTopics = async function(manual = false) {
     const user = document.getElementById('gh-user').value;
     const repo = document.getElementById('gh-repo').value;
     const status = document.getElementById('status-msg');
@@ -600,23 +757,20 @@ function getWordKey(w) {
 }
 
 // --- CORE: SCIENTIFIC LEARNING ALGORITHM ---
-function startSmartSession() {
+window.startSmartSession = function() {
     if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
     playSound(SFX.POP);
     
     const allWords = allTopics[currentTopicKey].words;
     const now = Date.now();
     
-    // 1. Filter Reviews (Due items)
     let candidatesReview = allWords.filter(w => {
         const k = getWordKey(w);
         return !masteredWords[k] && srsData[k] && srsData[k].nextReview <= now;
     });
-    // Sort by "Most Overdue" first
     candidatesReview.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
     const batchReview = candidatesReview.slice(0, config.reviewLimit);
     
-    // 2. Filter New (Fresh items)
     let candidatesNew = allWords.filter(w => {
         const k = getWordKey(w);
         return !masteredWords[k] && !srsData[k];
@@ -629,18 +783,14 @@ function startSmartSession() {
         return showToast("Bạn đã hoàn thành tất cả bài học!", "success");
     }
     
-    // 3. Interleaving Algorithm (The Scientific Part)
-    // Strategy: Mix New and Review in a 1:2 ratio to keep brain active.
-    // Example: [New, Review, Review, New, Review, Review...]
-    
     let interleaved = [];
     let r = [...batchReview];
     let n = [...batchNew];
     
     while(n.length > 0 || r.length > 0) {
-        if(n.length > 0) interleaved.push(n.shift()); // Add 1 New
-        if(r.length > 0) interleaved.push(r.shift()); // Add 1 Review
-        if(r.length > 0) interleaved.push(r.shift()); // Add 2nd Review
+        if(n.length > 0) interleaved.push(n.shift()); 
+        if(r.length > 0) interleaved.push(r.shift()); 
+        if(r.length > 0) interleaved.push(r.shift()); 
     }
     
     sessionQueue = interleaved;
@@ -651,7 +801,7 @@ function startSmartSession() {
     renderFlashcard();
 }
 
-function processResult(isCorrect) {
+window.processResult = function(isCorrect) {
     if(isProcessing) return;
     isProcessing = true;
     
@@ -663,15 +813,13 @@ function processResult(isCorrect) {
         playSound(SFX.CORRECT);
         confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, scalar: 0.7 });
         
-        // SRS Calculation (Leitner System simplified)
-        if(data.level === 0) data.interval = 1; // 1 day
-        else if(data.level === 1) data.interval = 3; // 3 days
+        if(data.level === 0) data.interval = 1; 
+        else if(data.level === 1) data.interval = 3; 
         else data.interval = Math.ceil(data.interval * 2.5);
         
         data.level++;
         data.nextReview = Date.now() + (data.interval * 24 * 3600 * 1000);
         
-        // Save
         srsData[key] = data;
         localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
         
@@ -679,15 +827,12 @@ function processResult(isCorrect) {
         
     } else {
         playSound(SFX.WRONG);
-        // Reset SRS
         data.level = 0;
         data.interval = 0;
-        data.nextReview = Date.now(); // Review immediately (next session)
+        data.nextReview = Date.now(); 
         srsData[key] = data;
         localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
 
-        // --- THE "IN-SESSION LOOP" (Crucial for Learning) ---
-        // If wrong, re-insert card into queue 3 steps later so user sees it again soon.
         if(currentMode === 'smart') {
             const reInsertIdx = sessionIndex + 3;
             if(reInsertIdx < sessionQueue.length) {
@@ -699,10 +844,9 @@ function processResult(isCorrect) {
         }
         
         if(!isFlipped && (currentMode === 'smart' || currentMode === 'flashcard_all')) {
-            flipCard();
+            window.flipCard();
         }
         
-        // --- FIXED HERE: Auto move next after 2.5s ---
         setTimeout(() => { 
             isProcessing = false; 
             nextStep();
@@ -717,17 +861,19 @@ function openGameOverlay() {
     updateProgress();
 }
 
-function closeGame() {
+window.closeGame = function() {
     document.getElementById('gameOverlay').style.display = 'none';
     window.speechSynthesis.cancel();
     renderDashboard();
 }
 
 function updateProgress() {
-    // Total includes dynamically added items, but simpler visual is just index vs initial length
-    // Or just let it fill up.
     const pct = ((sessionIndex) / sessionQueue.length) * 100;
     document.getElementById('gameProgressBar').style.width = `${pct}%`;
+}
+
+window.nextStep = function() {
+    nextStep();
 }
 
 function nextStep() {
@@ -754,7 +900,7 @@ function nextStep() {
         playSound(SFX.WIN);
         confetti({ particleCount: 300, spread: 100, origin: { y: 0.6 } });
         showToast("Buổi học hoàn tất! Xuất sắc!", "success");
-        setTimeout(closeGame, 2000);
+        setTimeout(window.closeGame, 2000);
     }
 }
 
@@ -764,13 +910,12 @@ function renderFlashcard() {
     isFlipped = false;
     isProcessing = false;
     
-    // Check if re-learning loop
     const isRelearn = sessionQueue.filter(x => x === w).length > 1;
     const badge = isRelearn ? '<div style="position:absolute; top:-10px; right:-10px; background:#f59e0b; color:white; padding:5px 10px; border-radius:10px; font-size:0.7rem; font-weight:bold; box-shadow:0 5px 10px rgba(0,0,0,0.2);">HỌC LẠI</div>' : '';
 
     const html = `
         <div class="scene">
-            <div class="card" id="flashcardObj" onclick="flipCard()">
+            <div class="card" id="flashcardObj" onclick="window.flipCard()">
                 <div class="card__face card__face--front">
                     ${badge}
                     <div style="font-size:0.8rem; opacity:0.6; margin-bottom:15px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Tiếng Anh</div>
@@ -789,28 +934,28 @@ function renderFlashcard() {
         
         <div class="control-row">
             ${currentMode === 'smart' ? `
-                <button class="action-btn btn-wrong" onclick="processResult(false)">
+                <button class="action-btn btn-wrong" onclick="window.processResult(false)">
                     <i class="fas fa-times"></i> &nbsp;Chưa thuộc
                 </button>
-                <button class="btn-speak-round animate__animated animate__bounceIn" onclick="speakWord(event)"><i class="fas fa-volume-up"></i></button>
-                <button class="action-btn btn-next" onclick="processResult(true)">
+                <button class="btn-speak-round animate__animated animate__bounceIn" onclick="window.speakWord(event)"><i class="fas fa-volume-up"></i></button>
+                <button class="action-btn btn-next" onclick="window.processResult(true)">
                     Đã thuộc &nbsp;<i class="fas fa-check"></i>
                 </button>
             ` : `
-                 <button class="btn-speak-round" onclick="speakWord(event)"><i class="fas fa-volume-up"></i></button>
-                 <button class="action-btn btn-next" onclick="nextStep()" style="background:#3b82f6; border-color:#60a5fa;">Tiếp theo <i class="fas fa-arrow-right"></i></button>
+                 <button class="btn-speak-round" onclick="window.speakWord(event)"><i class="fas fa-volume-up"></i></button>
+                 <button class="action-btn btn-next" onclick="window.nextStep()" style="background:#3b82f6; border-color:#60a5fa;">Tiếp theo <i class="fas fa-arrow-right"></i></button>
             `}
         </div>
         
-        <div style="margin-top:15px; cursor:pointer; opacity:0.6; font-size:0.8rem;" onclick="markMastered()">
+        <div style="margin-top:15px; cursor:pointer; opacity:0.6; font-size:0.8rem;" onclick="window.markMastered()">
             <i class="fas fa-archive"></i> Đánh dấu đã thuộc lòng (Ẩn vĩnh viễn)
         </div>
     `;
     document.getElementById('gameContent').innerHTML = html;
-    setTimeout(speakWord, 500);
+    setTimeout(window.speakWord, 500);
 }
 
-function flipCard() {
+window.flipCard = function() {
     if(isProcessing && currentMode === 'smart') return;
     const card = document.getElementById('flashcardObj');
     isFlipped = !isFlipped;
@@ -832,23 +977,23 @@ function renderFill() {
         </div>
         <div style="width:95%">
             <input type="text" id="fillInp" class="input-glass" placeholder="Nhập từ vựng..." autocomplete="off" 
-                   onkeypress="if(event.key==='Enter') checkFill('${w.english}')">
-            <button class="btn-primary" onclick="checkFill('${w.english}')">KIỂM TRA</button>
+                   onkeypress="if(event.key==='Enter') window.checkFill('${w.english}')">
+            <button class="btn-primary" onclick="window.checkFill('${w.english}')">KIỂM TRA</button>
         </div>
-        <button class="btn-speak-round" style="margin-top:20px; width:50px; height:50px; font-size:1.2rem;" onclick="speakWord()"><i class="fas fa-volume-up"></i></button>
+        <button class="btn-speak-round" style="margin-top:20px; width:50px; height:50px; font-size:1.2rem;" onclick="window.speakWord()"><i class="fas fa-volume-up"></i></button>
     `;
     setTimeout(() => document.getElementById('fillInp').focus(), 100);
-    setTimeout(speakWord, 400);
+    setTimeout(window.speakWord, 400);
 }
 
-function checkFill(ans) {
+window.checkFill = function(ans) {
     if(isProcessing) return;
     const val = document.getElementById('fillInp').value.trim();
     const correct = val.toLowerCase() === ans.toLowerCase();
     
     if(correct) {
         showToast("Chính xác!", "success");
-        processResult(true); 
+        window.processResult(true); 
     } else {
         const inp = document.getElementById('fillInp');
         inp.classList.add('animate__animated', 'animate__shakeX');
@@ -856,15 +1001,14 @@ function checkFill(ans) {
         inp.style.color = '#ef4444';
         inp.value = ans; 
         playSound(SFX.WRONG);
-        processResult(false);
+        window.processResult(false);
     }
 }
 
 // --- GAME MODE: MATCHING ---
 function setupMatching() {
-    // Keep logic mostly same but improve visuals
     const subset = sessionQueue.slice(0, 4);
-    if(subset.length < 2) { showToast("Cần tối thiểu 2 từ!", "error"); closeGame(); return; }
+    if(subset.length < 2) { showToast("Cần tối thiểu 2 từ!", "error"); window.closeGame(); return; }
     sessionQueue = subset;
     
     let items = [];
@@ -876,7 +1020,7 @@ function setupMatching() {
     
     let html = `<div class="matching-grid animate__animated animate__fadeInUp">`;
     items.forEach((item, idx) => {
-        html += `<div class="match-card" id="m-${idx}" onclick="matchClick(${idx}, ${item.id})">${item.txt}</div>`;
+        html += `<div class="match-card" id="m-${idx}" onclick="window.matchClick(${idx}, ${item.id})">${item.txt}</div>`;
     });
     html += `</div>`;
     document.getElementById('gameContent').innerHTML = html;
@@ -908,7 +1052,7 @@ window.matchClick = function(idx, id) {
             state.selected = null;
             
             if(state.solved === state.total) {
-                setTimeout(() => { showToast("Hoàn thành xuất sắc!", "success"); closeGame(); }, 1000);
+                setTimeout(() => { showToast("Hoàn thành xuất sắc!", "success"); window.closeGame(); }, 1000);
             }
         } else {
             playSound(SFX.WRONG);
@@ -936,37 +1080,37 @@ function setupQuiz() {
     
     let html = `<div style="text-align:center; margin-bottom:30px;" class="animate__animated animate__fadeInDown">
         <div style="font-size:2.8rem; font-weight:800; margin-bottom:10px; color:#fff; text-shadow:0 0 20px rgba(59, 130, 246, 0.5);">${w.english}</div>
-        <button class="btn-speak-round" style="margin:0 auto; width:50px; height:50px; font-size:1.2rem;" onclick="speakWord()"><i class="fas fa-volume-up"></i></button>
+        <button class="btn-speak-round" style="margin:0 auto; width:50px; height:50px; font-size:1.2rem;" onclick="window.speakWord()"><i class="fas fa-volume-up"></i></button>
     </div>
     <div style="width:100%; display:grid; gap:15px;" class="animate__animated animate__fadeInUp">`;
     
     options.forEach(opt => {
         const isCorrect = getWordKey(opt) === getWordKey(w);
-        html += `<button class="action-btn" style="width:100%; background:rgba(255,255,255,0.9); color:#0f172a;" onclick="handleQuiz(this, ${isCorrect})">${opt.vietnamese}</button>`;
+        html += `<button class="action-btn" style="width:100%; background:rgba(255,255,255,0.9); color:#0f172a;" onclick="window.handleQuiz(this, ${isCorrect})">${opt.vietnamese}</button>`;
     });
     html += `</div>`;
     document.getElementById('gameContent').innerHTML = html;
-    setTimeout(speakWord, 500);
+    setTimeout(window.speakWord, 500);
 }
 
-function handleQuiz(el, isCorrect) {
+window.handleQuiz = function(el, isCorrect) {
     if(isProcessing) return;
     
     if(isCorrect) {
         el.style.background = '#00e676';
         el.style.color = 'white';
-        processResult(true);
+        window.processResult(true);
     } else {
         el.style.background = '#ff5252';
         el.style.color = 'white';
         el.classList.add('animate__animated', 'animate__shakeX');
-        processResult(false);
+        window.processResult(false);
     }
 }
 
 // --- UTILITIES ---
 
-function startGame(mode) {
+window.startGame = function(mode) {
     if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
     playSound(SFX.POP);
     const allWords = allTopics[currentTopicKey].words;
@@ -1007,7 +1151,6 @@ function renderDashboard() {
         }
     });
     
-    // Animate numbers
     animateValue("statNew", parseInt(document.getElementById('statNew').innerText), cntNew, 1000);
     animateValue("statDue", parseInt(document.getElementById('statDue').innerText), cntDue, 1000);
     animateValue("statMastered", parseInt(document.getElementById('statMastered').innerText), cntMaster, 1000);
@@ -1050,7 +1193,7 @@ function renderTopicList() {
             localStorage.setItem('fp_aurora_topic', key);
             playSound(SFX.POP);
             showToast("Đã chọn: " + t.name);
-            navTo('view-home');
+            window.navTo('view-home');
         };
         list.appendChild(el);
     });
@@ -1071,7 +1214,7 @@ function showToast(msg, type='info') {
     window.toastTimeout = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
-function markMastered() {
+window.markMastered = function() {
     if(!confirm("Bạn chắc chắn đã thuộc lòng từ này? Nó sẽ không xuất hiện lại.")) return;
     const w = sessionQueue[sessionIndex];
     const key = getWordKey(w);
@@ -1079,6 +1222,10 @@ function markMastered() {
     delete srsData[key];
     localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
     localStorage.setItem('fp_aurora_mastered', JSON.stringify(masteredWords));
+    
+    // SYNC TO FIREBASE
+    syncScoreToFirebase();
+    
     playSound(SFX.WIN);
     showToast("Đã chuyển vào kho Tinh thông!", "success");
     nextStep();
@@ -1091,7 +1238,7 @@ function setupVoice() {
                     voices.find(v => v.lang === 'en-US');
 }
 
-function speakWord(e) {
+window.speakWord = function(e) {
     if(e) e.stopPropagation();
     if(config.muted) return;
     const w = sessionQueue[sessionIndex];
@@ -1108,10 +1255,10 @@ function applyTheme() {
     document.body.classList.toggle('dark-mode', config.darkMode);
     document.getElementById('themeBtn').innerHTML = config.darkMode ? '<i class="fas fa-sun" style="color:#fcd34d"></i>' : '<i class="fas fa-moon" style="color:#fff"></i>';
 }
-function toggleTheme() { config.darkMode = !config.darkMode; localStorage.setItem('fp_aurora_dark', config.darkMode); applyTheme(); playSound(SFX.POP); }
-function toggleMute() { config.muted = !config.muted; localStorage.setItem('fp_aurora_muted', config.muted); updateMuteIcon(); }
+window.toggleTheme = function() { config.darkMode = !config.darkMode; localStorage.setItem('fp_aurora_dark', config.darkMode); applyTheme(); playSound(SFX.POP); }
+window.toggleMute = function() { config.muted = !config.muted; localStorage.setItem('fp_aurora_muted', config.muted); updateMuteIcon(); }
 function updateMuteIcon() { document.getElementById('muteIcon').className = config.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up'; }
-function saveConfig() {
+window.saveConfig = function() {
     config.newLimit = parseInt(document.getElementById('cfgNewLimit').value);
     config.reviewLimit = parseInt(document.getElementById('cfgReviewLimit').value);
     localStorage.setItem('fp_aurora_cfg_new', config.newLimit);

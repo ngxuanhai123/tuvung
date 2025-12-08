@@ -6,18 +6,47 @@
 <title>Flashcard Pro - Học Từ Vựng</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
+  /* --- DARK MODE & BASE VARIABLES --- */
   :root {
-    --bg-color: #f0f4f8; /* Nền sáng */
-    --card-color: #f0f4f8;
-    --text-main: #2d3436;
-    --text-sub: #636e72;
+    /* Light Mode */
+    --bg-color-light: #f0f4f8;
+    --card-color-light: #f0f4f8;
+    --text-main-light: #2d3436;
+    --text-sub-light: #636e72;
+    --shadow-light-light: #ffffff;
+    --shadow-dark-light: #d1d9e6;
+
+    /* Dark Mode */
+    --bg-color-dark: #222831;
+    --card-color-dark: #2c3440;
+    --text-main-dark: #eeeeee;
+    --text-sub-dark: #aaaaaa;
+    --shadow-light-dark: #3a4454;
+    --shadow-dark-dark: #1b1f28;
+
+    /* Base variables (Default: Light Mode) */
+    --bg-color: var(--bg-color-light);
+    --card-color: var(--card-color-light);
+    --text-main: var(--text-main-light);
+    --text-sub: var(--text-sub-light);
+    --shadow-light: var(--shadow-light-light);
+    --shadow-dark: var(--shadow-dark-light);
+    
     --accent: #4834d4; /* Màu tím đậm */
     --accent-hover: #686de0;
-    --shadow-light: #ffffff;
-    --shadow-dark: #d1d9e6;
     --success: #2ecc71; /* Xanh lá */
     --error: #e74c3c; /* Đỏ */
     --warning: #f1c40f; /* Vàng */
+  }
+  
+  /* Apply Dark Mode */
+  body.dark-mode {
+    --bg-color: var(--bg-color-dark);
+    --card-color: var(--card-color-dark);
+    --text-main: var(--text-main-dark);
+    --text-sub: var(--text-sub-dark);
+    --shadow-light: var(--shadow-light-dark);
+    --shadow-dark: var(--shadow-dark-dark);
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
@@ -31,6 +60,7 @@
     flex-direction: column;
     align-items: center;
     padding-bottom: 70px; /* Thêm padding cho tab bar */
+    transition: background 0.3s;
   }
 
   /* --- NEUMORPHISM UTILS --- */
@@ -38,7 +68,8 @@
     background: var(--card-color);
     border-radius: 20px;
     box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
-    border: 1px solid rgba(255,255,255,0.4);
+    border: 1px solid var(--shadow-dark); /* Contrast border for all themes */
+    transition: box-shadow 0.3s, background 0.3s, border 0.3s;
   }
 
   .neu-btn {
@@ -75,6 +106,7 @@
     box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
     color: var(--text-main);
     font-size: 1rem;
+    transition: box-shadow 0.3s, background 0.3s;
   }
 
   /* --- HEADER & TAB BAR --- */
@@ -97,6 +129,7 @@
     justify-content: space-around;
     align-items: center;
     z-index: 100;
+    transition: background 0.3s;
   }
   .tab-btn {
     display: flex; flex-direction: column; align-items: center;
@@ -174,8 +207,7 @@
   }
   .input-group { display: flex; gap: 10px; }
 
-
-  /* --- GAME OVERLAY (Unchanged) --- */
+  /* --- GAME OVERLAY --- */
   #gameOverlay {
     position: fixed; inset: 0;
     background: var(--bg-color);
@@ -229,68 +261,78 @@
     text-align: center;
     background: var(--card-color);
     box-shadow: 10px 10px 20px var(--shadow-dark), -10px -10px 20px var(--shadow-light);
-    border: 2px solid rgba(255,255,255,0.1);
+    border: 2px solid var(--shadow-dark); /* Adjust for Dark Mode */
   }
   
   .card__face--back { transform: rotateY(180deg); border-color: var(--accent); }
 
   /* Card Content */
   .word-en { font-size: 3rem; font-weight: 800; color: var(--accent); margin-bottom: 10px; }
-  .word-ipa { font-size: 1.1rem; color: #888; font-style: italic; font-family: 'Times New Roman', serif; margin-bottom: 20px;}
+  .word-ipa { font-size: 1.1rem; color: var(--text-sub); font-style: italic; font-family: 'Times New Roman', serif; margin-bottom: 20px;}
   .word-vn { font-size: 2rem; font-weight: 700; color: var(--text-main); }
   .word-example { font-size: 1rem; color: var(--text-sub); margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 10px; }
-  .ordinal-badge {
-    position: absolute; top: 15px; right: 15px;
-    background: var(--accent); color: white;
-    padding: 5px 10px; border-radius: 10px; font-size: 0.8rem;
+  
+  /* --- MEDIA QUERIES for Responsiveness --- */
+  
+  /* Optimizations for Tablet and Desktop (Larger screens) */
+  @media (min-width: 768px) {
+      body { padding-top: 20px; padding-bottom: 20px; } 
+      #mainTabBar { 
+          position: static; 
+          height: auto; 
+          margin-top: 30px; 
+          box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+          border-radius: 50px;
+          max-width: 500px;
+          padding: 10px 20px;
+      } 
+      .tab-btn { 
+          padding: 10px 15px; 
+          font-size: 0.9rem; 
+          flex-direction: row; 
+          gap: 5px; 
+      }
+      .tab-btn i { font-size: 1.1rem; margin-bottom: 0; }
+      .view-container { margin-top: 0; padding: 0 30px; }
+      header { margin-top: 20px; margin-bottom: 30px; }
+      
+      #homeView .game-mode-grid {
+          grid-template-columns: repeat(4, 1fr); /* 4 columns on desktop */
+          max-width: 900px;
+      }
+      .mode-btn { padding: 25px 15px; font-size: 1rem; }
+      
+      .grid-container {
+          grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); /* More compact topic cards */
+      }
+      
+      /* Overlay centered for better desktop experience */
+      #gameOverlay {
+          border-radius: 20px;
+          position: fixed; 
+          top: 50%; bottom: auto; left: 50%;
+          transform: translate(-50%, -50%);
+          width: 90%;
+          height: 90vh;
+          max-width: 700px;
+          box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+          overflow-y: auto;
+          padding-bottom: 20px;
+      }
+      .game-header { padding: 20px 30px; }
   }
   
-  .mastered-btn-area {
-    width: 100%; display: flex; justify-content: center; margin-top: 15px;
+  /* Optimizations for Mobile (Small screens) */
+  @media (max-width: 600px) {
+      h1 { font-size: 2rem; }
+      .scene { width: 90%; height: 400px; }
+      .word-en { font-size: 2.5rem; }
+      .word-vn { font-size: 1.5rem; }
+      .fill-sentence { font-size: 1.2rem; }
+      .fill-input-area { flex-direction: column; }
+      .neu-btn { width: 100%; justify-content: center; }
+      .tts-controls { flex-direction: column; }
   }
-  
-  .tts-controls {
-    display: flex; gap: 10px; align-items: center;
-    margin-bottom: 20px;
-    justify-content: center;
-  }
-  .tts-btn {
-    border: none;
-    background: var(--accent);
-    color: white;
-    padding: 10px 15px;
-    border-radius: 50px;
-    cursor: pointer;
-    transition: background 0.2s;
-    font-size: 0.9rem;
-  }
-  .tts-btn:hover { background: var(--accent-hover); }
-
-  #gameContent {
-    width: 90%; max-width: 600px; margin: 20px auto;
-    display: flex; flex-direction: column; align-items: center;
-  }
-
-  .fill-sentence { font-size: 1.4rem; text-align: center; margin-bottom: 20px; padding: 0 10px; }
-  .fill-input-area { display: flex; gap: 10px; width: 100%; justify-content: center; margin-top: 15px; }
-  .matching-grid {
-    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; width: 100%; max-width: 500px;
-  }
-  .match-btn {
-    padding: 15px; font-size: 1rem; text-align: center;
-    background: var(--card-color); border-radius: 15px;
-    box-shadow: 4px 4px 8px var(--shadow-dark), -4px -4px 8px var(--shadow-light);
-    cursor: pointer; transition: all 0.1s;
-    height: 60px;
-    display: flex; align-items: center; justify-content: center;
-    word-break: break-word;
-  }
-  .match-btn.selected { border: 3px solid var(--accent); box-shadow: 0 0 15px var(--accent); }
-  .match-btn.matched { background: var(--success); color: white; pointer-events: none; }
-  .match-btn.mismatch { background: var(--error); color: white; pointer-events: none; }
-  .quiz-question { font-size: 1.5rem; text-align: center; margin-bottom: 30px; font-weight: bold; }
-  .quiz-options-grid { display: grid; grid-template-columns: 1fr; gap: 15px; width: 100%; }
-  .quiz-option-btn { padding: 15px; font-size: 1.1rem; }
   
 </style>
 </head>
@@ -298,7 +340,7 @@
 
 <header>
   <h1>Flashcard Pro</h1>
-  <div id="status-msg" style="font-size:0.9rem; color:var(--text-sub); margin-top:10px;">Đang tải dữ liệu từ GitHub...</div>
+  <div id="status-msg" style="font-size:0.9rem; color:var(--text-sub); margin-top:10px;">Đang tải dữ liệu...</div>
 </header>
 
 <div id="appViews" style="width: 100%; flex-grow: 1;">
@@ -328,9 +370,21 @@
   </div>
   
   <div id="configView" class="view-container" style="display:none;">
-    <h2 style="text-align:center; margin-bottom: 20px; color:var(--accent);">Cấu hình GitHub</h2>
+    <h2 style="text-align:center; margin-bottom: 20px; color:var(--accent);">Cấu hình Ứng dụng</h2>
     <div class="neu-box config-panel">
-      <div style="font-size:0.9rem; color:var(--accent); margin-bottom:5px;">Kết nối tới kho GitHub:</div>
+      
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:10px 0; border-bottom: 1px solid var(--text-sub);">
+        <div style="font-size:1.1rem; font-weight:bold;">Chế độ giao diện:</div>
+        <button class="neu-btn" id="themeToggleBtn" style="width:150px; justify-content:center; padding: 10px 20px;" onclick="toggleTheme()">
+            <i class="fas fa-sun"></i> Sáng
+        </button>
+      </div>
+      
+      <div style="font-size:0.9rem; color:var(--accent); margin-bottom:5px;">Giọng đọc Tiếng Anh:</div>
+      <select id="voiceSelect" class="neu-select"></select>
+      <div style="font-size:0.8rem; color:var(--text-sub); text-align:center;">Hệ thống giọng đọc phụ thuộc vào trình duyệt của bạn.</div>
+      
+      <div style="font-size:0.9rem; color:var(--accent); margin-bottom:5px; margin-top: 15px; border-top: 1px solid var(--text-sub); padding-top: 15px;">Kết nối tới kho GitHub:</div>
       <div class="input-group">
         <input type="text" id="gh-user" class="neu-input" placeholder="Username (VD: octocat)" value="ngxuanhai123">
         <input type="text" id="gh-repo" class="neu-input" placeholder="Repository (VD: tuvung)" value="tuvung">
@@ -370,6 +424,7 @@
         <option value="0.75">0.75x</option>
         <option value="1" selected>1.0x</option>
         <option value="1.25">1.25x</option>
+        <option value="1.5">1.5x</option>
       </select>
       <div class="neu-box close-btn control-btn" onclick="closeGame()"><i class="fas fa-times"></i></div>
     </div>
@@ -392,8 +447,12 @@
   let currentWords = [];
   let currentMode = '';
   let currentIndex = 0;
-  let isMuted = localStorage.getItem('isMuted') === 'true'; // Thêm biến Mute
   
+  // NEW: Theme & Mute variables
+  let isMuted = localStorage.getItem('isMuted') === 'true'; 
+  let isDarkMode = localStorage.getItem('isDarkMode') === 'true';
+  let selectedVoiceURI = localStorage.getItem('selectedVoiceURI') || ''; // NEW: For voice selection
+
   const STORAGE_KEY_MASTERED = 'flashcard_mastered_v2';
   const STORAGE_KEY_HISTORY = 'flashcard_history_v2';
   
@@ -423,6 +482,11 @@
     // Nếu chuyển sang Topic Select, cần render lại danh sách
     if (viewId === 'topicSelectView') {
         renderTopicList();
+    }
+    // NEW: Cập nhật nút theme khi chuyển sang Config
+    if (viewId === 'configView') {
+        updateThemeButton();
+        setupVoiceConfig(); // Ensure voice select is populated
     }
     
     currentView = viewId;
@@ -468,6 +532,9 @@
     document.getElementById('gh-user').value = localStorage.getItem('gh_user') || defaultUser;
     document.getElementById('gh-repo').value = localStorage.getItem('gh_repo') || defaultRepo;
 
+    // NEW: Load saved theme
+    loadTheme();
+    
     // Tự động tải dữ liệu khi khởi động
     fetchTopics();
     
@@ -476,8 +543,38 @@
     
     // Cập nhật trạng thái nút mute ban đầu
     updateMuteButton();
+    
+    // NEW: Set up voice options
+    setupVoiceConfig();
   };
   
+  // --- THEME CONTROL (NEW) ---
+  function loadTheme() {
+    document.body.classList.toggle('dark-mode', isDarkMode);
+  }
+  
+  function toggleTheme() {
+      isDarkMode = !isDarkMode;
+      localStorage.setItem('isDarkMode', isDarkMode);
+      loadTheme();
+      updateThemeButton();
+  }
+  
+  function updateThemeButton() {
+      const btn = document.getElementById('themeToggleBtn');
+      if (!btn) return;
+      if (isDarkMode) {
+          btn.innerHTML = '<i class="fas fa-moon"></i> Tối';
+          btn.style.backgroundColor = 'var(--accent)';
+          btn.style.color = 'white';
+      } else {
+          btn.innerHTML = '<i class="fas fa-sun"></i> Sáng';
+          btn.style.backgroundColor = 'var(--card-color)';
+          btn.style.color = 'var(--text-main)';
+      }
+  }
+
+  // --- MUTE CONTROL ---
   function updateMuteButton() {
     const muteBtn = document.getElementById('muteBtn');
     muteBtn.classList.toggle('muted', isMuted);
@@ -491,8 +588,7 @@
     window.speechSynthesis.cancel(); // Dừng phát âm ngay lập tức nếu bật mute
   }
 
-
-  // --- GITHUB FETCHING ---
+  // --- GITHUB FETCHING (Unchanged logic) ---
   async function fetchTopics(isManualUpdate = false) {
     const user = document.getElementById('gh-user').value.trim();
     const repo = document.getElementById('gh-repo').value.trim();
@@ -655,7 +751,7 @@
       }
   }
 
-  // --- GAME INITIALIZATION & CONTROL ---
+  // --- GAME INITIALIZATION & CONTROL (Unchanged logic) ---
   function startGame(mode) {
     if (!currentTopicKey) {
       alert("Vui lòng chọn chủ đề từ tab 'Chủ đề' trước khi chơi!");
@@ -716,7 +812,7 @@
       }
   }
 
-  // --- FLASHCARD & FILL IN THE BLANK LOGIC ---
+  // --- FLASHCARD & FILL IN THE BLANK LOGIC (Minor changes) ---
   let isFlipped = false;
   
   function setupFlashcard() {
@@ -728,7 +824,7 @@
             <div class="ordinal-badge" id="cardOrdinal"></div>
             <div class="word-en" id="textEn"></div>
             <div class="word-ipa" id="textIpa"></div>
-            <div style="font-size:0.8rem; color:#aaa; margin-top:20px;">(Chạm để lật)</div>
+            <div style="font-size:0.8rem; color:var(--text-sub); margin-top:20px;">(Chạm để lật. Nếu không nghe thấy âm thanh, hãy bấm nút Phát âm.)</div>
           </div>
           <div class="card__face card__face--back">
             <div class="word-vn" id="textVn"></div>
@@ -785,8 +881,8 @@
     
     document.getElementById('cardCounter').innerText = `${currentIndex + 1}/${currentWords.length}`;
     
-    // Tự động phát âm khi thẻ mới được hiển thị
-    speakCurrentWord(); 
+    // Tự động phát âm (có thể bị chặn bởi trình duyệt)
+    setTimeout(speakCurrentWord, 100); 
   }
   
   function renderFillInTheBlank() {
@@ -806,6 +902,9 @@
       document.getElementById('fillAnswer').innerText = '';
       document.getElementById('cardCounter').innerText = `${currentIndex + 1}/${currentWords.length}`;
       document.getElementById('fillInput').focus();
+      
+      // Tự động phát âm (có thể bị chặn bởi trình duyệt)
+      setTimeout(speakCurrentWord, 100);
   }
   
   function checkFillInTheBlank() {
@@ -880,7 +979,7 @@
     }
   }
   
-  // --- MATCHING GAME LOGIC ---
+  // --- MATCHING GAME LOGIC (Unchanged logic) ---
   let matchingGame = { items: [], selected: null, matches: 0, totalPairs: 0 };
 
   function setupMatching() {
@@ -974,7 +1073,7 @@
       }
   }
 
-  // --- SMART QUIZ LOGIC ---
+  // --- SMART QUIZ LOGIC (Unchanged logic) ---
   let quizGame = { words: [], currentWord: null, questionIndex: 0, totalQuestions: 0 };
   const RETENTION_MONTHS = 4;
 
@@ -1096,7 +1195,7 @@
       }
   }
 
-  // --- HISTORY & MASTERED LOGIC ---
+  // --- HISTORY & MASTERED LOGIC (Unchanged logic) ---
   function updateHistory(word, isCorrect) {
       const key = getWordKey(word);
       historyWords[key] = Date.now();
@@ -1129,50 +1228,110 @@
       renderTopicStatus();
   }
   
-  // --- TEXT TO SPEECH ---
+  // --- TEXT TO SPEECH (IMPROVED) ---
+  function getVoices() {
+      // Filter for English voices, as the words are English
+      return window.speechSynthesis.getVoices().filter(v => v.lang.startsWith('en'));
+  }
+
+  function setupVoiceConfig() {
+      const select = document.getElementById('voiceSelect');
+      if (!select) return;
+      
+      // Clear previous options
+      select.innerHTML = '';
+      
+      // Get voices
+      let voices = getVoices();
+      
+      // If voices haven't loaded, set an event listener and show a loading message
+      if(voices.length === 0) {
+           const option = document.createElement('option');
+           option.value = '';
+           option.textContent = 'Đang tải giọng nói...';
+           select.appendChild(option);
+           // Try again when voices are ready
+           window.speechSynthesis.onvoiceschanged = setupVoiceConfig;
+           return;
+      }
+
+      // Determine default/selected voice
+      let defaultVoice = voices.find(v => v.default) || voices.find(v => v.name.includes('Google US English')) || voices[0];
+      if (!selectedVoiceURI && defaultVoice) {
+          selectedVoiceURI = defaultVoice.voiceURI;
+          localStorage.setItem('selectedVoiceURI', selectedVoiceURI);
+      }
+
+      voices.forEach(voice => {
+          const option = document.createElement('option');
+          option.value = voice.voiceURI;
+          option.textContent = `${voice.name} (${voice.lang})`;
+          option.selected = (voice.voiceURI === selectedVoiceURI);
+          select.appendChild(option);
+      });
+      
+      select.onchange = () => {
+          selectedVoiceURI = select.value;
+          localStorage.setItem('selectedVoiceURI', selectedVoiceURI);
+      };
+  }
+
   function speakCurrentWord() {
-    if (isMuted) return; // Kiểm tra trạng thái mute
+    if (isMuted || !('speechSynthesis' in window)) return;
+    
+    // Ngăn chặn việc phát âm đè lên nhau
+    window.speechSynthesis.cancel(); 
 
     let wordToSpeak = '';
     
     if (currentMode === 'flashcard' || currentMode === 'fill') {
-        if(currentWords[currentIndex]) {
-            wordToSpeak = currentWords[currentIndex].english;
-        }
+        wordToSpeak = currentWords[currentIndex]?.english || '';
     } else if (currentMode === 'quiz' && quizGame.currentWord) {
-        wordToSpeak = quizGame.currentWord.english;
+        wordToSpeak = quizGame.currentWord.english || '';
     }
 
     if (!wordToSpeak) return;
 
-    if ('speechSynthesis' in window) {
-        window.speechSynthesis.cancel();
-        const utterance = new SpeechSynthesisUtterance(wordToSpeak);
-        
-        const rate = parseFloat(document.getElementById('speedRate').value || 1.0);
-        utterance.rate = rate;
-        utterance.lang = 'en-US';
-        
-        utterance.onend = () => {};
-        utterance.onerror = (e) => console.error('TTS Error:', e);
-
-        window.speechSynthesis.speak(utterance);
+    const utterance = new SpeechSynthesisUtterance(wordToSpeak);
+    
+    const rate = parseFloat(document.getElementById('speedRate')?.value || 1.0);
+    utterance.rate = rate;
+    
+    // Find the selected voice
+    const voices = window.speechSynthesis.getVoices();
+    const selectedVoice = voices.find(v => v.voiceURI === selectedVoiceURI);
+    
+    if (selectedVoice) {
+        utterance.voice = selectedVoice;
+        utterance.lang = selectedVoice.lang; // Use the voice's actual language
     } else {
-        // alert("Trình duyệt của bạn không hỗ trợ Text-to-Speech."); // Bỏ alert để tránh phiền
+         utterance.lang = 'en-US'; // Fallback to ensure English is spoken
     }
+
+    utterance.onend = () => {};
+    utterance.onerror = (e) => console.error('TTS Error:', e);
+
+    window.speechSynthesis.speak(utterance);
   }
 
-  // --- KEYBOARD CONTROLS ---
+  // --- KEYBOARD CONTROLS (Improved) ---
   document.addEventListener('keydown', (e) => {
     if(document.getElementById('gameOverlay').style.display === 'flex') {
       if (currentMode === 'flashcard' || currentMode === 'fill') {
-          if(e.key === 'ArrowRight') nextCard();
-          if(e.key === 'ArrowLeft') prevCard();
+          if(e.key === 'ArrowRight') {
+              e.preventDefault();
+              nextCard();
+          }
+          if(e.key === 'ArrowLeft') {
+              e.preventDefault();
+              prevCard();
+          }
       }
       
       if(e.key === ' ' || e.key === 'Enter') {
           e.preventDefault();
           if (currentMode === 'flashcard') flipCard();
+          if (currentMode === 'fill' && document.activeElement.id === 'fillInput') checkFillInTheBlank();
       }
       if(e.key === 'v' || e.key === 'V') {
           e.preventDefault();

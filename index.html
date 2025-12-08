@@ -3,47 +3,55 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Flashcard Pro - Glass Edition</title>
+<title>Flashcard Pro - Aurora Science Edition</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;600;700&family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
 <style>
   :root {
+    --glass-bg: rgba(255, 255, 255, 0.12);
+    --glass-border: rgba(255, 255, 255, 0.25);
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.25);
+    --accent-color: #00d2ff;
+    --success-color: #00e676;
+    --error-color: #ff5252;
     --text-color: #ffffff;
-    --text-sub: #e2e8f0;
-    --glass-bg: rgba(255, 255, 255, 0.15);
-    --glass-border: rgba(255, 255, 255, 0.2);
-    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
-    --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    --accent-color: #f472b6;
-    --success-color: #34d399;
-    --error-color: #f87171;
-    --radius: 24px;
+    --radius: 28px;
+    --font-main: 'Poppins', sans-serif;
   }
 
-  /* DARK MODE OVERRIDES (Deep Space Theme) */
   body.dark-mode {
-    --bg-gradient: linear-gradient(to bottom right, #0f172a, #312e81, #4c1d95);
-  }
-  
-  /* LIGHT MODE (Vibrant Mesh) */
-  body {
-    --bg-gradient: linear-gradient(45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    --glass-bg: rgba(15, 23, 42, 0.65);
+    --glass-border: rgba(255, 255, 255, 0.1);
   }
 
-  * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; }
+  * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
 
   body {
-    font-family: 'Poppins', sans-serif;
-    background: var(--bg-gradient);
-    background-size: 400% 400%;
-    animation: gradientBG 15s ease infinite;
+    font-family: var(--font-main);
+    background: #0f172a; /* Deep space fallback */
     color: var(--text-color);
     min-height: 100vh;
     display: flex; flex-direction: column; align-items: center;
-    padding-bottom: 90px;
+    padding-bottom: 100px;
     overflow-x: hidden;
+    position: relative;
+  }
+
+  /* --- AURORA BACKGROUND --- */
+  .aurora-bg {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -2;
+    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
+    background-size: 400% 400%;
+    animation: gradientBG 15s ease infinite;
+    opacity: 0.8;
+  }
+  
+  body.dark-mode .aurora-bg {
+    background: linear-gradient(-45deg, #020024, #090979, #1a0b2e, #001f3f);
+    background-size: 400% 400%;
   }
 
   @keyframes gradientBG {
@@ -52,264 +60,237 @@
     100% { background-position: 0% 50%; }
   }
 
-  /* ORBS BACKGROUND DECORATION */
-  .orb {
-    position: fixed; border-radius: 50%; filter: blur(80px); z-index: -1;
-    opacity: 0.6; animation: float 10s infinite ease-in-out;
+  /* PARTICLES */
+  .particle {
+    position: absolute; border-radius: 50%; background: white;
+    opacity: 0.3; animation: floatUp linear infinite; z-index: -1;
   }
-  .orb-1 { width: 300px; height: 300px; background: #764ba2; top: -50px; left: -50px; }
-  .orb-2 { width: 250px; height: 250px; background: #ff758c; bottom: 10%; right: -50px; animation-delay: -2s; }
-  
-  @keyframes float { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+  @keyframes floatUp {
+    0% { transform: translateY(100vh) scale(0); opacity: 0; }
+    50% { opacity: 0.5; }
+    100% { transform: translateY(-10vh) scale(1); opacity: 0; }
+  }
 
   /* --- GLASS COMPONENT --- */
   .glass-panel {
     background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
+    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
     border-radius: var(--radius);
     border: 1px solid var(--glass-border);
     box-shadow: var(--glass-shadow);
-    transition: all 0.3s ease;
+    transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .btn-primary {
+    position: relative; overflow: hidden;
     border: none;
-    background: rgba(255, 255, 255, 0.25);
-    border: 1px solid rgba(255,255,255,0.4);
-    color: white;
-    font-weight: 700;
-    padding: 16px 28px;
-    border-radius: 16px;
-    cursor: pointer;
+    background: linear-gradient(135deg, rgba(255,255,255,0.3) 0%, rgba(255,255,255,0.1) 100%);
+    border: 1px solid rgba(255,255,255,0.5);
+    color: white; font-weight: 800;
+    padding: 18px 28px; border-radius: 20px;
+    cursor: pointer; width: 100%;
+    font-size: 1.1rem; text-transform: uppercase; letter-spacing: 1.5px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     transition: all 0.2s;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    font-size: 1.1rem; width: 100%;
-    backdrop-filter: blur(4px);
-    text-transform: uppercase; letter-spacing: 1px;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.1);
   }
-  
-  .btn-primary:active { transform: scale(0.96); }
-  .btn-primary:hover { background: rgba(255, 255, 255, 0.4); box-shadow: 0 8px 20px rgba(0,0,0,0.2); }
+  .btn-primary::after {
+    content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transform: skewX(-25deg); animation: shine 3s infinite;
+  }
+  @keyframes shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
+  .btn-primary:active { transform: scale(0.96); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 
-  .btn-icon {
-    width: 48px; height: 48px;
-    border-radius: 14px;
-    border: 1px solid var(--glass-border);
-    background: rgba(0,0,0,0.2);
-    color: white;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 1.2rem; cursor: pointer; transition: 0.2s;
-  }
-  .btn-icon:active { transform: scale(0.9); }
-  
   .input-glass {
-    width: 100%; padding: 16px; border-radius: 14px;
+    width: 100%; padding: 16px; border-radius: 16px;
     border: 1px solid var(--glass-border);
-    background: rgba(0,0,0,0.2);
-    color: white;
-    font-size: 1rem; margin-bottom: 15px;
-    transition: 0.2s;
+    background: rgba(0,0,0,0.2); color: white;
+    font-size: 1rem; margin-bottom: 15px; font-family: var(--font-main);
   }
-  .input-glass::placeholder { color: rgba(255,255,255,0.6); }
-  .input-glass:focus { background: rgba(0,0,0,0.4); border-color: rgba(255,255,255,0.6); }
-  
+  .input-glass:focus { background: rgba(0,0,0,0.4); border-color: #fff; }
+
   /* --- LAYOUT --- */
-  header { margin: 30px 0 20px 0; text-align: center; width: 100%; padding: 0 20px; z-index: 2;}
-  h1 { 
-    font-size: 2.2rem; font-weight: 800; 
-    text-shadow: 0 2px 10px rgba(0,0,0,0.2);
-    margin-bottom: 5px; letter-spacing: -1px;
-  }
-  
-  .view-container { width: 90%; max-width: 500px; animation: fadeIn 0.5s ease; z-index: 2; position: relative; }
-  
-  @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-  @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-6px); } 75% { transform: translateX(6px); } }
+  header { margin: 40px 0 20px 0; text-align: center; width: 100%; padding: 0 20px; z-index: 2; }
+  h1 { font-size: 2.5rem; font-weight: 800; margin-bottom: 5px; letter-spacing: -1px; 
+       background: linear-gradient(to right, #fff, #b3e5fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
 
-  .shake-anim { animation: shake 0.3s ease-in-out; }
-
-  /* --- DASHBOARD --- */
-  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-top: 20px; }
+  .view-container { width: 92%; max-width: 500px; z-index: 2; position: relative; padding-bottom: 20px; }
+  
+  /* --- DASHBOARD STATS --- */
+  .stats-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 20px; }
   .stat-card {
-    display: flex; flex-direction: column; align-items: center;
-    padding: 15px 10px; border-radius: 18px; 
-    background: rgba(255,255,255,0.1);
-    border: 1px solid rgba(255,255,255,0.1);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 15px 5px; border-radius: 20px; 
+    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
   }
-  .stat-num { font-size: 1.5rem; font-weight: 800; text-shadow: 0 2px 5px rgba(0,0,0,0.2); }
-  .stat-label { font-size: 0.7rem; color: var(--text-sub); margin-top: 5px; text-transform: uppercase; font-weight: 600; }
+  .stat-num { font-size: 1.6rem; font-weight: 800; line-height: 1; }
+  .stat-label { font-size: 0.7rem; opacity: 0.8; margin-top: 6px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
 
   .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
   .mode-btn {
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     padding: 20px; text-align: center; height: 110px;
-    background: rgba(255,255,255,0.1); border-radius: 20px;
-    border: 1px solid rgba(255,255,255,0.15);
-    cursor: pointer; transition: 0.25s;
+    background: rgba(255,255,255,0.08); border-radius: 24px;
+    border: 1px solid rgba(255,255,255,0.1); cursor: pointer; transition: 0.25s;
   }
-  .mode-btn:hover { background: rgba(255,255,255,0.25); transform: translateY(-5px); }
-  .mode-btn i { font-size: 2rem; margin-bottom: 10px; opacity: 0.9; }
-  .mode-btn span { font-weight: 600; font-size: 0.9rem; }
+  .mode-btn:active { transform: scale(0.95); background: rgba(255,255,255,0.2); }
+  .mode-btn i { font-size: 2rem; margin-bottom: 12px; opacity: 0.9; 
+                background: linear-gradient(45deg, #fff, #a5f3fc); -webkit-background-clip: text; -webkit-text-fill-color: transparent;}
 
   /* --- FLASHCARD 3D --- */
-  .scene { width: 100%; height: 420px; perspective: 1200px; margin: 20px 0; }
-  .card { width: 100%; height: 100%; position: relative; transition: transform 0.7s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-style: preserve-3d; cursor: pointer; }
+  .scene { width: 100%; height: 440px; perspective: 1500px; margin: 20px 0; }
+  .card { width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); transform-style: preserve-3d; cursor: pointer; }
   .card.is-flipped { transform: rotateY(180deg); }
   
   .card__face {
     position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
-    border-radius: 24px; display: flex; flex-direction: column; justify-content: center; align-items: center;
+    border-radius: 30px; display: flex; flex-direction: column; justify-content: center; align-items: center;
     padding: 30px; text-align: center;
-    background: rgba(255, 255, 255, 0.85); /* Light glass for card */
-    color: #1f2937;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-    box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.6);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.3);
   }
   
-  /* Dark mode card override for better contrast */
-  body.dark-mode .card__face { background: rgba(30, 41, 59, 0.9); color: white; border-color: rgba(255,255,255,0.1); }
+  body.dark-mode .card__face { background: rgba(30, 41, 59, 0.95); border-color: rgba(255,255,255,0.15); }
+  .card__face--back { transform: rotateY(180deg); background: #ffffff; }
+  body.dark-mode .card__face--back { background: #1e293b; }
   
-  .card__face--back { transform: rotateY(180deg); background: rgba(255, 255, 255, 0.95); }
-  body.dark-mode .card__face--back { background: rgba(15, 23, 42, 0.95); }
+  .word-en { font-size: 3.2rem; font-weight: 800; margin-bottom: 10px; line-height: 1.1; 
+             background: linear-gradient(45deg, #2563EB, #4F46E5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+  body.dark-mode .word-en { background: linear-gradient(45deg, #60A5FA, #C084FC); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+  .word-vn { font-size: 2.2rem; font-weight: 700; color: #1e293b; margin-bottom: 15px; }
+  body.dark-mode .word-vn { color: #f8fafc; }
   
-  .word-en { font-size: 3rem; font-weight: 800; background: -webkit-linear-gradient(45deg, #2563EB, #4F46E5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 5px; line-height: 1.2; }
-  body.dark-mode .word-en { background: -webkit-linear-gradient(45deg, #60A5FA, #A78BFA); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-
-  .word-vn { font-size: 2.2rem; font-weight: 700; color: #111827; margin-bottom: 10px; line-height: 1.3; }
-  body.dark-mode .word-vn { color: #F3F4F6; }
-
-  .ipa { font-family: 'Times New Roman', serif; font-style: italic; color: #6B7280; font-size: 1.4rem; margin-bottom: 20px; }
+  .ipa { font-family: 'Times New Roman', serif; font-style: italic; color: #64748b; font-size: 1.5rem; margin-bottom: 25px; }
   
-  .tap-hint { margin-top: auto; font-size: 0.85rem; opacity: 0.6; display: flex; align-items: center; gap: 6px; letter-spacing: 0.5px;}
-
   /* --- GAME OVERLAY --- */
   #gameOverlay {
     position: fixed; inset: 0; background: var(--bg-gradient); z-index: 2000;
     display: none; flex-direction: column; padding: 20px;
-    background-size: 400% 400%; animation: gradientBG 15s ease infinite;
+    background: radial-gradient(circle at center, #2e1065 0%, #0f172a 100%);
   }
-  .progress-track { flex-grow: 1; height: 8px; background: rgba(0,0,0,0.2); border-radius: 10px; margin: 0 15px; overflow: hidden; backdrop-filter: blur(5px); border: 1px solid rgba(255,255,255,0.1); }
-  .progress-bar { height: 100%; background: #ffffff; width: 0%; transition: width 0.3s ease; box-shadow: 0 0 10px rgba(255,255,255,0.5); }
   
-  /* --- CONTROLS --- */
-  .control-row { display: flex; justify-content: center; gap: 15px; margin-top: auto; padding-bottom: 10px; align-items: center; width: 100%; }
+  .progress-track {
+    flex-grow: 1; height: 12px; background: rgba(255,255,255,0.1); border-radius: 20px;
+    margin: 0 15px; overflow: hidden; border: 1px solid rgba(255,255,255,0.1); position: relative;
+  }
+  .progress-bar { 
+    height: 100%; width: 0%; transition: width 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    background: linear-gradient(90deg, #4ade80, #3b82f6);
+    box-shadow: 0 0 15px rgba(59, 130, 246, 0.6);
+  }
+
+  /* Control Buttons */
+  .control-row { display: flex; justify-content: center; gap: 15px; margin-top: auto; width: 100%; }
   
   .action-btn {
-    flex: 1; height: 65px; border-radius: 18px; border: none; font-size: 1rem; font-weight: 700;
-    display: flex; align-items: center; justify-content: center; cursor: pointer; gap: 8px;
-    transition: 0.2s; box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    flex: 1; height: 70px; border-radius: 22px; border: none; font-size: 1.1rem; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; cursor: pointer; gap: 10px;
+    transition: all 0.2s; color: white;
     backdrop-filter: blur(5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.2);
   }
   
-  .btn-wrong { background: rgba(239, 68, 68, 0.85); color: white; border: 1px solid rgba(255,255,255,0.3); }
-  
-  .btn-next { background: rgba(255, 255, 255, 0.9); color: #2563eb; }
-  .btn-next:active { transform: scale(0.96); }
+  .btn-wrong { background: rgba(239, 68, 68, 0.8); border: 1px solid rgba(255,100,100,0.3); }
+  .btn-next { background: rgba(34, 197, 94, 0.8); border: 1px solid rgba(100,255,150,0.3); }
+  .btn-wrong:active, .btn-next:active { transform: scale(0.92); }
   
   .btn-speak-round {
-    width: 65px; height: 65px; border-radius: 50%;
-    background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.4);
-    color: white; font-size: 1.6rem;
-    display: flex; align-items: center; justify-content: center;
-    cursor: pointer; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    backdrop-filter: blur(4px);
+    width: 70px; height: 70px; border-radius: 50%;
+    background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.3);
+    color: white; font-size: 1.8rem; display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: 0.2s;
   }
-  .btn-speak-round:active { transform: scale(0.9); background: rgba(255,255,255,0.4); }
+  .btn-speak-round:active { transform: scale(0.85); background: rgba(255,255,255,0.3); }
 
-  /* --- TAB BAR --- */
+  /* Animations */
+  .slide-in-right { animation: slideInRight 0.4s forwards; }
+  .slide-out-left { animation: slideOutLeft 0.4s forwards; }
+  @keyframes slideInRight { from { opacity: 0; transform: translateX(50px) scale(0.9); } to { opacity: 1; transform: translateX(0) scale(1); } }
+  @keyframes slideOutLeft { from { opacity: 1; transform: translateX(0) scale(1); } to { opacity: 0; transform: translateX(-50px) scale(0.9); } }
+
+  /* Tab Bar */
   .tab-bar {
-    position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-    width: 90%; max-width: 400px;
-    height: 65px;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-    border: 1px solid rgba(255,255,255,0.15);
-    border-radius: 35px;
+    position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
+    width: 92%; max-width: 420px; height: 70px;
+    background: rgba(15, 23, 42, 0.8);
+    backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
+    border: 1px solid rgba(255,255,255,0.15); border-radius: 40px;
     display: flex; justify-content: space-around; align-items: center; z-index: 1000;
-    padding: 0 10px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.3);
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
   }
-  
   .tab-item {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
-    color: rgba(255,255,255,0.5); font-size: 0.7rem; font-weight: 600; cursor: pointer; height: 100%;
-    transition: 0.3s;
+    color: rgba(255,255,255,0.4); font-size: 0.75rem; font-weight: 600; transition: 0.3s;
   }
-  .tab-item i { font-size: 1.4rem; margin-bottom: 4px; }
-  .tab-item.active { color: #fff; transform: translateY(-3px); text-shadow: 0 0 8px rgba(255,255,255,0.6); }
-
-  /* --- LISTS --- */
-  .topic-item {
-    padding: 20px; margin-bottom: 15px; cursor: pointer; display: flex; justify-content: space-between; align-items: center;
-    background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.1);
-    border-radius: 18px;
-  }
-  .topic-item:hover { background: rgba(255,255,255,0.2); }
-  .topic-item.active { border: 1px solid rgba(255,255,255,0.6); background: rgba(255,255,255,0.25); }
-  
-  /* --- TOAST --- */
-  #toast {
-    position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-100px);
-    background: rgba(0,0,0,0.8); color: white; padding: 14px 28px; border-radius: 50px;
-    font-weight: 600; box-shadow: 0 10px 30px rgba(0,0,0,0.3); z-index: 3000;
-    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    display: flex; align-items: center; gap: 10px; font-size: 0.95rem;
-    backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.1);
-  }
-  #toast.show { transform: translateX(-50%) translateY(0); }
-  #toast.success i { color: #34d399; }
-  #toast.error i { color: #f87171; }
+  .tab-item i { font-size: 1.5rem; margin-bottom: 5px; transition: 0.3s; }
+  .tab-item.active { color: #38bdf8; }
+  .tab-item.active i { transform: translateY(-5px); text-shadow: 0 0 10px rgba(56, 189, 248, 0.6); }
 
   /* Matching Grid */
   .matching-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; width: 100%; }
   .match-card {
-    padding: 20px 5px; text-align: center; font-weight: 600; font-size: 0.9rem;
-    border-radius: 16px; cursor: pointer; transition: 0.2s;
-    background: rgba(255,255,255,0.85); border: 2px solid transparent;
-    color: #111827; box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    padding: 24px 10px; text-align: center; font-weight: 700; font-size: 0.95rem;
+    border-radius: 18px; cursor: pointer; transition: all 0.2s;
+    background: rgba(255,255,255,0.9); color: #0f172a;
+    box-shadow: 0 5px 0 rgba(0,0,0,0.1); position: relative; top: 0;
   }
-  body.dark-mode .match-card { background: rgba(30, 41, 59, 0.8); color: white; }
-  
-  .match-card.selected { border-color: #60A5FA; background: rgba(255,255,255,1); transform: scale(1.05); }
-  .match-card.correct { visibility: hidden; opacity: 0; }
-  .match-card.wrong { border-color: #EF4444; background: #FECACA; color: #7f1d1d; animation: shake 0.4s; }
+  body.dark-mode .match-card { background: rgba(51, 65, 85, 0.9); color: white; }
+  .match-card:active { top: 3px; box-shadow: 0 2px 0 rgba(0,0,0,0.1); }
+  .match-card.selected { background: #3b82f6; color: white; transform: scale(1.02); }
+  .match-card.wrong { background: #ef4444; color: white; animation: shake 0.4s; }
+  .match-card.correct { opacity: 0; visibility: hidden; transition: opacity 0.3s; }
 
-  /* Option Buttons for Quiz */
-  .quiz-opt {
-    background: rgba(255,255,255,0.85); color: #111827;
-    border: none; padding: 18px; border-radius: 16px; width: 100%;
-    font-weight: 600; margin-bottom: 0; font-size: 1rem;
-    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-    transition: transform 0.2s;
+  /* Toast */
+  #toast {
+    position: fixed; top: 20px; left: 50%; transform: translateX(-50%) translateY(-150%);
+    background: rgba(0,0,0,0.85); color: white; padding: 16px 30px; border-radius: 50px;
+    font-weight: 600; z-index: 3000; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    display: flex; align-items: center; gap: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
+    white-space: nowrap; box-shadow: 0 10px 30px rgba(0,0,0,0.4);
   }
-  body.dark-mode .quiz-opt { background: rgba(30, 41, 59, 0.8); color: white; }
-  .quiz-opt:active { transform: scale(0.98); }
+  #toast.show { transform: translateX(-50%) translateY(20px); }
+
+  /* Custom Range Slider */
+  input[type=range] {
+    -webkit-appearance: none; width: 100%; background: transparent; margin: 15px 0;
+  }
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%;
+    background: #fff; cursor: pointer; margin-top: -10px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3); border: 2px solid #3b82f6;
+  }
+  input[type=range]::-webkit-slider-runnable-track {
+    width: 100%; height: 6px; cursor: pointer;
+    background: rgba(255,255,255,0.3); border-radius: 10px;
+  }
 
 </style>
 </head>
 <body onload="initApp()">
 
-<div class="orb orb-1"></div>
-<div class="orb orb-2"></div>
+<div class="aurora-bg"></div>
+<div id="particles"></div>
 
 <header>
   <h1>Flashcard Pro</h1>
-  <div id="status-msg" style="font-size:0.9rem; opacity:0.8;">Glass Edition &bull; US Voice</div>
+  <div id="status-msg" style="font-size:0.85rem; opacity:0.8; font-weight: 600;">Aurora Science Edition</div>
 </header>
 
 <div id="appContainer" style="width: 100%; display: flex; justify-content: center;">
   
-  <div id="view-home" class="view-container">
-    <div class="glass-panel" style="padding: 24px;">
-        <div style="font-size:0.75rem; text-transform: uppercase; font-weight:700; opacity:0.7; letter-spacing:1px;">Chủ đề hiện tại</div>
-        <div id="currentTopicName" style="font-size:1.6rem; font-weight:800; margin: 8px 0; text-shadow:0 2px 4px rgba(0,0,0,0.1);">(Chưa chọn chủ đề)</div>
+  <div id="view-home" class="view-container animate__animated animate__fadeIn">
+    <div class="glass-panel" style="padding: 24px; position: relative; overflow: hidden;">
+        <div style="position:absolute; top:-10px; right:-10px; width:80px; height:80px; background:white; opacity:0.1; border-radius:50%; filter:blur(20px);"></div>
+        
+        <div style="font-size:0.7rem; text-transform: uppercase; font-weight:700; opacity:0.7; letter-spacing:1.5px; margin-bottom:5px;">Chủ đề học tập</div>
+        <div id="currentTopicName" style="font-size:1.5rem; font-weight:800; margin-bottom: 20px; line-height: 1.3;">(Đang tải...)</div>
         
         <div class="stats-grid">
             <div class="stat-card">
                 <span class="stat-num" id="statNew" style="color:#60A5FA">0</span>
-                <span class="stat-label">Từ mới</span>
+                <span class="stat-label">Mới</span>
             </div>
             <div class="stat-card">
                 <span class="stat-num" id="statDue" style="color:#FBBF24">0</span>
@@ -317,17 +298,19 @@
             </div>
             <div class="stat-card">
                 <span class="stat-num" id="statMastered" style="color:#34D399">0</span>
-                <span class="stat-label">Đã thuộc</span>
+                <span class="stat-label">Thuộc lòng</span>
             </div>
         </div>
     </div>
     
-    <button class="btn-primary" style="margin-top: 25px;" onclick="startSmartSession()">
-        <i class="fas fa-rocket"></i> BẮT ĐẦU HỌC
+    <button class="btn-primary animate__animated animate__pulse animate__infinite" style="margin-top: 30px; animation-duration: 2s;" onclick="startSmartSession()">
+        <i class="fas fa-brain"></i> &nbsp; HỌC NGAY
     </button>
-    <div style="font-size:0.8rem; opacity:0.7; text-align:center; margin-top:10px;">Học tuần tự &bull; Ôn tập khoa học</div>
+    <div style="font-size:0.75rem; opacity:0.7; text-align:center; margin-top:12px;">
+        <i class="fas fa-atom"></i> Thuật toán Interleaving + Spaced Repetition
+    </div>
 
-    <h3 style="margin-top: 30px; margin-bottom: 15px; font-size:1.2rem; padding-left:5px;">Chế độ Luyện tập</h3>
+    <h3 style="margin-top: 35px; margin-bottom: 15px; font-size:1.2rem; padding-left:10px;">Luyện tập Game</h3>
     <div class="mode-grid">
         <div class="mode-btn" onclick="startGame('fill')">
             <i class="fas fa-keyboard"></i>
@@ -348,45 +331,47 @@
     </div>
   </div>
 
-  <div id="view-topics" class="view-container" style="display:none;">
-    <h2 style="margin-bottom: 20px;">Danh sách Chủ đề</h2>
+  <div id="view-topics" class="view-container animate__animated animate__fadeIn" style="display:none;">
+    <h2 style="margin-bottom: 20px; padding-left: 10px;">Thư viện chủ đề</h2>
     <div id="topicList"></div>
   </div>
   
-  <div id="view-settings" class="view-container" style="display:none;">
-    <h2 style="margin-bottom: 20px;">Cài đặt</h2>
+  <div id="view-settings" class="view-container animate__animated animate__fadeIn" style="display:none;">
+    <h2 style="margin-bottom: 20px; padding-left: 10px;">Cấu hình</h2>
     <div class="glass-panel" style="padding: 24px;">
         
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 20px;">
-            <span>Chế độ nền tối (Dark Space)</span>
-            <button class="btn-icon" style="width:44px; height:44px;" onclick="toggleTheme()" id="themeBtn"><i class="fas fa-moon"></i></button>
+            <span>Giao diện tối (Dark Mode)</span>
+            <button class="action-btn" style="width:50px; height:50px; padding:0; flex:none; background:rgba(255,255,255,0.1);" onclick="toggleTheme()" id="themeBtn"><i class="fas fa-moon"></i></button>
         </div>
-        <hr style="border:0; border-top:1px solid var(--glass-border); margin: 15px 0;">
         
-        <h4 style="margin-bottom:10px;">Đồng bộ GitHub</h4>
-        <input type="text" id="gh-user" class="input-glass" placeholder="Username" value="ngxuanhai123">
-        <input type="text" id="gh-repo" class="input-glass" placeholder="Repository" value="tuvung">
-        <button class="btn-primary" style="padding: 12px; font-size: 0.9rem;" onclick="fetchTopics(true)">
-            <i class="fas fa-sync"></i> Tải dữ liệu
-        </button>
-
         <hr style="border:0; border-top:1px solid var(--glass-border); margin: 20px 0;">
         
-        <h4 style="margin-bottom:10px;">Cấu hình Học tập</h4>
+        <h4 style="margin-bottom:15px; color:#60A5FA;">Kho dữ liệu (GitHub)</h4>
+        <input type="text" id="gh-user" class="input-glass" placeholder="Username" value="ngxuanhai123">
+        <input type="text" id="gh-repo" class="input-glass" placeholder="Repository" value="tuvung">
+        <button class="btn-primary" style="padding: 12px; font-size: 0.9rem; background: rgba(59, 130, 246, 0.5);" onclick="fetchTopics(true)">
+            <i class="fas fa-sync-alt"></i> Đồng bộ dữ liệu
+        </button>
+
+        <hr style="border:0; border-top:1px solid var(--glass-border); margin: 25px 0;">
+        
+        <h4 style="margin-bottom:10px; color:#FBBF24;">Mục tiêu Học tập</h4>
+        
         <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-            <small>Số từ mới mỗi phiên</small>
+            <small>Từ mới mỗi lần học</small>
             <strong id="dispLimitNew">5</strong>
         </div>
-        <input type="range" id="cfgNewLimit" min="0" max="20" value="5" style="width:100%" oninput="saveConfig()">
+        <input type="range" id="cfgNewLimit" min="0" max="15" value="5" oninput="saveConfig()">
         
-        <div style="display:flex; justify-content:space-between; margin-top:15px; margin-bottom:5px;">
-            <small>Số từ ôn tập tối đa</small>
-            <strong id="dispLimitReview">15</strong>
+        <div style="display:flex; justify-content:space-between; margin-top:20px; margin-bottom:5px;">
+            <small>Giới hạn ôn tập</small>
+            <strong id="dispLimitReview">20</strong>
         </div>
-        <input type="range" id="cfgReviewLimit" min="0" max="50" value="15" style="width:100%" oninput="saveConfig()">
-
-        <div style="margin-top:20px; font-size:0.8rem; opacity:0.7;">
-            <i class="fas fa-volume-up"></i> Hệ thống tự động ưu tiên giọng Anh-Mỹ (US).
+        <input type="range" id="cfgReviewLimit" min="5" max="50" value="20" oninput="saveConfig()">
+        
+        <div style="margin-top:20px; font-size:0.8rem; opacity:0.6; text-align:center;">
+            Sound FX Engine v2.0 &bull; Web Audio API
         </div>
     </div>
   </div>
@@ -394,51 +379,116 @@
 </div>
 
 <div id="gameOverlay">
-  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-    <button class="btn-icon" style="border:none; background:transparent;" onclick="closeGame()"><i class="fas fa-times"></i></button>
-    <div class="progress-track"><div id="gameProgressBar" class="progress-bar"></div></div>
-    <button class="btn-icon" style="border:none; background:transparent;" onclick="toggleMute()"><i id="muteIcon" class="fas fa-volume-up"></i></button>
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; width: 100%;">
+    <button style="background:none; border:none; color:white; font-size:1.5rem; opacity:0.8;" onclick="closeGame()"><i class="fas fa-times"></i></button>
+    <div class="progress-track">
+        <div id="gameProgressBar" class="progress-bar"></div>
+        <div style="position:absolute; top:0; left:0; width:100%; height:100%; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent); animation: shine 2s infinite;"></div>
+    </div>
+    <button style="background:none; border:none; color:white; font-size:1.3rem; opacity:0.8;" onclick="toggleMute()"><i id="muteIcon" class="fas fa-volume-up"></i></button>
   </div>
 
-  <div id="gameContent" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%;">
+  <div id="gameContent" style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; perspective: 1000px;">
       </div>
 </div>
 
 <div class="tab-bar">
   <div class="tab-item active" data-target="view-home" onclick="navTo('view-home')">
-    <i class="fas fa-graduation-cap"></i> <span>Học tập</span>
+    <i class="fas fa-home"></i> <span>Home</span>
   </div>
   <div class="tab-item" data-target="view-topics" onclick="navTo('view-topics')">
-    <i class="fas fa-list"></i> <span>Chủ đề</span>
+    <i class="fas fa-book-open"></i> <span>Library</span>
   </div>
   <div class="tab-item" data-target="view-settings" onclick="navTo('view-settings')">
-    <i class="fas fa-cog"></i> <span>Cài đặt</span>
+    <i class="fas fa-sliders-h"></i> <span>Config</span>
   </div>
 </div>
 
-<div id="toast"><span id="toast-icon"></span> <span id="toast-msg">Notification</span></div>
+<div id="toast"><span id="toast-icon"></span> <span id="toast-msg">Message</span></div>
 
 <script>
 /* -------------------------------------------------------------------------
-   APP LOGIC & JAVASCRIPT
+   APP LOGIC & AUDIO ENGINE
    ------------------------------------------------------------------------- */
+
+// --- AUDIO ENGINE (SYNTHESIZER) ---
+const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+let masterGain = null;
+
+function initAudio() {
+    if(!masterGain) {
+        masterGain = audioCtx.createGain();
+        masterGain.connect(audioCtx.destination);
+    }
+    if(audioCtx.state === 'suspended') audioCtx.resume();
+}
+
+const SFX = {
+    CORRECT: 'correct',
+    WRONG: 'wrong',
+    FLIP: 'flip',
+    WIN: 'win',
+    POP: 'pop'
+};
+
+function playTone(freq, type, duration, startTime, vol=0.1) {
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, startTime);
+    gain.gain.setValueAtTime(vol, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+    osc.connect(gain);
+    gain.connect(masterGain);
+    osc.start(startTime);
+    osc.stop(startTime + duration);
+}
+
+function playSound(sfx) {
+    if(config.muted) return;
+    initAudio();
+    const now = audioCtx.currentTime;
+
+    switch(sfx) {
+        case SFX.CORRECT:
+            // Major Chord Arpeggio (C5, E5, G5)
+            playTone(523.25, 'sine', 0.4, now, 0.2);
+            playTone(659.25, 'sine', 0.4, now + 0.1, 0.2);
+            playTone(783.99, 'sine', 0.6, now + 0.2, 0.2);
+            break;
+        case SFX.WRONG:
+            // Low Dissonant (Sawtooth)
+            playTone(150, 'sawtooth', 0.4, now, 0.15);
+            playTone(140, 'sawtooth', 0.4, now + 0.1, 0.15);
+            break;
+        case SFX.FLIP:
+            // Quick Snap
+            playTone(800, 'triangle', 0.1, now, 0.05);
+            break;
+        case SFX.WIN:
+            // Victory Fanfare
+            [523, 659, 783, 1046].forEach((f, i) => playTone(f, 'square', 0.6, now + i*0.1, 0.1));
+            break;
+        case SFX.POP:
+             playTone(600, 'sine', 0.1, now, 0.1);
+             break;
+    }
+}
 
 // --- GLOBAL STATE ---
 let allTopics = {};
-let currentTopicKey = localStorage.getItem('fp_glass_topic') || '';
-let srsData = JSON.parse(localStorage.getItem('fp_glass_srs') || '{}'); 
-let masteredWords = JSON.parse(localStorage.getItem('fp_glass_mastered') || '{}');
+let currentTopicKey = localStorage.getItem('fp_aurora_topic') || '';
+let srsData = JSON.parse(localStorage.getItem('fp_aurora_srs') || '{}'); 
+let masteredWords = JSON.parse(localStorage.getItem('fp_aurora_mastered') || '{}');
 
-// Settings
 let config = {
-    newLimit: parseInt(localStorage.getItem('fp_glass_cfg_new') || 5),
-    reviewLimit: parseInt(localStorage.getItem('fp_glass_cfg_review') || 15),
-    darkMode: localStorage.getItem('fp_glass_dark') === 'true',
-    muted: localStorage.getItem('fp_glass_muted') === 'true'
+    newLimit: parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5),
+    reviewLimit: parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20),
+    darkMode: localStorage.getItem('fp_aurora_dark') === 'true',
+    muted: localStorage.getItem('fp_aurora_muted') === 'true'
 };
 
-// Session State
-let sessionQueue = [];
+let sessionQueue = []; // Queue containing words
 let sessionIndex = 0;
 let currentMode = '';
 let isProcessing = false;
@@ -447,24 +497,42 @@ let selectedVoice = null;
 
 // --- INITIALIZATION ---
 function initApp() {
+    createParticles();
     applyTheme();
     updateConfigUI();
     fetchTopics(); 
     
-    // Init Voice
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
         window.speechSynthesis.onvoiceschanged = setupVoice;
     }
-    setTimeout(setupVoice, 500); // Retry fallback
+    setTimeout(setupVoice, 1000);
     
     navTo('view-home');
     updateMuteIcon();
 }
 
-// --- NAVIGATION & UI ---
+function createParticles() {
+    const container = document.getElementById('particles');
+    for(let i=0; i<15; i++) {
+        const p = document.createElement('div');
+        p.className = 'particle';
+        p.style.left = Math.random() * 100 + '%';
+        p.style.width = Math.random() * 5 + 2 + 'px';
+        p.style.height = p.style.width;
+        p.style.animationDuration = Math.random() * 10 + 10 + 's';
+        p.style.animationDelay = Math.random() * 5 + 's';
+        container.appendChild(p);
+    }
+}
+
+// --- NAVIGATION ---
 function navTo(viewId) {
     document.querySelectorAll('.view-container').forEach(el => el.style.display = 'none');
-    document.getElementById(viewId).style.display = 'block';
+    const target = document.getElementById(viewId);
+    target.style.display = 'block';
+    target.classList.remove('animate__fadeIn');
+    void target.offsetWidth; // trigger reflow
+    target.classList.add('animate__fadeIn');
     
     document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
     document.querySelector(`.tab-item[data-target="${viewId}"]`)?.classList.add('active');
@@ -473,48 +541,21 @@ function navTo(viewId) {
     if(viewId === 'view-topics') renderTopicList();
 }
 
-function applyTheme() {
-    document.body.classList.toggle('dark-mode', config.darkMode);
-    document.getElementById('themeBtn').innerHTML = config.darkMode ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
-}
-
-function toggleTheme() {
-    config.darkMode = !config.darkMode;
-    localStorage.setItem('fp_glass_dark', config.darkMode);
-    applyTheme();
-}
-
-function showToast(msg, type='info') {
-    const el = document.getElementById('toast');
-    const txt = document.getElementById('toast-msg');
-    const icon = document.getElementById('toast-icon');
-    
-    el.className = ''; 
-    el.classList.add(type);
-    
-    let iconHtml = '<i class="fas fa-info-circle"></i>';
-    if(type==='success') iconHtml = '<i class="fas fa-check-circle"></i>';
-    if(type==='error') iconHtml = '<i class="fas fa-times-circle"></i>';
-    
-    icon.innerHTML = iconHtml;
-    txt.innerText = msg;
-    
-    el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2500);
-}
-
-// --- DATA MANAGEMENT ---
+// --- DATA & SYNC ---
 async function fetchTopics(manual = false) {
     const user = document.getElementById('gh-user').value;
     const repo = document.getElementById('gh-repo').value;
     const status = document.getElementById('status-msg');
     
-    if(manual) status.innerText = "Đang đồng bộ...";
+    if(manual) {
+        status.innerText = "Đang đồng bộ...";
+        playSound(SFX.POP);
+    }
     
     try {
         const api = `https://api.github.com/repos/${user}/${repo}/contents/`;
         const res = await fetch(api);
-        if(!res.ok) throw new Error("Lỗi kết nối GitHub");
+        if(!res.ok) throw new Error("Kết nối thất bại");
         
         const files = await res.json();
         const jsonFiles = files.filter(f => f.name.endsWith('.json'));
@@ -532,15 +573,15 @@ async function fetchTopics(manual = false) {
             }
         }
         
-        status.innerText = "Glass Edition • US Voice";
+        status.innerText = "Aurora Science Edition • Ready";
         if(!currentTopicKey || !allTopics[currentTopicKey]) currentTopicKey = Object.keys(allTopics)[0];
         
         if(manual) showToast("Đồng bộ thành công!", "success");
         renderDashboard();
     } catch(e) {
         console.error(e);
-        status.innerText = "Lỗi kết nối";
-        if(manual) showToast("Lỗi: " + e.message, "error");
+        status.innerText = "Offline Mode / Error";
+        if(manual) showToast("Lỗi: Kiểm tra mạng/GitHub", "error");
     }
 }
 
@@ -548,7 +589,392 @@ function getWordKey(w) {
     return (w.english + '_' + (w.vietnamese || '').substring(0,3)).toLowerCase().replace(/\s/g,'');
 }
 
-// --- DASHBOARD RENDER ---
+// --- CORE: SCIENTIFIC LEARNING ALGORITHM ---
+function startSmartSession() {
+    if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
+    playSound(SFX.POP);
+    
+    const allWords = allTopics[currentTopicKey].words;
+    const now = Date.now();
+    
+    // 1. Filter Reviews (Due items)
+    let candidatesReview = allWords.filter(w => {
+        const k = getWordKey(w);
+        return !masteredWords[k] && srsData[k] && srsData[k].nextReview <= now;
+    });
+    // Sort by "Most Overdue" first
+    candidatesReview.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
+    const batchReview = candidatesReview.slice(0, config.reviewLimit);
+    
+    // 2. Filter New (Fresh items)
+    let candidatesNew = allWords.filter(w => {
+        const k = getWordKey(w);
+        return !masteredWords[k] && !srsData[k];
+    });
+    const batchNew = candidatesNew.slice(0, config.newLimit);
+    
+    if(batchNew.length === 0 && batchReview.length === 0) {
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        playSound(SFX.WIN);
+        return showToast("Bạn đã hoàn thành tất cả bài học!", "success");
+    }
+    
+    // 3. Interleaving Algorithm (The Scientific Part)
+    // Strategy: Mix New and Review in a 1:2 ratio to keep brain active.
+    // Example: [New, Review, Review, New, Review, Review...]
+    
+    let interleaved = [];
+    let r = [...batchReview];
+    let n = [...batchNew];
+    
+    while(n.length > 0 || r.length > 0) {
+        if(n.length > 0) interleaved.push(n.shift()); // Add 1 New
+        if(r.length > 0) interleaved.push(r.shift()); // Add 1 Review
+        if(r.length > 0) interleaved.push(r.shift()); // Add 2nd Review
+    }
+    
+    sessionQueue = interleaved;
+    sessionIndex = 0;
+    currentMode = 'smart';
+    
+    openGameOverlay();
+    renderFlashcard();
+}
+
+function processResult(isCorrect) {
+    if(isProcessing) return;
+    isProcessing = true;
+    
+    const w = sessionQueue[sessionIndex];
+    const key = getWordKey(w);
+    let data = srsData[key] || { interval: 0, level: 0, nextReview: 0 };
+    
+    if(isCorrect) {
+        playSound(SFX.CORRECT);
+        confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, scalar: 0.7 });
+        
+        // SRS Calculation (Leitner System simplified)
+        if(data.level === 0) data.interval = 1; // 1 day
+        else if(data.level === 1) data.interval = 3; // 3 days
+        else data.interval = Math.ceil(data.interval * 2.5);
+        
+        data.level++;
+        data.nextReview = Date.now() + (data.interval * 24 * 3600 * 1000);
+        
+        // Save
+        srsData[key] = data;
+        localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
+        
+        setTimeout(() => { isProcessing = false; nextStep(); }, 600);
+        
+    } else {
+        playSound(SFX.WRONG);
+        // Reset SRS
+        data.level = 0;
+        data.interval = 0;
+        data.nextReview = Date.now(); // Review immediately (next session)
+        srsData[key] = data;
+        localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
+
+        // --- THE "IN-SESSION LOOP" (Crucial for Learning) ---
+        // If wrong, re-insert card into queue 3 steps later so user sees it again soon.
+        if(currentMode === 'smart') {
+            const reInsertIdx = sessionIndex + 3;
+            if(reInsertIdx < sessionQueue.length) {
+                sessionQueue.splice(reInsertIdx, 0, w);
+            } else {
+                sessionQueue.push(w);
+            }
+            showToast("Sẽ ôn lại từ này ngay!", "error");
+        }
+        
+        if(!isFlipped && (currentMode === 'smart' || currentMode === 'flashcard_all')) {
+            flipCard();
+        }
+        
+        setTimeout(() => { isProcessing = false; /* Wait for user to click Next */ }, 500);
+    }
+}
+
+// --- UI RENDERING & ANIMATIONS ---
+function openGameOverlay() {
+    document.getElementById('gameOverlay').style.display = 'flex';
+    document.getElementById('gameOverlay').classList.add('animate__animated', 'animate__fadeIn');
+    updateProgress();
+}
+
+function closeGame() {
+    document.getElementById('gameOverlay').style.display = 'none';
+    window.speechSynthesis.cancel();
+    renderDashboard();
+}
+
+function updateProgress() {
+    // Total includes dynamically added items, but simpler visual is just index vs initial length
+    // Or just let it fill up.
+    const pct = ((sessionIndex) / sessionQueue.length) * 100;
+    document.getElementById('gameProgressBar').style.width = `${pct}%`;
+}
+
+function nextStep() {
+    if(sessionIndex < sessionQueue.length - 1) {
+        const content = document.getElementById('gameContent');
+        content.classList.add('slide-out-left');
+        
+        setTimeout(() => {
+            sessionIndex++;
+            updateProgress();
+            
+            content.classList.remove('slide-out-left');
+            content.style.opacity = 0;
+            
+            if(currentMode === 'smart' || currentMode === 'flashcard_all') renderFlashcard(); 
+            else if(currentMode === 'fill') renderFill();
+            else if(currentMode === 'quiz') setupQuiz();
+            
+            content.classList.add('slide-in-right');
+            setTimeout(() => content.classList.remove('slide-in-right'), 400);
+            content.style.opacity = 1;
+        }, 350);
+    } else {
+        playSound(SFX.WIN);
+        confetti({ particleCount: 300, spread: 100, origin: { y: 0.6 } });
+        showToast("Buổi học hoàn tất! Xuất sắc!", "success");
+        setTimeout(closeGame, 2000);
+    }
+}
+
+// --- GAME MODE: FLASHCARD ---
+function renderFlashcard() {
+    const w = sessionQueue[sessionIndex];
+    isFlipped = false;
+    isProcessing = false;
+    
+    // Check if re-learning loop
+    const isRelearn = sessionQueue.filter(x => x === w).length > 1;
+    const badge = isRelearn ? '<div style="position:absolute; top:-10px; right:-10px; background:#f59e0b; color:white; padding:5px 10px; border-radius:10px; font-size:0.7rem; font-weight:bold; box-shadow:0 5px 10px rgba(0,0,0,0.2);">HỌC LẠI</div>' : '';
+
+    const html = `
+        <div class="scene">
+            <div class="card" id="flashcardObj" onclick="flipCard()">
+                <div class="card__face card__face--front">
+                    ${badge}
+                    <div style="font-size:0.8rem; opacity:0.6; margin-bottom:15px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Tiếng Anh</div>
+                    <div class="word-en">${w.english}</div>
+                    <div class="ipa">${w.ipa || ''}</div>
+                    <div style="margin-top:auto; opacity:0.6; font-size:0.8rem;"><i class="fas fa-touch-app"></i> Chạm để lật</div>
+                </div>
+                <div class="card__face card__face--back">
+                    <div style="font-size:0.8rem; opacity:0.6; margin-bottom:15px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Nghĩa Tiếng Việt</div>
+                    <div class="word-vn">${w.vietnamese}</div>
+                    <hr style="width:50%; border:0; border-top:1px solid rgba(0,0,0,0.1); margin:15px 0;">
+                    <div style="font-style:italic; opacity:0.8; font-size:1.1rem; padding:0 10px;">"${w.example || ''}"</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="control-row">
+            ${currentMode === 'smart' ? `
+                <button class="action-btn btn-wrong" onclick="processResult(false)">
+                    <i class="fas fa-times"></i> &nbsp;Chưa thuộc
+                </button>
+                <button class="btn-speak-round animate__animated animate__bounceIn" onclick="speakWord(event)"><i class="fas fa-volume-up"></i></button>
+                <button class="action-btn btn-next" onclick="processResult(true)">
+                    Đã thuộc &nbsp;<i class="fas fa-check"></i>
+                </button>
+            ` : `
+                 <button class="btn-speak-round" onclick="speakWord(event)"><i class="fas fa-volume-up"></i></button>
+                 <button class="action-btn btn-next" onclick="nextStep()" style="background:#3b82f6; border-color:#60a5fa;">Tiếp theo <i class="fas fa-arrow-right"></i></button>
+            `}
+        </div>
+        
+        <div style="margin-top:15px; cursor:pointer; opacity:0.6; font-size:0.8rem;" onclick="markMastered()">
+            <i class="fas fa-archive"></i> Đánh dấu đã thuộc lòng (Ẩn vĩnh viễn)
+        </div>
+    `;
+    document.getElementById('gameContent').innerHTML = html;
+    setTimeout(speakWord, 500);
+}
+
+function flipCard() {
+    if(isProcessing && currentMode === 'smart') return;
+    const card = document.getElementById('flashcardObj');
+    isFlipped = !isFlipped;
+    card.classList.toggle('is-flipped');
+    playSound(SFX.FLIP);
+}
+
+// --- GAME MODE: FILL ---
+function renderFill() {
+    isProcessing = false;
+    const w = sessionQueue[sessionIndex];
+    const sentence = w.example || `The word is ${w.english}`;
+    const hidden = sentence.replace(new RegExp(w.english, 'gi'), '_____');
+    
+    document.getElementById('gameContent').innerHTML = `
+        <div class="glass-panel animate__animated animate__zoomIn" style="padding:30px; width:95%; text-align:center; margin-bottom:25px;">
+            <div style="font-size:1.4rem; margin-bottom:15px; line-height:1.5; font-weight:600;">${hidden}</div>
+            <div style="opacity:0.8; font-size:1rem; color:#60a5fa;">Gợi ý: ${w.vietnamese}</div>
+        </div>
+        <div style="width:95%">
+            <input type="text" id="fillInp" class="input-glass" placeholder="Nhập từ vựng..." autocomplete="off" 
+                   onkeypress="if(event.key==='Enter') checkFill('${w.english}')">
+            <button class="btn-primary" onclick="checkFill('${w.english}')">KIỂM TRA</button>
+        </div>
+        <button class="btn-speak-round" style="margin-top:20px; width:50px; height:50px; font-size:1.2rem;" onclick="speakWord()"><i class="fas fa-volume-up"></i></button>
+    `;
+    setTimeout(() => document.getElementById('fillInp').focus(), 100);
+    setTimeout(speakWord, 400);
+}
+
+function checkFill(ans) {
+    if(isProcessing) return;
+    const val = document.getElementById('fillInp').value.trim();
+    const correct = val.toLowerCase() === ans.toLowerCase();
+    
+    if(correct) {
+        showToast("Chính xác!", "success");
+        processResult(true); 
+    } else {
+        const inp = document.getElementById('fillInp');
+        inp.classList.add('animate__animated', 'animate__shakeX');
+        inp.style.borderColor = '#ef4444';
+        inp.style.color = '#ef4444';
+        inp.value = ans; 
+        playSound(SFX.WRONG);
+        processResult(false);
+    }
+}
+
+// --- GAME MODE: MATCHING ---
+function setupMatching() {
+    // Keep logic mostly same but improve visuals
+    const subset = sessionQueue.slice(0, 4);
+    if(subset.length < 2) { showToast("Cần tối thiểu 2 từ!", "error"); closeGame(); return; }
+    sessionQueue = subset;
+    
+    let items = [];
+    subset.forEach((w, i) => {
+        items.push({ txt: w.english, id: i, type: 'en' });
+        items.push({ txt: w.vietnamese, id: i, type: 'vn' });
+    });
+    items.sort(() => Math.random() - 0.5);
+    
+    let html = `<div class="matching-grid animate__animated animate__fadeInUp">`;
+    items.forEach((item, idx) => {
+        html += `<div class="match-card" id="m-${idx}" onclick="matchClick(${idx}, ${item.id})">${item.txt}</div>`;
+    });
+    html += `</div>`;
+    document.getElementById('gameContent').innerHTML = html;
+    window.matchState = { selected: null, solved: 0, total: subset.length };
+}
+
+window.matchClick = function(idx, id) {
+    const el = document.getElementById(`m-${idx}`);
+    if(el.classList.contains('correct')) return;
+    
+    const state = window.matchState;
+    playSound(SFX.POP);
+    
+    if(state.selected === null) {
+        state.selected = { idx, id, el };
+        el.classList.add('selected');
+    } else {
+        if(state.selected.idx === idx) {
+            el.classList.remove('selected');
+            state.selected = null;
+            return;
+        }
+        
+        if(state.selected.id === id) { 
+            playSound(SFX.CORRECT);
+            el.classList.add('correct');
+            state.selected.el.classList.add('correct');
+            state.solved++;
+            state.selected = null;
+            
+            if(state.solved === state.total) {
+                setTimeout(() => { showToast("Hoàn thành xuất sắc!", "success"); closeGame(); }, 1000);
+            }
+        } else {
+            playSound(SFX.WRONG);
+            el.classList.add('wrong');
+            state.selected.el.classList.add('wrong');
+            setTimeout(() => {
+                el.classList.remove('wrong', 'selected');
+                state.selected.el.classList.remove('wrong', 'selected');
+                state.selected = null;
+            }, 600);
+        }
+    }
+}
+
+// --- GAME MODE: QUIZ ---
+function setupQuiz() {
+    isProcessing = false;
+    const w = sessionQueue[sessionIndex];
+    const all = allTopics[currentTopicKey].words;
+    
+    let options = all.filter(x => getWordKey(x) !== getWordKey(w))
+                     .sort(() => Math.random() - 0.5).slice(0,3);
+    options.push(w);
+    options.sort(() => Math.random() - 0.5);
+    
+    let html = `<div style="text-align:center; margin-bottom:30px;" class="animate__animated animate__fadeInDown">
+        <div style="font-size:2.8rem; font-weight:800; margin-bottom:10px; color:#fff; text-shadow:0 0 20px rgba(59, 130, 246, 0.5);">${w.english}</div>
+        <button class="btn-speak-round" style="margin:0 auto; width:50px; height:50px; font-size:1.2rem;" onclick="speakWord()"><i class="fas fa-volume-up"></i></button>
+    </div>
+    <div style="width:100%; display:grid; gap:15px;" class="animate__animated animate__fadeInUp">`;
+    
+    options.forEach(opt => {
+        const isCorrect = getWordKey(opt) === getWordKey(w);
+        html += `<button class="action-btn" style="width:100%; background:rgba(255,255,255,0.9); color:#0f172a;" onclick="handleQuiz(this, ${isCorrect})">${opt.vietnamese}</button>`;
+    });
+    html += `</div>`;
+    document.getElementById('gameContent').innerHTML = html;
+    setTimeout(speakWord, 500);
+}
+
+function handleQuiz(el, isCorrect) {
+    if(isProcessing) return;
+    
+    if(isCorrect) {
+        el.style.background = '#00e676';
+        el.style.color = 'white';
+        processResult(true);
+    } else {
+        el.style.background = '#ff5252';
+        el.style.color = 'white';
+        el.classList.add('animate__animated', 'animate__shakeX');
+        processResult(false);
+    }
+}
+
+// --- UTILITIES ---
+
+function startGame(mode) {
+    if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
+    playSound(SFX.POP);
+    const allWords = allTopics[currentTopicKey].words;
+    
+    if(mode !== 'flashcard_all') {
+        const learned = allWords.filter(w => srsData[getWordKey(w)] || masteredWords[getWordKey(w)]);
+        if(learned.length < 4 && mode !== 'fill') return showToast("Cần học ít nhất 4 từ để chơi!", "error");
+        sessionQueue = learned.sort(() => Math.random() - 0.5);
+    } else {
+        sessionQueue = [...allWords]; 
+    }
+    
+    sessionIndex = 0;
+    currentMode = mode;
+    openGameOverlay();
+    
+    if(mode === 'fill') renderFill();
+    else if(mode === 'matching') setupMatching();
+    else if(mode === 'quiz') setupQuiz();
+    else renderFlashcard();
+}
+
 function renderDashboard() {
     if(!currentTopicKey || !allTopics[currentTopicKey]) return;
     const topic = allTopics[currentTopicKey];
@@ -567,9 +993,24 @@ function renderDashboard() {
         }
     });
     
-    document.getElementById('statNew').innerText = cntNew;
-    document.getElementById('statDue').innerText = cntDue;
-    document.getElementById('statMastered').innerText = cntMaster;
+    // Animate numbers
+    animateValue("statNew", parseInt(document.getElementById('statNew').innerText), cntNew, 1000);
+    animateValue("statDue", parseInt(document.getElementById('statDue').innerText), cntDue, 1000);
+    animateValue("statMastered", parseInt(document.getElementById('statMastered').innerText), cntMaster, 1000);
+}
+
+function animateValue(id, start, end, duration) {
+    if (start === end) return;
+    const range = end - start;
+    let current = start;
+    const increment = end > start ? 1 : -1;
+    const stepTime = Math.abs(Math.floor(duration / range));
+    const obj = document.getElementById(id);
+    const timer = setInterval(function() {
+        current += increment;
+        obj.innerHTML = current;
+        if (current == end) clearInterval(timer);
+    }, Math.max(stepTime, 50));
 }
 
 function renderTopicList() {
@@ -578,17 +1019,22 @@ function renderTopicList() {
     Object.keys(allTopics).forEach(key => {
         const t = allTopics[key];
         const el = document.createElement('div');
-        el.className = `topic-item ${key===currentTopicKey ? 'active':''}`;
+        el.className = `glass-panel ${key===currentTopicKey ? 'animate__animated animate__pulse':''}`;
+        el.style.padding = '20px';
+        el.style.marginBottom = '15px';
+        el.style.display = 'flex'; el.style.justifyContent = 'space-between'; el.style.alignItems = 'center';
+        el.style.cursor = 'pointer';
         el.innerHTML = `
             <div>
-                <div style="font-weight:700; font-size:1rem;">${t.name}</div>
-                <div style="font-size:0.8rem; opacity:0.7;">${t.words.length} từ vựng</div>
+                <div style="font-weight:700; font-size:1.1rem;">${t.name}</div>
+                <div style="font-size:0.8rem; opacity:0.7; margin-top:5px;">${t.words.length} thẻ từ</div>
             </div>
-            ${key===currentTopicKey ? '<i class="fas fa-check" style="color:var(--success-color)"></i>' : ''}
+            ${key===currentTopicKey ? '<i class="fas fa-check-circle" style="color:var(--success-color); font-size:1.4rem;"></i>' : '<i class="fas fa-chevron-right" style="opacity:0.5"></i>'}
         `;
         el.onclick = () => {
             currentTopicKey = key;
-            localStorage.setItem('fp_glass_topic', key);
+            localStorage.setItem('fp_aurora_topic', key);
+            playSound(SFX.POP);
             showToast("Đã chọn: " + t.name);
             navTo('view-home');
         };
@@ -596,419 +1042,39 @@ function renderTopicList() {
     });
 }
 
-// --- SMART LEARNING LOGIC ---
-function startSmartSession() {
-    if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
+function showToast(msg, type='info') {
+    const el = document.getElementById('toast');
+    const txt = document.getElementById('toast-msg');
+    const icon = document.getElementById('toast-icon');
     
-    const allWords = allTopics[currentTopicKey].words;
-    const now = Date.now();
+    if(type==='success') { icon.innerHTML = '<i class="fas fa-check-circle" style="color:#4ade80"></i>'; el.style.border = "1px solid #4ade80"; }
+    else if(type==='error') { icon.innerHTML = '<i class="fas fa-exclamation-circle" style="color:#f87171"></i>'; el.style.border = "1px solid #f87171"; }
+    else { icon.innerHTML = '<i class="fas fa-info-circle" style="color:#60a5fa"></i>'; el.style.border = "1px solid #60a5fa"; }
     
-    // 1. Get Review Words (ONLY learned words that are due)
-    // Filter logic: Must have SRS data AND be due.
-    let candidatesReview = allWords.filter(w => {
-        const k = getWordKey(w);
-        return !masteredWords[k] && srsData[k] && srsData[k].nextReview <= now;
-    });
-    // Sort reviews by overdue time (most overdue first)
-    candidatesReview.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
-    const batchReview = candidatesReview.slice(0, config.reviewLimit);
-    
-    // 2. Get New Words (SEQUENTIAL - NO SHUFFLE)
-    // Filter logic: Must NOT have SRS data and NOT be mastered.
-    let candidatesNew = allWords.filter(w => {
-        const k = getWordKey(w);
-        return !masteredWords[k] && !srsData[k];
-    });
-    // Take from the top of the list (preserving JSON order)
-    const batchNew = candidatesNew.slice(0, config.newLimit);
-    
-    if(batchNew.length === 0 && batchReview.length === 0) {
-        return showToast("Tuyệt vời! Bạn đã hoàn thành bài học hôm nay.", "success");
-    }
-    
-    // 3. Combine: Review first (warm up), then New
-    sessionQueue = [...batchReview, ...batchNew];
-    
-    sessionIndex = 0;
-    currentMode = 'smart';
-    openGameOverlay();
-    renderFlashcard();
-}
-
-function startGame(mode) {
-    if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
-    const allWords = allTopics[currentTopicKey].words;
-    
-    if(mode !== 'flashcard_all') {
-        // Practice modes: Only use learned words
-        const learned = allWords.filter(w => srsData[getWordKey(w)] || masteredWords[getWordKey(w)]);
-        
-        if(learned.length < 4 && mode !== 'fill') return showToast("Cần học ít nhất 4 từ để chơi!", "error");
-        if(learned.length < 1 && mode === 'fill') return showToast("Cần học ít nhất 1 từ!", "error");
-        
-        sessionQueue = learned.sort(() => Math.random() - 0.5);
-    } else {
-        // View All: Sequential order
-        sessionQueue = [...allWords]; 
-    }
-    
-    sessionIndex = 0;
-    currentMode = mode;
-    openGameOverlay();
-    
-    if(mode === 'fill') renderFill();
-    else if(mode === 'matching') setupMatching();
-    else if(mode === 'quiz') setupQuiz();
-    else renderFlashcard();
-}
-
-// --- OVERLAY & CONTROL ---
-function openGameOverlay() {
-    document.getElementById('gameOverlay').style.display = 'flex';
-    updateProgress();
-}
-
-function closeGame() {
-    document.getElementById('gameOverlay').style.display = 'none';
-    window.speechSynthesis.cancel();
-    renderDashboard();
-    if(sessionIndex >= sessionQueue.length && sessionQueue.length > 0) {
-        confetti({ particleCount: 200, spread: 80, origin: { y: 0.6 } });
-    }
-}
-
-function updateProgress() {
-    const pct = ((sessionIndex) / sessionQueue.length) * 100;
-    document.getElementById('gameProgressBar').style.width = `${pct}%`;
-}
-
-function nextStep() {
-    if(sessionIndex < sessionQueue.length - 1) {
-        sessionIndex++;
-        updateProgress();
-        // Fade Transition
-        const content = document.getElementById('gameContent');
-        content.style.opacity = 0;
-        content.style.transform = "translateY(10px)";
-        content.style.transition = "all 0.2s ease";
-        
-        setTimeout(() => {
-            if(currentMode === 'smart') renderFlashcard(); 
-            else if(currentMode === 'fill') renderFill();
-            else if(currentMode === 'quiz') setupQuiz();
-            else if(currentMode === 'flashcard_all') renderFlashcard();
-            
-            content.style.opacity = 1;
-            content.style.transform = "translateY(0)";
-        }, 200);
-    } else {
-        showToast("Hoàn thành phiên học! 🏆", "success");
-        closeGame();
-    }
-}
-
-// --- SRS ALGORITHM ---
-function processResult(isCorrect) {
-    if(isProcessing) return;
-    isProcessing = true;
-    
-    const w = sessionQueue[sessionIndex];
-    const key = getWordKey(w);
-    let data = srsData[key] || { interval: 0, level: 0, nextReview: 0 };
-    
-    if(isCorrect) {
-        playSound('correct');
-        // Simple SRS Logic
-        if(data.level === 0) data.interval = 1; 
-        else if(data.level === 1) data.interval = 3;
-        else data.interval = Math.ceil(data.interval * 2.2);
-        
-        data.level++;
-        data.nextReview = Date.now() + (data.interval * 24 * 3600 * 1000);
-    } else {
-        playSound('wrong');
-        data.level = 0;
-        data.interval = 0; 
-        // If wrong, review again in 10 minutes
-        data.nextReview = Date.now() + (10 * 60 * 1000);
-        
-        if(!isFlipped && (currentMode === 'smart' || currentMode === 'flashcard_all')) {
-            flipCard();
-        }
-    }
-    
-    srsData[key] = data;
-    localStorage.setItem('fp_glass_srs', JSON.stringify(srsData));
-    
-    setTimeout(() => {
-        isProcessing = false;
-        nextStep();
-    }, isCorrect ? 500 : 1500); 
-}
-
-// --- GAME: FLASHCARD ---
-function renderFlashcard() {
-    const w = sessionQueue[sessionIndex];
-    isFlipped = false;
-    isProcessing = false;
-    
-    const html = `
-        <div class="scene">
-            <div class="card" id="flashcardObj" onclick="flipCard()">
-                <div class="card__face card__face--front">
-                    <div style="font-size:0.8rem; opacity:0.6; margin-bottom:15px; font-weight:700; letter-spacing:1px;">TIẾNG ANH</div>
-                    <div class="word-en">${w.english}</div>
-                    <div class="ipa">${w.ipa || ''}</div>
-                    <div class="tap-hint"><i class="fas fa-hand-pointer"></i> Chạm để lật</div>
-                </div>
-                <div class="card__face card__face--back">
-                    <div style="font-size:0.8rem; opacity:0.6; margin-bottom:15px; font-weight:700; letter-spacing:1px;">NGHĨA TIẾNG VIỆT</div>
-                    <div class="word-vn">${w.vietnamese}</div>
-                    <div style="font-style:italic; opacity:0.8; margin-top:20px; padding:0 20px; font-size:1.1rem;">"${w.example || ''}"</div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="control-row">
-            ${currentMode === 'smart' ? `
-                <button class="action-btn btn-wrong" onclick="processResult(false)" style="flex: 0.8;">
-                    <i class="fas fa-times"></i> Chưa thuộc
-                </button>
-                
-                <button class="btn-speak-round" onclick="speakWord(event)"><i class="fas fa-volume-up"></i></button>
-
-                <button class="action-btn btn-next" onclick="processResult(true)">
-                    Đã thuộc <i class="fas fa-arrow-right"></i>
-                </button>
-            ` : `
-                 <button class="btn-speak-round" onclick="speakWord(event)"><i class="fas fa-volume-up"></i></button>
-                 <button class="action-btn btn-next" onclick="nextStep()">Tiếp theo <i class="fas fa-arrow-right"></i></button>
-            `}
-        </div>
-        
-        <div style="margin-top:15px; cursor:pointer; opacity:0.8; font-size:0.85rem;" onclick="markMastered()">
-            <i class="fas fa-check-double"></i> Đánh dấu đã thuộc lòng (Bỏ qua sau này)
-        </div>
-    `;
-    document.getElementById('gameContent').innerHTML = html;
-    setTimeout(speakWord, 400);
-}
-
-function flipCard() {
-    if(isProcessing && currentMode==='smart') return;
-    const card = document.getElementById('flashcardObj');
-    isFlipped = !isFlipped;
-    card.classList.toggle('is-flipped');
-    playSound('flip');
+    txt.innerText = msg;
+    el.classList.add('show');
+    if(window.toastTimeout) clearTimeout(window.toastTimeout);
+    window.toastTimeout = setTimeout(() => el.classList.remove('show'), 3000);
 }
 
 function markMastered() {
+    if(!confirm("Bạn chắc chắn đã thuộc lòng từ này? Nó sẽ không xuất hiện lại.")) return;
     const w = sessionQueue[sessionIndex];
     const key = getWordKey(w);
-    if(masteredWords[key]) {
-        delete masteredWords[key];
-        showToast("Đã bỏ đánh dấu thuộc.", "info");
-    } else {
-        masteredWords[key] = true;
-        delete srsData[key];
-        localStorage.setItem('fp_glass_srs', JSON.stringify(srsData));
-        showToast("Tuyệt vời! Đã thuộc lòng từ này.", "success");
-        nextStep();
-    }
-    localStorage.setItem('fp_glass_mastered', JSON.stringify(masteredWords));
+    masteredWords[key] = true;
+    delete srsData[key];
+    localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
+    localStorage.setItem('fp_aurora_mastered', JSON.stringify(masteredWords));
+    playSound(SFX.WIN);
+    showToast("Đã chuyển vào kho Tinh thông!", "success");
+    nextStep();
 }
 
-// --- GAME: FILL ---
-function renderFill() {
-    isProcessing = false;
-    const w = sessionQueue[sessionIndex];
-    const sentence = w.example || `The word is ${w.english}`;
-    const hidden = sentence.replace(new RegExp(w.english, 'gi'), '_____');
-    
-    document.getElementById('gameContent').innerHTML = `
-        <div class="glass-panel" style="padding:30px; width:95%; text-align:center; margin-bottom:25px;">
-            <div style="font-size:1.3rem; margin-bottom:15px; line-height:1.5; font-weight:600;">${hidden}</div>
-            <div style="opacity:0.8; font-size:1rem;">Nghĩa: ${w.vietnamese}</div>
-        </div>
-        <div style="width:95%">
-            <input type="text" id="fillInp" class="input-glass" placeholder="Nhập từ còn thiếu..." autocomplete="off">
-            <button class="btn-primary" style="width:100%" onclick="checkFill('${w.english}')">Kiểm tra</button>
-        </div>
-        <button class="btn-icon" style="margin-top:25px; border:none; background:transparent;" onclick="speakWord()"><i class="fas fa-volume-up" style="font-size:2rem;"></i></button>
-    `;
-    // Focus input automatically
-    setTimeout(() => document.getElementById('fillInp').focus(), 100);
-    setTimeout(speakWord, 300);
-}
-
-function checkFill(ans) {
-    if(isProcessing) return;
-    const val = document.getElementById('fillInp').value.trim();
-    const correct = val.toLowerCase() === ans.toLowerCase();
-    
-    if(correct) {
-        showToast("Chính xác!", "success");
-        processResult(true); 
-    } else {
-        const inp = document.getElementById('fillInp');
-        inp.classList.add('shake-anim');
-        inp.value = ans; 
-        inp.style.color = '#f87171';
-        inp.style.borderColor = '#f87171';
-        processResult(false);
-    }
-}
-
-// --- GAME: QUIZ ---
-function setupQuiz() {
-    isProcessing = false;
-    const w = sessionQueue[sessionIndex];
-    const all = allTopics[currentTopicKey].words;
-    
-    let options = all.filter(x => getWordKey(x) !== getWordKey(w))
-                     .sort(() => Math.random() - 0.5).slice(0,3);
-    options.push(w);
-    options.sort(() => Math.random() - 0.5);
-    
-    let html = `<div style="text-align:center; margin-bottom:25px;">
-        <div style="font-size:2.5rem; font-weight:800; margin-bottom:10px; text-shadow:0 4px 10px rgba(0,0,0,0.2);">${w.english}</div>
-        <button class="btn-icon" style="margin:0 auto; border-radius:50%; width:50px; height:50px; background:rgba(255,255,255,0.2);" onclick="speakWord()"><i class="fas fa-volume-up"></i></button>
-    </div>
-    <div style="width:95%; display:grid; gap:15px;">`;
-    
-    options.forEach(opt => {
-        const isCorrect = getWordKey(opt) === getWordKey(w);
-        html += `<button class="quiz-opt" onclick="handleQuiz(this, ${isCorrect})">${opt.vietnamese}</button>`;
-    });
-    html += `</div>`;
-    document.getElementById('gameContent').innerHTML = html;
-    setTimeout(speakWord, 400);
-}
-
-function handleQuiz(el, isCorrect) {
-    if(isProcessing) return;
-    
-    if(isCorrect) {
-        el.style.background = '#34d399';
-        el.style.color = 'white';
-        showToast("Tuyệt vời!", "success");
-        processResult(true);
-    } else {
-        el.style.background = '#f87171';
-        el.style.color = 'white';
-        el.classList.add('shake-anim');
-        processResult(false);
-    }
-}
-
-// --- GAME: MATCHING ---
-function setupMatching() {
-    const subset = sessionQueue.slice(0, 4);
-    if(subset.length < 2) { 
-        showToast("Cần ít nhất 2 từ để ghép đôi", "error"); 
-        closeGame(); return; 
-    }
-    sessionQueue = subset; 
-    
-    let items = [];
-    subset.forEach((w, i) => {
-        items.push({ txt: w.english, id: i, type: 'en' });
-        items.push({ txt: w.vietnamese, id: i, type: 'vn' });
-    });
-    items.sort(() => Math.random() - 0.5);
-    
-    let html = `<div class="matching-grid">`;
-    items.forEach((item, idx) => {
-        html += `<div class="match-card" id="m-${idx}" onclick="matchClick(${idx}, ${item.id})">${item.txt}</div>`;
-    });
-    html += `</div>`;
-    document.getElementById('gameContent').innerHTML = html;
-    
-    window.matchState = { selected: null, solved: 0, total: subset.length };
-}
-
-window.matchClick = function(idx, id) {
-    const el = document.getElementById(`m-${idx}`);
-    if(el.classList.contains('correct')) return;
-    
-    const state = window.matchState;
-    playSound('flip');
-    
-    if(state.selected === null) {
-        state.selected = { idx, id, el };
-        el.classList.add('selected');
-    } else {
-        if(state.selected.idx === idx) {
-            el.classList.remove('selected');
-            state.selected = null;
-            return;
-        }
-        
-        if(state.selected.id === id) { 
-            playSound('correct');
-            el.classList.add('correct');
-            state.selected.el.classList.add('correct');
-            state.solved++;
-            state.selected = null;
-            
-            if(state.solved === state.total) {
-                setTimeout(() => {
-                    showToast("Xuất sắc!", "success");
-                    closeGame();
-                }, 800);
-            }
-        } else {
-            playSound('wrong');
-            el.classList.add('wrong');
-            state.selected.el.classList.add('wrong');
-            setTimeout(() => {
-                el.classList.remove('wrong', 'selected');
-                state.selected.el.classList.remove('wrong', 'selected');
-                state.selected = null;
-            }, 600);
-        }
-    }
-}
-
-// --- UTILITIES (Sound, Voice, Config) ---
-function playSound(type) {
-    if(config.muted) return;
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    
-    if(type === 'correct') {
-        osc.type = 'sine'; osc.frequency.value = 800;
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-        osc.start(); osc.stop(ctx.currentTime + 0.3);
-    } else if(type === 'wrong') {
-        osc.type = 'sawtooth'; osc.frequency.value = 150;
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-        osc.start(); osc.stop(ctx.currentTime + 0.3);
-    } else { 
-        osc.type = 'triangle'; osc.frequency.value = 400;
-        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.1);
-        osc.start(); osc.stop(ctx.currentTime + 0.1);
-    }
-}
-
-// --- STRICT US VOICE SETUP ---
 function setupVoice() {
     const voices = window.speechSynthesis.getVoices();
-    if(voices.length === 0) return;
-
-    // Priority List for High Quality US Voices
-    // 1. Google US English
-    // 2. Microsoft US English
-    // 3. Any 'en-US'
-    
     selectedVoice = voices.find(v => v.name === 'Google US English') ||
                     voices.find(v => v.lang === 'en-US' && v.name.includes('Microsoft')) ||
                     voices.find(v => v.lang === 'en-US');
-
-    console.log("Selected Voice:", selectedVoice ? selectedVoice.name : "Default");
 }
 
 function speakWord(e) {
@@ -1017,31 +1083,25 @@ function speakWord(e) {
     const w = sessionQueue[sessionIndex];
     if(!w) return;
     window.speechSynthesis.cancel();
-    
     const u = new SpeechSynthesisUtterance(w.english);
-    u.lang = 'en-US'; // Strict Lang Code
-    u.rate = 0.9; // Slightly slower
-    
-    if(selectedVoice) {
-        u.voice = selectedVoice;
-    }
-    
+    u.lang = 'en-US'; 
+    u.rate = 0.85; 
+    if(selectedVoice) u.voice = selectedVoice;
     window.speechSynthesis.speak(u);
 }
 
-function updateMuteIcon() {
-    document.getElementById('muteIcon').className = config.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+function applyTheme() {
+    document.body.classList.toggle('dark-mode', config.darkMode);
+    document.getElementById('themeBtn').innerHTML = config.darkMode ? '<i class="fas fa-sun" style="color:#fcd34d"></i>' : '<i class="fas fa-moon" style="color:#fff"></i>';
 }
-function toggleMute() {
-    config.muted = !config.muted;
-    localStorage.setItem('fp_glass_muted', config.muted);
-    updateMuteIcon();
-}
+function toggleTheme() { config.darkMode = !config.darkMode; localStorage.setItem('fp_aurora_dark', config.darkMode); applyTheme(); playSound(SFX.POP); }
+function toggleMute() { config.muted = !config.muted; localStorage.setItem('fp_aurora_muted', config.muted); updateMuteIcon(); }
+function updateMuteIcon() { document.getElementById('muteIcon').className = config.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up'; }
 function saveConfig() {
     config.newLimit = parseInt(document.getElementById('cfgNewLimit').value);
     config.reviewLimit = parseInt(document.getElementById('cfgReviewLimit').value);
-    localStorage.setItem('fp_glass_cfg_new', config.newLimit);
-    localStorage.setItem('fp_glass_cfg_review', config.reviewLimit);
+    localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
+    localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
     updateConfigUI();
 }
 function updateConfigUI() {

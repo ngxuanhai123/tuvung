@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Flashcard Pro - Aurora Science Edition (Firebase)</title>
+<title>Flashcard Pro - Aurora Science Edition (Stats & Login Fix)</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;600;700&family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
@@ -31,7 +31,7 @@
 
   body {
     font-family: var(--font-main);
-    background: #0f172a; /* Deep space fallback */
+    background: #0f172a;
     color: var(--text-color);
     min-height: 100vh;
     display: flex; flex-direction: column; align-items: center;
@@ -93,12 +93,6 @@
     box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     transition: all 0.2s;
   }
-  .btn-primary::after {
-    content: ''; position: absolute; top: 0; left: -100%; width: 50%; height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
-    transform: skewX(-25deg); animation: shine 3s infinite;
-  }
-  @keyframes shine { 0% { left: -100%; } 20% { left: 200%; } 100% { left: 200%; } }
   .btn-primary:active { transform: scale(0.96); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 
   .input-glass {
@@ -124,7 +118,7 @@
     background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.15);
   }
   .stat-num { font-size: 1.6rem; font-weight: 800; line-height: 1; }
-  .stat-label { font-size: 0.7rem; opacity: 0.8; margin-top: 6px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
+  .stat-label { font-size: 0.6rem; opacity: 0.8; margin-top: 6px; text-transform: uppercase; font-weight: 600; letter-spacing: 0.5px; }
 
   .mode-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 25px; }
   .mode-btn {
@@ -258,21 +252,7 @@
   }
   #toast.show { transform: translateX(-50%) translateY(20px); }
 
-  /* Custom Range Slider */
-  input[type=range] {
-    -webkit-appearance: none; width: 100%; background: transparent; margin: 15px 0;
-  }
-  input[type=range]::-webkit-slider-thumb {
-    -webkit-appearance: none; height: 24px; width: 24px; border-radius: 50%;
-    background: #fff; cursor: pointer; margin-top: -10px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.3); border: 2px solid #3b82f6;
-  }
-  input[type=range]::-webkit-slider-runnable-track {
-    width: 100%; height: 6px; cursor: pointer;
-    background: rgba(255,255,255,0.3); border-radius: 10px;
-  }
-
-  /* --- NEW: USER & LEADERBOARD STYLES --- */
+  /* --- LEADERBOARD & USER STYLES --- */
   .user-badge {
     display: flex; align-items: center; gap: 12px;
     background: rgba(255,255,255,0.1); padding: 8px 16px; border-radius: 30px;
@@ -283,18 +263,28 @@
   .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
   
   .leaderboard-row {
-    display: flex; align-items: center; gap: 15px;
-    padding: 15px; border-bottom: 1px solid rgba(255,255,255,0.1);
+    display: grid; 
+    grid-template-columns: 40px 45px 1fr auto; 
+    align-items: center; gap: 10px;
+    padding: 12px 15px; border-bottom: 1px solid rgba(255,255,255,0.1);
     transition: 0.2s;
   }
   .leaderboard-row:last-child { border-bottom: none; }
-  .rank-num { font-size: 1.2rem; font-weight: 800; width: 30px; color: #94a3b8; }
-  .rank-1 { color: #facc15; text-shadow: 0 0 10px rgba(250, 204, 21, 0.5); font-size: 1.5rem; }
-  .rank-2 { color: #e2e8f0; font-size: 1.4rem; }
-  .rank-3 { color: #fb923c; font-size: 1.3rem; }
   
-  .lb-name { flex-grow: 1; font-weight: 600; font-size: 0.95rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .lb-score { font-weight: 800; color: #34d399; }
+  .rank-num { font-size: 1.1rem; font-weight: 800; color: #94a3b8; text-align: center; }
+  .rank-1 { color: #facc15; text-shadow: 0 0 10px rgba(250, 204, 21, 0.5); font-size: 1.4rem; }
+  .rank-2 { color: #e2e8f0; font-size: 1.3rem; }
+  .rank-3 { color: #fb923c; font-size: 1.2rem; }
+  
+  .lb-avatar { width: 35px; height: 35px; border-radius: 50%; object-fit: cover; border: 1px solid rgba(255,255,255,0.2); }
+  
+  .lb-info { display: flex; flex-direction: column; overflow: hidden; }
+  .lb-name { font-weight: 700; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .lb-meta { font-size: 0.7rem; opacity: 0.6; }
+
+  .lb-stats { text-align: right; display: flex; flex-direction: column; align-items: flex-end; }
+  .lb-score { font-weight: 800; color: #34d399; font-size: 1rem; }
+  .lb-time { font-size: 0.7rem; color: #60a5fa; font-weight: 600; margin-top: 2px; }
 
 </style>
 </head>
@@ -314,7 +304,7 @@
     
     <div id="userSection" style="display: flex; justify-content: center;">
         <button id="btnLogin" class="btn-primary" style="margin-bottom: 20px; padding: 12px; font-size: 0.9rem; background: rgba(255,255,255,0.15);" onclick="window.loginGoogle()">
-            <i class="fab fa-google"></i> &nbsp; Đăng nhập để xếp hạng
+            <i class="fab fa-google"></i> &nbsp; Đăng nhập & Đồng bộ
         </button>
         <div id="userProfile" class="user-badge" style="display: none;" onclick="window.logoutGoogle()">
             <img id="userImg" src="" class="user-avatar" alt="Avt">
@@ -344,6 +334,10 @@
                 <span class="stat-num" id="statMastered" style="color:#34D399">0</span>
                 <span class="stat-label">Thuộc lòng</span>
             </div>
+        </div>
+        
+        <div style="margin-top: 15px; text-align: center; font-size: 0.8rem; background: rgba(0,0,0,0.2); padding: 8px; border-radius: 12px;">
+            <i class="fas fa-hourglass-half" style="color:#fb923c"></i> Thời gian học tích lũy: <strong id="dashTime" style="color:white;">0m</strong>
         </div>
     </div>
     
@@ -376,10 +370,16 @@
   </div>
 
   <div id="view-leaderboard" class="view-container animate__animated animate__fadeIn" style="display:none;">
-      <h2 style="margin-bottom: 20px; padding-left: 10px; text-align:center;"><i class="fas fa-trophy" style="color:#fbbf24"></i> Bảng Xếp Hạng</h2>
-      <div style="text-align:center; font-size:0.85rem; opacity:0.8; margin-bottom:20px;">Top những người "Thuộc lòng" nhiều từ nhất</div>
+      <h2 style="margin-bottom: 10px; padding-left: 10px; text-align:center;"><i class="fas fa-trophy" style="color:#fbbf24"></i> Bảng Vàng</h2>
+      <div style="text-align:center; font-size:0.85rem; opacity:0.8; margin-bottom:20px;">Top học viên chăm chỉ nhất</div>
       
-      <div class="glass-panel" style="padding: 10px;">
+      <div class="glass-panel" style="padding: 0; overflow: hidden;">
+          <div style="display: grid; grid-template-columns: 40px 45px 1fr auto; padding: 12px 15px; background: rgba(255,255,255,0.05); font-size: 0.7rem; font-weight: 700; text-transform: uppercase;">
+             <div style="text-align:center">#</div>
+             <div></div>
+             <div>Thành viên</div>
+             <div style="text-align:right">Điểm & Giờ</div>
+          </div>
           <div id="leaderboardList">
               <div style="padding:20px; text-align:center;">Đang tải dữ liệu...</div>
           </div>
@@ -472,6 +472,7 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
+// !!! LƯU Ý: Đây là config của bạn. Để an toàn, hãy giới hạn domain trên Firebase Console.
 const firebaseConfig = {
   apiKey: "AIzaSyDtaVYb_72YvoGzvcERJZypUGS-u3skz2M",
   authDomain: "tuvung-88e8d.firebaseapp.com",
@@ -490,21 +491,37 @@ const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
 
 let currentUser = null;
+let studyTimer = null;
+let accumulatedTime = parseInt(localStorage.getItem('fp_aurora_time') || 0);
+
+// --- HELPER: FORMAT TIME ---
+function formatTime(seconds) {
+    if(seconds < 60) return seconds + 's';
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    if(h > 0) return `${h}h ${m}m`;
+    return `${m}m`;
+}
 
 // --- FIREBASE FUNCTIONS EXPORTED TO WINDOW ---
 window.loginGoogle = () => {
     signInWithPopup(auth, provider)
     .then((result) => {
         showToast("Đăng nhập thành công!", "success");
+        // Trigger sync immediately after login
+        syncScoreToFirebase();
     }).catch((error) => {
         console.error(error);
-        showToast("Lỗi đăng nhập: " + error.message, "error");
+        showToast("Lỗi đăng nhập: " + error.code, "error");
     });
 };
 
 window.logoutGoogle = () => {
     if(confirm("Bạn muốn đăng xuất?")) {
-        signOut(auth).then(() => showToast("Đã đăng xuất"));
+        signOut(auth).then(() => {
+            showToast("Đã đăng xuất");
+            renderDashboard(); // Re-render to clear user specific view
+        });
     }
 };
 
@@ -518,7 +535,8 @@ onAuthStateChanged(auth, (user) => {
         profile.style.display = 'flex';
         document.getElementById('userImg').src = user.photoURL;
         document.getElementById('userName').innerText = user.displayName;
-        syncScoreToFirebase(); // Sync score whenever login
+        // Auto sync when state restored
+        syncScoreToFirebase(); 
     } else {
         btn.style.display = 'block';
         profile.style.display = 'none';
@@ -528,15 +546,17 @@ onAuthStateChanged(auth, (user) => {
 async function syncScoreToFirebase() {
     if(!currentUser) return;
     const score = Object.keys(JSON.parse(localStorage.getItem('fp_aurora_mastered') || '{}')).length;
+    // accumulatedTime is global variable updated by timer
     
     try {
         await setDoc(doc(db, "leaderboard", currentUser.uid), {
             displayName: currentUser.displayName,
             photoURL: currentUser.photoURL,
             score: score,
+            studyTime: accumulatedTime, // NEW: Sync time
             lastUpdated: Date.now()
         }, { merge: true });
-        console.log("Score synced:", score);
+        console.log("Synced: Score", score, "Time", accumulatedTime);
     } catch(e) {
         console.error("Error syncing score", e);
     }
@@ -544,44 +564,64 @@ async function syncScoreToFirebase() {
 
 window.fetchLeaderboard = async () => {
     const listDiv = document.getElementById('leaderboardList');
-    listDiv.innerHTML = '<div style="text-align:center;">Đang tải...</div>';
+    listDiv.innerHTML = '<div style="text-align:center; padding:20px;"><i class="fas fa-spinner fa-spin"></i> Đang tải...</div>';
     
     try {
+        // Sort by Score descending. 
+        // Note: Adding a second sort field (studyTime) might require a composite index in Firestore Console.
+        // We stick to score for safety, but display both.
         const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(10));
         const querySnapshot = await getDocs(q);
         
         let html = '';
         let rank = 1;
+        
+        if (querySnapshot.empty) {
+             listDiv.innerHTML = '<div style="text-align:center; padding:20px;">Chưa có dữ liệu bảng xếp hạng</div>';
+             return;
+        }
+
         querySnapshot.forEach((doc) => {
             const d = doc.data();
             const rankClass = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
-            const isMe = currentUser && doc.id === currentUser.uid ? 'background:rgba(59, 130, 246, 0.2); border-radius:10px;' : '';
+            const isMe = currentUser && doc.id === currentUser.uid ? 'background:rgba(59, 130, 246, 0.2); border:1px solid rgba(59,130,246,0.4);' : '';
             
+            // Calculate title based on score
+            let levelTitle = "Tập sự";
+            if(d.score > 50) levelTitle = "Học giả";
+            if(d.score > 200) levelTitle = "Thông thái";
+            if(d.score > 500) levelTitle = "Đại sư";
+
             html += `
                 <div class="leaderboard-row" style="${isMe}">
                     <div class="rank-num ${rankClass}">${rank}</div>
-                    <img src="${d.photoURL}" class="user-avatar" style="width:35px; height:35px;">
-                    <div class="lb-name">${d.displayName}</div>
-                    <div class="lb-score">${d.score}</div>
+                    <img src="${d.photoURL}" class="lb-avatar">
+                    <div class="lb-info">
+                        <div class="lb-name">${d.displayName}</div>
+                        <div class="lb-meta" style="color:${rank === 1 ? '#facc15' : '#94a3b8'}">${levelTitle}</div>
+                    </div>
+                    <div class="lb-stats">
+                        <div class="lb-score">${d.score} từ</div>
+                        <div class="lb-time"><i class="far fa-clock"></i> ${formatTime(d.studyTime || 0)}</div>
+                    </div>
                 </div>
             `;
             rank++;
         });
         
-        if(html === '') html = '<div style="text-align:center; padding:20px;">Chưa có dữ liệu bảng xếp hạng</div>';
         listDiv.innerHTML = html;
         
     } catch(e) {
         console.error(e);
-        listDiv.innerHTML = '<div style="text-align:center; color:#ff5252">Lỗi tải bảng xếp hạng</div>';
+        listDiv.innerHTML = '<div style="text-align:center; color:#ff5252">Lỗi tải dữ liệu. Hãy kiểm tra kết nối mạng.</div>';
     }
 };
 
 /* -------------------------------------------------------------------------
-   APP LOGIC & AUDIO ENGINE (REFACTORED FOR MODULE)
+   APP LOGIC & AUDIO ENGINE 
    ------------------------------------------------------------------------- */
 
-// --- AUDIO ENGINE (SYNTHESIZER) ---
+// --- AUDIO ENGINE ---
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let masterGain = null;
 
@@ -593,13 +633,7 @@ function initAudio() {
     if(audioCtx.state === 'suspended') audioCtx.resume();
 }
 
-const SFX = {
-    CORRECT: 'correct',
-    WRONG: 'wrong',
-    FLIP: 'flip',
-    WIN: 'win',
-    POP: 'pop'
-};
+const SFX = { CORRECT: 'correct', WRONG: 'wrong', FLIP: 'flip', WIN: 'win', POP: 'pop' };
 
 function playTone(freq, type, duration, startTime, vol=0.1) {
     const osc = audioCtx.createOscillator();
@@ -667,6 +701,9 @@ window.initApp = function() {
     applyTheme();
     updateConfigUI();
     window.fetchTopics(); 
+    
+    // Display initial time
+    document.getElementById('dashTime').innerText = formatTime(accumulatedTime);
     
     if (window.speechSynthesis.onvoiceschanged !== undefined) {
         window.speechSynthesis.onvoiceschanged = setupVoice;
@@ -859,12 +896,31 @@ function openGameOverlay() {
     document.getElementById('gameOverlay').style.display = 'flex';
     document.getElementById('gameOverlay').classList.add('animate__animated', 'animate__fadeIn');
     updateProgress();
+    startTimer(); // Start tracking time
 }
 
 window.closeGame = function() {
     document.getElementById('gameOverlay').style.display = 'none';
     window.speechSynthesis.cancel();
+    stopTimer(); // Stop tracking time
+    syncScoreToFirebase(); // Sync score and time
     renderDashboard();
+}
+
+// --- TIMER LOGIC ---
+function startTimer() {
+    if(studyTimer) clearInterval(studyTimer);
+    studyTimer = setInterval(() => {
+        accumulatedTime++;
+        localStorage.setItem('fp_aurora_time', accumulatedTime);
+        // We don't update UI every second to save performance, only on close or dashboard render
+    }, 1000);
+}
+
+function stopTimer() {
+    if(studyTimer) clearInterval(studyTimer);
+    studyTimer = null;
+    localStorage.setItem('fp_aurora_time', accumulatedTime);
 }
 
 function updateProgress() {
@@ -1134,6 +1190,7 @@ window.startGame = function(mode) {
 }
 
 function renderDashboard() {
+    document.getElementById('dashTime').innerText = formatTime(accumulatedTime);
     if(!currentTopicKey || !allTopics[currentTopicKey]) return;
     const topic = allTopics[currentTopicKey];
     document.getElementById('currentTopicName').innerText = topic.name;

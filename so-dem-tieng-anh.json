@@ -1,29 +1,179 @@
 {
-  "name": "Số đếm & Số thứ tự",
+  "name": "Số Đếm (0 - 100)",
   "words": [
-    {"english": "1",      "ordinal": "1st", "vietnamese": "một",           "ordinal_vn": "thứ nhất",   "ipa": "/wʌn/",           "ordinal_ipa": "/fɜːrst/",     "example": "I have one apple."},
-    {"english": "2",      "ordinal": "2nd", "vietnamese": "hai",           "ordinal_vn": "thứ hai",    "ipa": "/tuː/",           "ordinal_ipa": "/ˈsekənd/",   "example": "She has two cats."},
-    {"english": "3",      "ordinal": "3rd", "vietnamese": "ba",            "ordinal_vn": "thứ ba",     "ipa": "/θriː/",          "ordinal_ipa": "/θɜːrd/",     "example": "We need three chairs."},
-    {"english": "4",      "ordinal": "4th", "vietnamese": "bốn",           "ordinal_vn": "thứ tư",     "ipa": "/fɔːr/",          "ordinal_ipa": "/fɔːrθ/",     "example": "My birthday is on the 4th."},
-    {"english": "5",      "ordinal": "5th", "vietnamese": "năm",           "ordinal_vn": "thứ năm",    "ipa": "/faɪv/",          "ordinal_ipa": "/fɪfθ/",      "example": "I can count to five."},
-    {"english": "6",      "ordinal": "6th", "vietnamese": "sáu",           "ordinal_vn": "thứ sáu",    "ipa": "/sɪks/",          "ordinal_ipa": "/sɪksθ/",     "example": "There are six colors."},
-    {"english": "7",      "ordinal": "7th", "vietnamese": "bảy",           "ordinal_vn": "thứ bảy",    "ipa": "/ˈsevn/",         "ordinal_ipa": "/ˈsevnθ/",    "example": "Seven days in a week."},
-    {"english": "8",      "ordinal": "8th", "vietnamese": "tám",           "ordinal_vn": "thứ tám",    "ipa": "/eɪt/",           "ordinal_ipa": "/eɪtθ/",      "example": "October is the 8th month."},
-    {"english": "9",      "ordinal": "9th", "vietnamese": "chín",          "ordinal_vn": "thứ chín",   "ipa": "/naɪn/",          "ordinal_ipa": "/naɪnθ/",     "example": "I have nine lives (cat joke)."},
-    {"english": "10",     "ordinal": "10th", "vietnamese": "mười",          "ordinal_vn": "thứ mười",   "ipa": "/ten/",           "ordinal_ipa": "/tenθ/",      "example": "Ten fingers, ten toes."},
-
-    {"english": "11",     "ordinal": "11th", "vietnamese": "mười một",      "ordinal_vn": "thứ mười một", "ipa": "/ɪˈlevn/",      "ordinal_ipa": "/ɪˈlevnθ/",   "example": "My sister is eleven."},
-    {"english": "12",     "ordinal": "12th", "vietnamese": "mười hai",      "ordinal_vn": "thứ mười hai", "ipa": "/twelv/",      "ordinal_ipa": "/twelfθ/",   "example": "Twelve months in a year."},
-    {"english": "13",     "ordinal": "13th", "vietnamese": "mười ba",       "ordinal_vn": "thứ mười ba",  "ipa": "/ˌθɜːrˈtiːn/", "ordinal_ipa": "/ˌθɜːrˈtiːnθ/", "example": "Friday the 13th."},
-    {"english": "20",     "ordinal": "20th", "vietnamese": "hai mươi",      "ordinal_vn": "thứ hai mươi", "ipa": "/ˈtwenti/",    "ordinal_ipa": "/ˈtwentiəθ/", "example": "I’m twenty years old."},
-    {"english": "21",     "ordinal": "21st", "vietnamese": "hai mươi mốt",   "ordinal_vn": "thứ hai mươi mốt", "ipa": "/ˌtwentiˈwʌn/", "ordinal_ipa": "/ˌtwentiˈfɜːrst/", "example": "Her 21st birthday."},
-    {"english": "30",     "ordinal": "30th", "vietnamese": "ba mươi",       "ordinal_vn": "thứ ba mươi",  "ipa": "/ˈθɜːrti/",    "ordinal_ipa": "/ˈθɜːrtiəθ/", "example": "30 days in April."},
-    {"english": "40",     "ordinal": "40th", "vietnamese": "bốn mươi",      "ordinal_vn": "thứ bốn mươi", "ipa": "/ˈfɔːrti/",    "ordinal_ipa": "/ˈfɔːrtiəθ/", "example": "My parents’ 40th anniversary."},
-    {"english": "50",     "ordinal": "50th", "vietnamese": "năm mươi",      "ordinal_vn": "thứ năm mươi", "ipa": "/ˈfɪfti/",     "ordinal_ipa": "/ˈfɪftiəθ/",  "example": "Golden 50th celebration."},
-    {"english": "60",     "ordinal": "60th", "vietnamese": "sáu mươi",      "ordinal_vn": "thứ sáu mươi", "ipa": "/ˈsɪksti/",    "ordinal_ipa": "/ˈsɪkstiəθ/", "example": "He’s sixty years old."},
-    {"english": "70",     "ordinal": "70th", "vietnamese": "bảy mươi",      "ordinal_vn": "thứ bảy mươi", "ipa": "/ˈsevnti/",    "ordinal_ipa": "/ˈsevntiəθ/", "example": "70th birthday party."},
-    {"english": "80",     "ordinal": "80th", "vietnamese": "tám mươi",      "ordinal_vn": "thứ tám mươi", "ipa": "/ˈeɪti/",      "ordinal_ipa": "/ˈeɪtiəθ/",   "example": "80s music is great."},
-    {"english": "90",     "ordinal": "90th", "vietnamese": "chín mươi",     "ordinal_vn": "thứ chín mươi", "ipa": "/ˈnaɪnti/",    "ordinal_ipa": "/ˈnaɪntiəθ/", "example": "Grandma is ninety."},
-    {"english": "100",    "ordinal": "100th", "vietnamese": "một trăm",     "ordinal_vn": "thứ một trăm", "ipa": "/wʌn ˈhʌndrəd/", "ordinal_ipa": "/ˈhʌndrədθ/", "example": "Our 100th episode!"}
+    {
+      "english": "zero",
+      "ipa": "/ˈzɪərəʊ/",
+      "vietnamese": "số 0",
+      "example": "The score was three to **zero**."
+    },
+    {
+      "english": "one",
+      "ipa": "/wʌn/",
+      "vietnamese": "số 1",
+      "example": "I only have **one** apple left."
+    },
+    {
+      "english": "two",
+      "ipa": "/tuː/",
+      "vietnamese": "số 2",
+      "example": "There are **two** tickets for the concert."
+    },
+    {
+      "english": "three",
+      "ipa": "/θriː/",
+      "vietnamese": "số 3",
+      "example": "A triangle has **three** sides."
+    },
+    {
+      "english": "four",
+      "ipa": "/fɔːr/",
+      "vietnamese": "số 4",
+      "example": "My car has **four** wheels."
+    },
+    {
+      "english": "five",
+      "ipa": "/faɪv/",
+      "vietnamese": "số 5",
+      "example": "She will be **five** years old tomorrow."
+    },
+    {
+      "english": "six",
+      "ipa": "/sɪks/",
+      "vietnamese": "số 6",
+      "example": "There are **six** eggs in the box."
+    },
+    {
+      "english": "seven",
+      "ipa": "/ˈsev(ə)n/",
+      "vietnamese": "số 7",
+      "example": "A week has **seven** days."
+    },
+    {
+      "english": "eight",
+      "ipa": "/eɪt/",
+      "vietnamese": "số 8",
+      "example": "We start work at **eight** o'clock."
+    },
+    {
+      "english": "nine",
+      "ipa": "/naɪn/",
+      "vietnamese": "số 9",
+      "example": "The bus leaves at **nine** thirty."
+    },
+    {
+      "english": "ten",
+      "ipa": "/ten/",
+      "vietnamese": "số 10",
+      "example": "Please wait for **ten** minutes."
+    },
+    {
+      "english": "eleven",
+      "ipa": "/ɪˈlev(ə)n/",
+      "vietnamese": "số 11",
+      "example": "I have **eleven** fingers and toes in total."
+    },
+    {
+      "english": "twelve",
+      "ipa": "/twelv/",
+      "vietnamese": "số 12",
+      "example": "There are **twelve** months in a year."
+    },
+    {
+      "english": "thirteen",
+      "ipa": "/ˌθɜːrˈtiːn/",
+      "vietnamese": "số 13",
+      "example": "Today is the **thirteenth** of May."
+    },
+    {
+      "english": "fourteen",
+      "ipa": "/ˌfɔːrˈtiːn/",
+      "vietnamese": "số 14",
+      "example": "The train leaves on track **fourteen**."
+    },
+    {
+      "english": "fifteen",
+      "ipa": "/ˌfɪfˈtiːn/",
+      "vietnamese": "số 15",
+      "example": "The package weighs **fifteen** kilograms."
+    },
+    {
+      "english": "sixteen",
+      "ipa": "/ˌsɪksˈtiːn/",
+      "vietnamese": "số 16",
+      "example": "The movie is rated for ages **sixteen** and up."
+    },
+    {
+      "english": "seventeen",
+      "ipa": "/ˌsevənˈtiːn/",
+      "vietnamese": "số 17",
+      "example": "He is **seventeen** years old."
+    },
+    {
+      "english": "eighteen",
+      "ipa": "/ˌeɪˈtiːn/",
+      "vietnamese": "số 18",
+      "example": "The legal drinking age is **eighteen**."
+    },
+    {
+      "english": "nineteen",
+      "ipa": "/ˌnaɪnˈtiːn/",
+      "vietnamese": "số 19",
+      "example": "The year was **nineteen** ninety-nine."
+    },
+    {
+      "english": "twenty",
+      "ipa": "/ˈtwenti/",
+      "vietnamese": "số 20",
+      "example": "I need **twenty** dollars for the book."
+    },
+    {
+      "english": "thirty",
+      "ipa": "/ˈθɜːrti/",
+      "vietnamese": "số 30",
+      "example": "The room temperature is **thirty** degrees Celsius."
+    },
+    {
+      "english": "forty",
+      "ipa": "/ˈfɔːrti/",
+      "vietnamese": "số 40",
+      "example": "The speed limit is **forty** miles per hour."
+    },
+    {
+      "english": "fifty",
+      "ipa": "/ˈfɪfti/",
+      "vietnamese": "số 50",
+      "example": "Half of a hundred is **fifty**."
+    },
+    {
+      "english": "sixty",
+      "ipa": "/ˈsɪksti/",
+      "vietnamese": "số 60",
+      "example": "The duration of the meeting is **sixty** minutes."
+    },
+    {
+      "english": "seventy",
+      "ipa": "/ˈsevənti/",
+      "vietnamese": "số 70",
+      "example": "My grandfather is **seventy** years old."
+    },
+    {
+      "english": "eighty",
+      "ipa": "/ˈeɪti/",
+      "vietnamese": "số 80",
+      "example": "The flight was delayed for **eighty** minutes."
+    },
+    {
+      "english": "ninety",
+      "ipa": "/ˈnaɪnti/",
+      "vietnamese": "số 90",
+      "example": "The old house was built in the **ninety**'s."
+    },
+    {
+      "english": "one hundred",
+      "ipa": "/wʌn ˈhʌndrəd/",
+      "vietnamese": "số 100",
+      "example": "A full score is **one hundred** points."
+    }
   ]
 }

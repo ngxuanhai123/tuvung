@@ -3,269 +3,462 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Học Từ Vựng Tiếng Anh</title>
+<title>Flashcard Pro - GitHub Sync</title>
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 <style>
   :root {
-    --bg: #e0e5ec;
-    --card: #e0e5ec;
-    --sd: #a3b1c6;
-    --sl: #ffffff;
-    --accent: #6c5ce7;
-    --text: #2d3436;
+    --bg-color: #f0f2f5;
+    --card-color: #f0f2f5;
+    --text-main: #2d3436;
+    --text-sub: #636e72;
+    --accent: #4834d4; /* Màu tím đậm hiện đại */
+    --accent-hover: #686de0;
+    --shadow-light: #ffffff;
+    --shadow-dark: #d1d9e6;
+    --success: #2ecc71;
+    --error: #e74c3c;
   }
-  * { margin:0; padding:0; box-sizing:border-box; }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; outline: none; }
+  
   body {
-    font-family: 'Segoe UI', sans-serif;
-    background: var(--bg);
-    color: var(--text);
+    font-family: 'Segoe UI', Roboto, sans-serif;
+    background: var(--bg-color);
+    color: var(--text-main);
     min-height: 100vh;
-    display: grid;
-    place-items: center;
-  }
-
-  .home {
-    text-align: center;
-    animation: fadeIn 1s;
-  }
-  h1 {
-    font-size: 4rem;
-    font-weight: 900;
-    background: linear-gradient(135deg, #6c5ce7, #a29bfe);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    margin-bottom: 20px;
-  }
-  .subtitle {
-    font-size: 1.5rem;
-    color: #636e72;
-    margin-bottom: 50px;
-  }
-
-  .btn-big {
-    padding: 22px 60px;
-    font-size: 1.6rem;
-    font-weight: 700;
-    border: none;
-    border-radius: 60px;
-    background: var(--card);
-    box-shadow: 15px 15px 30px var(--sd), -15px -15px 30px var(--sl);
-    cursor: pointer;
-    transition: all 0.4s;
-  }
-  .btn-big:hover {
-    transform: translateY(-10px);
-    box-shadow: 25px 25px 50px var(--sd), -25px -25px 50px var(--sl);
-  }
-  .btn-big:active {
-    box-shadow: inset 10px 10px 20px var(--sd), inset -10px -10px 20px var(--sl);
-  }
-
-  /* Panel chọn chủ đề */
-  #topicPanel {
-    position: fixed;
-    inset: 0;
-    background: rgba(224,229,236,0.98);
-    backdrop-filter: blur(20px);
-    display: none;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 40px 20px;
-    overflow-y: auto;
-    z-index: 1000;
-  }
-  .panel-box {
-    width: 100%;
-    max-width: 1200px;
-    background: var(--card);
-    border-radius: 35px;
-    padding: 50px;
-    box-shadow: 30px 30px 80px var(--sd), -30px -30px 80px var(--sl);
-  }
-  .panel-header {
     display: flex;
-    justify-content: space-between;
+    flex-direction: column;
     align-items: center;
-    margin-bottom: 40px;
-  }
-  .close-panel {
-    width: 60px; height: 60px;
-    border-radius: 50%;
-    background: var(--card);
-    box-shadow: 8px 8px 16px var(--sd), -8px -8px 16px var(--sl);
-    font-size: 2rem;
-    cursor: pointer;
+    padding-bottom: 80px; /* Space for bottom bar */
   }
 
-  .topics-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 30px;
+  /* --- NEUMORPHISM UTILS --- */
+  .neu-box {
+    background: var(--card-color);
+    border-radius: 20px;
+    box-shadow: 6px 6px 12px var(--shadow-dark), -6px -6px 12px var(--shadow-light);
+    border: 1px solid rgba(255,255,255,0.4);
   }
-  .topic-card {
-    background: var(--card);
-    border-radius: 28px;
-    padding: 40px 25px;
+
+  .neu-btn {
+    border: none;
+    background: var(--card-color);
+    color: var(--accent);
+    font-weight: 700;
+    padding: 12px 24px;
+    border-radius: 50px;
+    box-shadow: 5px 5px 10px var(--shadow-dark), -5px -5px 10px var(--shadow-light);
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .neu-btn:hover { transform: translateY(-2px); color: var(--accent-hover); }
+  .neu-btn:active {
+    box-shadow: inset 3px 3px 6px var(--shadow-dark), inset -3px -3px 6px var(--shadow-light);
+    transform: translateY(1px);
+  }
+
+  .neu-input {
+    width: 100%;
+    padding: 12px 20px;
+    border-radius: 15px;
+    border: none;
+    background: var(--bg-color);
+    box-shadow: inset 4px 4px 8px var(--shadow-dark), inset -4px -4px 8px var(--shadow-light);
+    color: var(--text-main);
+    font-size: 1rem;
+  }
+
+  /* --- HEADER & REPO CONFIG --- */
+  header {
     text-align: center;
-    cursor: pointer;
-    box-shadow: 15px 15px 30px var(--sd), -15px -15px 30px var(--sl);
-    transition: all 0.4s;
+    margin-top: 40px;
+    margin-bottom: 30px;
+    width: 90%;
+    max-width: 600px;
   }
-  .topic-card:hover {
-    transform: translateY(-20px);
-    box-shadow: 25px 25px 50px var(--sd), -25px -25px 50px var(--sl);
-  }
-  .topic-name { font-size: 1.9rem; font-weight: 700; margin-bottom: 12px; }
-  .word-count { font-size: 1.4rem; color: #74b9ff; }
-
-  .game-bar {
-    position: fixed;
-    bottom: 0; left: 0; right: 0;
-    background: var(--card);
+  h1 { font-size: 2.5rem; color: var(--accent); margin-bottom: 10px; }
+  
+  .config-panel {
     padding: 20px;
     display: flex;
-    justify-content: center;
-    gap: 20px;
-    box-shadow: 0 -12px 24px var(--sd);
+    flex-direction: column;
+    gap: 15px;
   }
-  .btn-game {
-    padding: 16px 34px;
-    font-size: 1.1rem;
-    font-weight: 600;
-    border: none;
-    border-radius: 50px;
-    background: var(--card);
-    box-shadow: 8px 8px 16px var(--sd), -8px -8px 16px var(--sl);
+  .input-group { display: flex; gap: 10px; }
+  
+  /* --- TOPIC GRID --- */
+  .grid-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 25px;
+    width: 90%;
+    max-width: 1000px;
+    padding-bottom: 50px;
+  }
+  .topic-card {
+    padding: 25px;
+    cursor: pointer;
+    transition: transform 0.3s;
+    text-align: center;
+  }
+  .topic-card:hover { transform: translateY(-5px); }
+  .topic-title { font-size: 1.2rem; font-weight: bold; margin-bottom: 5px; }
+  .topic-meta { font-size: 0.9rem; color: var(--text-sub); }
+
+  /* --- FLASHCARD GAME AREA --- */
+  #gameOverlay {
+    position: fixed; inset: 0;
+    background: var(--bg-color);
+    z-index: 1000;
+    display: none; /* Hidden by default */
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .game-header {
+    width: 100%; padding: 20px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .close-btn { color: var(--error); width: 40px; height: 40px; display: grid; place-items: center; font-size: 1.5rem; border-radius: 50%; cursor: pointer; }
+
+  /* 3D Flip Card */
+  .scene {
+    width: 320px; height: 450px;
+    perspective: 1000px;
+    margin: 20px auto;
+  }
+  .card {
+    width: 100%; height: 100%;
+    position: relative;
+    transition: transform 0.6s;
+    transform-style: preserve-3d;
     cursor: pointer;
   }
-  .btn-game:active {
-    box-shadow: inset 6px 6px 12px var(--sd), inset -6px -6px 12px var(--sl);
+  .card.is-flipped { transform: rotateY(180deg); }
+  
+  .card__face {
+    position: absolute;
+    width: 100%; height: 100%;
+    backface-visibility: hidden;
+    border-radius: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    text-align: center;
+    /* Neumorphism for card face */
+    background: var(--card-color);
+    box-shadow: 10px 10px 20px var(--shadow-dark), -10px -10px 20px var(--shadow-light);
+    border: 2px solid rgba(255,255,255,0.1);
+  }
+  
+  .card__face--back { transform: rotateY(180deg); border-color: var(--accent); }
+
+  /* Card Content */
+  .word-en { font-size: 3rem; font-weight: 800; color: var(--accent); margin-bottom: 10px; }
+  .word-ipa { font-size: 1.1rem; color: #888; font-style: italic; font-family: 'Times New Roman', serif; margin-bottom: 20px;}
+  .word-vn { font-size: 2rem; font-weight: 700; color: var(--text-main); }
+  .word-example { font-size: 1rem; color: var(--text-sub); margin-top: 15px; padding: 10px; background: rgba(0,0,0,0.03); border-radius: 10px; }
+  .ordinal-badge {
+    position: absolute; top: 15px; right: 15px;
+    background: var(--accent); color: white;
+    padding: 5px 10px; border-radius: 10px; font-size: 0.8rem;
   }
 
-  @keyframes fadeIn { from {opacity:0; transform:scale(0.9);} to {opacity:1; transform:scale(1);} }
+  /* Controls */
+  .controls-area {
+    width: 90%; max-width: 400px;
+    display: flex; justify-content: space-between; align-items: center;
+    margin-top: 20px;
+  }
+  
+  .tts-controls {
+    display: flex; gap: 10px; align-items: center;
+    margin-bottom: 20px;
+  }
+  select.neu-select {
+    padding: 8px; border-radius: 10px; border: none;
+    background: var(--bg-color);
+    box-shadow: inset 2px 2px 5px var(--shadow-dark), inset -2px -2px 5px var(--shadow-light);
+    color: var(--text-main); font-weight: bold;
+  }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .scene { width: 85%; height: 400px; }
+    .word-en { font-size: 2.5rem; }
+    h1 { font-size: 2rem; }
+  }
 </style>
 </head>
 <body>
 
-<!-- Trang chủ -->
-<div class="home">
-  <h1>Học Từ Vựng</h1>
-  <p class="subtitle">Tiếng Anh nhớ lâu – chơi mà học</p>
-  <button class="btn-big" onclick="document.getElementById('topicPanel').style.display='flex'">
-    Chọn chủ đề
-  </button>
-</div>
-
-<!-- Panel chọn chủ đề (ẩn lúc đầu) -->
-<div id="topicPanel">
-  <div class="panel-box">
-    <div class="panel-header">
-      <h2 style="font-size:2.5rem;">Chọn chủ đề để học</h2>
-      <div class="close-panel" onclick="document.getElementById('topicPanel').style.display='none'">×</div>
+<header>
+  <h1>Học Tiếng Anh</h1>
+  
+  <div class="neu-box config-panel">
+    <div style="font-size:0.9rem; color:var(--accent); margin-bottom:5px;">Nhập thông tin GitHub chứa file JSON:</div>
+    <div class="input-group">
+      <input type="text" id="gh-user" class="neu-input" placeholder="Username (VD: octocat)">
+      <input type="text" id="gh-repo" class="neu-input" placeholder="Repository (VD: tu-vung)">
     </div>
-    <div id="topicsGrid" class="topics-grid"></div>
+    <button class="neu-btn" style="justify-content:center; width:100%" onclick="fetchTopics()">
+      <i class="fas fa-cloud-download-alt"></i> Tải dữ liệu
+    </button>
+    <div id="status-msg" style="font-size:0.8rem; color:var(--text-sub);"></div>
+  </div>
+</header>
+
+<div id="topicList" class="grid-container">
+  <div style="grid-column: 1/-1; text-align: center; color: var(--text-sub); margin-top: 50px;">
+    Vui lòng nhập Github Info và bấm "Tải dữ liệu" để bắt đầu.
   </div>
 </div>
 
-<!-- Thanh chơi game cố định dưới -->
-<div class="game-bar">
-  <button class="btn-game" onclick="start('flashcard')">Flashcard</button>
-  <button class="btn-game" onclick="start('fill')">Điền từ</button>
-  <button class="btn-game" onclick="start('matching')">Ghép đôi</button>
-  <button class="btn-game" onclick="start('quiz')">Trắc nghiệm</button>
+<div id="gameOverlay">
+  <div class="game-header">
+    <h2 id="gameTitle" style="color:var(--accent)">Chủ đề</h2>
+    <div class="neu-box close-btn" onclick="closeGame()"><i class="fas fa-times"></i></div>
+  </div>
+
+  <div class="tts-controls">
+    <label for="speedRate" style="font-size:0.9rem; font-weight:bold;">Tốc độ:</label>
+    <select id="speedRate" class="neu-select">
+      <option value="0.75">0.75x (Chậm)</option>
+      <option value="1">1.0x (Bình thường)</option>
+    </select>
+    <button class="neu-btn" onclick="speakCurrentWord()">
+      <i class="fas fa-volume-up"></i> Phát âm
+    </button>
+  </div>
+
+  <div class="scene">
+    <div class="card" id="flashcard" onclick="flipCard()">
+      <div class="card__face card__face--front">
+        <div class="ordinal-badge" id="cardOrdinal"></div>
+        <div class="word-en" id="textEn">Word</div>
+        <div class="word-ipa" id="textIpa">/ipa/</div>
+        <div style="font-size:0.8rem; color:#aaa;">(Chạm để lật)</div>
+      </div>
+      <div class="card__face card__face--back">
+        <div class="word-vn" id="textVn">Từ vựng</div>
+        <div class="word-example" id="textEx">Ví dụ</div>
+        <div id="textOrdinalVn" style="margin-top:10px; font-size:0.9rem; color:var(--accent)"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="controls-area">
+    <button class="neu-btn" onclick="prevCard()"><i class="fas fa-arrow-left"></i> Trước</button>
+    <span id="cardCounter" style="font-weight:bold; font-size:1.2rem;">1/10</span>
+    <button class="neu-btn" onclick="nextCard()">Sau <i class="fas fa-arrow-right"></i></button>
+  </div>
 </div>
 
 <script>
-let currentWords = [];
-let currentName = "";
+  // --- VARIABLES ---
+  let currentWords = [];
+  let currentIndex = 0;
+  let isFlipped = false;
+  
+  // Lưu thông tin repo vào localStorage để đỡ phải nhập lại
+  window.onload = () => {
+    if(localStorage.getItem('gh_user')) document.getElementById('gh-user').value = localStorage.getItem('gh_user');
+    if(localStorage.getItem('gh_repo')) document.getElementById('gh-repo').value = localStorage.getItem('gh_repo');
+  };
 
-// Tự động tải từ GitHub (thay repo của bạn vào đây)
-const REPO = "yourusername/your-repo"; // ← SỬA DÒNG NÀY
+  // --- FETCH DATA FROM GITHUB ---
+  async function fetchTopics() {
+    const user = document.getElementById('gh-user').value.trim();
+    const repo = document.getElementById('gh-repo').value.trim();
+    const status = document.getElementById('status-msg');
+    const listDiv = document.getElementById('topicList');
 
-async function loadTopics() {
-  let topics = {};
+    if(!user || !repo) {
+      status.style.color = 'var(--error)';
+      status.innerText = "Vui lòng nhập đủ User và Repo!";
+      return;
+    }
 
-  // 1. Thử lấy từ GitHub
-  if (REPO !== "yourusername/your-repo") {
+    // Lưu lại
+    localStorage.setItem('gh_user', user);
+    localStorage.setItem('gh_repo', repo);
+
+    status.style.color = 'var(--text-sub)';
+    status.innerText = "Đang kết nối GitHub...";
+    listDiv.innerHTML = '<div class="neu-box" style="padding:20px; text-align:center;">Đang tải danh sách file...</div>';
+
     try {
-      const res = await fetch(`https://api.github.com/repos/${REPO}/contents/`);
+      // 1. Lấy danh sách file trong thư mục gốc
+      const apiURL = `https://api.github.com/repos/${user}/${repo}/contents/`;
+      const res = await fetch(apiURL);
+      
+      if(!res.ok) throw new Error("Không tìm thấy Repo hoặc lỗi mạng.");
+      
       const files = await res.json();
-      for (let f of files) {
-        if (f.name.endsWith('.json')) {
-          const raw = await fetch(f.download_url);
-          const data = await raw.json();
-          const name = f.name.replace('.json','').replace(/[_-]/g,' ').trim();
-          topics[f.name] = {
-            name: name.charAt(0).toUpperCase() + name.slice(1),
-            words: Array.isArray(data) ? data : (data.words || [])
-          };
-        }
+      
+      // 2. Lọc file .json
+      const jsonFiles = files.filter(f => f.name.endsWith('.json'));
+
+      if (jsonFiles.length === 0) {
+        listDiv.innerHTML = '<div style="text-align:center;">Không tìm thấy file .json nào trong repo này.</div>';
+        status.innerText = "";
+        return;
       }
-    } catch(e) {}
+
+      // 3. Render danh sách
+      listDiv.innerHTML = '';
+      jsonFiles.forEach(file => {
+        // Tạo thẻ cho mỗi chủ đề
+        const div = document.createElement('div');
+        div.className = 'neu-box topic-card';
+        div.innerHTML = `
+          <div class="topic-title">${formatName(file.name)}</div>
+          <div class="topic-meta">File: ${file.name}</div>
+        `;
+        div.onclick = () => loadTopicContent(file.download_url, formatName(file.name));
+        listDiv.appendChild(div);
+      });
+      status.innerText = `Tìm thấy ${jsonFiles.length} chủ đề.`;
+
+    } catch (err) {
+      console.error(err);
+      status.style.color = 'var(--error)';
+      status.innerText = "Lỗi: " + err.message;
+      listDiv.innerHTML = `<div style="text-align:center; color:var(--error)">Không thể tải dữ liệu.<br>Kiểm tra lại tên User/Repo.<br>(Lưu ý: Repo phải để Public)</div>`;
+    }
   }
 
-  // 2. Nếu không có → dùng mẫu đẹp
-  if (Object.keys(topics).length === 0) {
-    topics = {
-      "cơ_bản.json": {name:"Cơ bản A1-A2", words:[
-        {english:"hello",vietnamese:"xin chào",example:"Hello!"},
-        {english:"family",vietnamese:"gia đình"}
-      ]},
-      "food.json": {name:"Ẩm thực", words:[
-        {english:"delicious",vietnamese:"ngon"},
-        {english:"coffee",vietnamese:"cà phê"}
-      ]},
-      "travel.json": {name:"Du lịch", words:[
-        {english:"passport",vietnamese:"hộ chiếu"},
-        {english:"beach",vietnamese:"bãi biển"}
-      ]}
-    };
+  // Helper: Làm đẹp tên file (bo-so-dem.json -> Bo So Dem)
+  function formatName(filename) {
+    return filename.replace('.json', '').replace(/[-_]/g, ' ').toUpperCase();
   }
 
-  // Hiển thị
-  const grid = document.getElementById('topicsGrid');
-  grid.innerHTML = Object.values(topics).map(t => `
-    <div class="topic-card" onclick="selectTopic('${t.name}', ${JSON.stringify(t.words)})">
-      <div class="topic-name">${t.name}</div>
-      <div class="word-count">${t.words.length} từ</div>
-    </div>
-  `).join('');
-}
+  // --- LOAD CONTENT ---
+  async function loadTopicContent(url, name) {
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+      
+      // Xử lý cấu trúc JSON khác nhau
+      // Ưu tiên: data.words, nếu không thì coi data chính là mảng
+      if (data.words && Array.isArray(data.words)) {
+        currentWords = data.words;
+      } else if (Array.isArray(data)) {
+        currentWords = data;
+      } else {
+        alert("Cấu trúc file JSON không hợp lệ (cần mảng hoặc object có key 'words')");
+        return;
+      }
 
-function selectTopic(name, words) {
-  currentWords = words;
-  currentName = name;
-  document.getElementById('topicPanel').style.display = 'none';
-  alert(`Đã chọn: ${name} (${words.length} từ)`);
-}
+      if(currentWords.length === 0) {
+        alert("File này không có từ vựng nào!");
+        return;
+      }
 
-// Ví dụ Flashcard nhanh (bạn có thể thêm 3 trò còn lại)
-function start(type) {
-  if (!currentWords.length) return alert("Vui lòng chọn chủ đề trước!");
-  if (type === 'flashcard') {
-    let i = 0;
-    const show = () => {
-      const w = currentWords[i];
-      const html = `
-        <h2 style="text-align:center;color:var(--accent);margin-bottom:30px;">${currentName}</h2>
-        <div style="width:460px;height:300px;margin:40px auto;background:var(--card);border-radius:30px;
-             box-shadow:20px 20px 40px var(--sd),-20px -20px 40px var(--sl);
-             display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:3rem;font-weight:700;cursor:pointer;"
-             onclick="this.innerHTML=this.innerHTML.includes('vietnamese')?'${w.english}':'${w.vietnamese}<br><small style=font-size:1rem;margin-top:20px>${w.example||''}</small>'">
-          ${w.english}
-        </div>
-        <div style="text-align:center;">
-          <button class="btn-game" onclick="i--;if(i<0)i=currentWords.length-1;show()">Trước</button>
-          <span style="margin:0 40px;font-size:2rem;">${i+1}/${currentWords.length}</span>
-          <button class="btn-game" onclick="i=(i+1)%currentWords.length;show()">Sau</button>
-        </div>`;
-      document.body.insertAdjacentHTML('beforeend', `<div style="position:fixed;inset:0;background:rgba(0,0,0,0.8);display:grid;place-items:center;z-index:9999;">${html}<div style="position:absolute;top:30px;right:40px;font-size:3rem;color:white;cursor:pointer" onclick="this.parentElement.remove()">×</div></div>`);
-    };
-    show();
+      // Start Game
+      document.getElementById('gameTitle').innerText = name || data.name || "Học Từ Vựng";
+      openGame();
+
+    } catch (e) {
+      alert("Lỗi khi đọc file JSON: " + e.message);
+    }
   }
-}
 
-// Khởi động
-loadTopics();
+  // --- GAME LOGIC ---
+  function openGame() {
+    currentIndex = 0;
+    document.getElementById('gameOverlay').style.display = 'flex';
+    renderCard();
+  }
+
+  function closeGame() {
+    document.getElementById('gameOverlay').style.display = 'none';
+  }
+
+  function renderCard() {
+    const w = currentWords[currentIndex];
+    isFlipped = false;
+    document.getElementById('flashcard').classList.remove('is-flipped');
+
+    // Reset nội dung
+    // Mặt trước
+    document.getElementById('textEn').innerText = w.english || "???";
+    document.getElementById('textIpa').innerText = w.ipa ? w.ipa : "";
+    document.getElementById('cardOrdinal').style.display = w.ordinal ? 'block' : 'none';
+    document.getElementById('cardOrdinal').innerText = w.ordinal || "";
+
+    // Mặt sau
+    // Xử lý fallback nếu JSON thiếu trường
+    document.getElementById('textVn').innerText = w.vietnamese || "Chưa có nghĩa";
+    document.getElementById('textEx').innerText = w.example || "Không có ví dụ";
+    
+    // Xử lý riêng cho số thứ tự (nếu có trong JSON của bạn)
+    const ordinalVn = w.ordinal_vn ? `(${w.ordinal_vn})` : "";
+    document.getElementById('textOrdinalVn').innerText = ordinalVn;
+
+    // Counter
+    document.getElementById('cardCounter').innerText = `${currentIndex + 1}/${currentWords.length}`;
+  }
+
+  function flipCard() {
+    isFlipped = !isFlipped;
+    document.getElementById('flashcard').classList.toggle('is-flipped');
+    
+    // Tự động phát âm khi lật sang mặt trước (tuỳ chọn, ở đây tôi tắt để người dùng tự bấm)
+  }
+
+  function nextCard() {
+    if (currentIndex < currentWords.length - 1) {
+      currentIndex++;
+      renderCard();
+    } else {
+      // Loop lại từ đầu?
+      if(confirm("Bạn đã học hết danh sách. Học lại từ đầu?")) {
+        currentIndex = 0;
+        renderCard();
+      }
+    }
+  }
+
+  function prevCard() {
+    if (currentIndex > 0) {
+      currentIndex--;
+      renderCard();
+    }
+  }
+
+  // --- TEXT TO SPEECH ---
+  function speakCurrentWord() {
+    const w = currentWords[currentIndex];
+    if (!w || !w.english) return;
+
+    // Hủy các lời nói cũ đang chờ
+    window.speechSynthesis.cancel();
+
+    const utterance = new SpeechSynthesisUtterance(w.english);
+    
+    // Lấy tốc độ
+    const rate = parseFloat(document.getElementById('speedRate').value);
+    utterance.rate = rate;
+    utterance.lang = 'en-US'; // Giọng Mỹ
+
+    window.speechSynthesis.speak(utterance);
+  }
+
+  // Hỗ trợ phím mũi tên
+  document.addEventListener('keydown', (e) => {
+    if(document.getElementById('gameOverlay').style.display === 'flex') {
+      if(e.key === 'ArrowRight') nextCard();
+      if(e.key === 'ArrowLeft') prevCard();
+      if(e.key === ' ' || e.key === 'Enter') flipCard();
+    }
+  });
+
 </script>
 </body>
 </html>

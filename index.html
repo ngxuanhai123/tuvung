@@ -11,7 +11,7 @@
 
 <style>
   :root {
-    --glass-bg: rgba(255, 255, 255, 0.15); /* Tăng độ đục để dễ đọc hơn */
+    --glass-bg: rgba(255, 255, 255, 0.15);
     --glass-border: rgba(255, 255, 255, 0.3);
     --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
     --accent-color: #00d2ff;
@@ -20,17 +20,13 @@
     --text-color: #ffffff;
     --radius: 28px;
     --font-main: 'Poppins', sans-serif;
-    
-    /* Màu chữ trên card (Chế độ sáng) */
     --card-text-main: #1e293b;
     --card-text-sub: #475569;
   }
 
   body.dark-mode {
-    --glass-bg: rgba(15, 23, 42, 0.75); /* Tối hơn để tương phản tốt */
+    --glass-bg: rgba(15, 23, 42, 0.75);
     --glass-border: rgba(255, 255, 255, 0.1);
-    
-    /* Màu chữ trên card (Chế độ tối) */
     --card-text-main: #f1f5f9;
     --card-text-sub: #cbd5e1;
   }
@@ -79,7 +75,7 @@
     100% { transform: translateY(-10vh) scale(1); opacity: 0; }
   }
   
-  /* SNOWFLAKES (Giáng sinh) */
+  /* SNOWFLAKES */
   .snowflake {
     position: fixed; top: -20px; z-index: 9999; color: #fff;
     font-size: 1em; opacity: 0.8; pointer-events: none;
@@ -159,7 +155,6 @@
     position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
     border-radius: 30px; display: flex; flex-direction: column; justify-content: center; align-items: center;
     padding: 30px; text-align: center;
-    /* Nền thẻ đặc hơn để dễ đọc chữ */
     background: rgba(255, 255, 255, 0.95);
     border: 2px solid rgba(255, 255, 255, 0.8);
     box-shadow: 0 20px 50px rgba(0,0,0,0.3);
@@ -176,7 +171,6 @@
   
   .word-en { 
       font-size: 3.2rem; font-weight: 800; margin-bottom: 5px; line-height: 1.1; 
-      /* Chữ Gradient nhưng có viền bóng để dễ đọc */
       background: linear-gradient(45deg, #2563EB, #4F46E5); -webkit-background-clip: text; -webkit-text-fill-color: transparent; 
       filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1));
   }
@@ -473,7 +467,7 @@
               <div style="padding:40px; text-align:center; opacity: 0.7;"><i class="fas fa-spinner fa-spin"></i> Đang tải bảng vàng...</div>
           </div>
       </div>
-      <button class="btn-primary" style="margin-top:20px; background: rgba(59, 130, 246, 0.4);" onclick="window.fetchLeaderboard()"><i class="fas fa-sync"></i> Cập nhật bảng xếp hạng</button>
+      <div style="text-align:center; margin-top:15px; font-size:0.75rem; opacity:0.6;"><i class="fas fa-bolt"></i> Cập nhật thời gian thực (Real-time)</div>
   </div>
 
   <div id="view-topics" class="view-container animate__animated animate__fadeIn" style="display:none;">
@@ -516,7 +510,7 @@
         <input type="range" id="cfgReviewLimit" min="5" max="50" value="20" oninput="window.saveConfig()">
         
         <div style="margin-top:20px; font-size:0.8rem; opacity:0.6; text-align:center;">
-            Sound FX Engine v2.0 &bull; Web Audio API
+            Sound FX Engine v2.0 &bull; Realtime DB
         </div>
     </div>
   </div>
@@ -557,11 +551,9 @@
 <script type="module">
 // --- FIREBASE SETUP ---
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-analytics.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// !!! FIREBASE CONFIG ĐÃ ĐƯỢC CẬP NHẬT !!!
 const firebaseConfig = {
   apiKey: "AIzaSyDtaVYb_72YvoGzvcERJZypUGS-u3skz2M",
   authDomain: "tuvung-88e8d.firebaseapp.com",
@@ -575,7 +567,6 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 const provider = new GoogleAuthProvider();
@@ -583,25 +574,7 @@ const provider = new GoogleAuthProvider();
 let currentUser = null;
 let studyTimer = null;
 let accumulatedTime = parseInt(localStorage.getItem('fp_aurora_time') || 0);
-
-// --- CACHE DỊCH TỰ ĐỘNG ---
-const translationCache = JSON.parse(localStorage.getItem('fp_aurora_trans_cache') || '{}');
-
-async function getTranslation(text) {
-    if (!text) return "";
-    if (translationCache[text]) return translationCache[text];
-
-    try {
-        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|vi`);
-        const data = await res.json();
-        if(data.responseStatus === 200) {
-            translationCache[text] = data.responseData.translatedText;
-            localStorage.setItem('fp_aurora_trans_cache', JSON.stringify(translationCache));
-            return data.responseData.translatedText;
-        }
-    } catch (e) { console.error("Translate error:", e); }
-    return "Không thể dịch tự động.";
-}
+let unsubscribeLeaderboard = null; // Quản lý listener real-time
 
 // --- HELPER: FORMAT TIME ---
 function formatTime(seconds) {
@@ -626,10 +599,6 @@ window.loginGoogle = () => {
     signInWithPopup(auth, provider)
     .then((result) => {
         showToast("Đăng nhập thành công!", "success");
-        // Đồng bộ điểm và sau đó cập nhật lại bảng xếp hạng
-        syncScoreToFirebase().then(() => {
-             window.fetchLeaderboard();
-        });
     }).catch((error) => {
         console.error("Login Error:", error);
         showToast("Lỗi đăng nhập: " + error.message, "error");
@@ -640,12 +609,14 @@ window.logoutGoogle = () => {
     if(confirm("Bạn muốn đăng xuất?")) {
         signOut(auth).then(() => {
             showToast("Đã đăng xuất");
+            accumulatedPoints = 0; // Reset local display on logout
+            updateUserPointsUI();
             renderDashboard(); 
         });
     }
 };
 
-onAuthStateChanged(auth, (user) => {
+onAuthStateChanged(auth, async (user) => {
     currentUser = user;
     const btn = document.getElementById('btnLogin');
     const profile = document.getElementById('userProfile');
@@ -655,6 +626,10 @@ onAuthStateChanged(auth, (user) => {
         profile.style.display = 'flex';
         document.getElementById('userImg').src = user.photoURL;
         document.getElementById('userName').innerText = user.displayName;
+        
+        // 1. NGAY LẬP TỨC: Đồng bộ dữ liệu từ Server về máy (2 chiều)
+        await syncDataFromServer();
+        // 2. Sau đó mới đẩy dữ liệu hiện tại lên (nếu có thay đổi)
         syncScoreToFirebase(); 
     } else {
         btn.style.display = 'block';
@@ -662,64 +637,96 @@ onAuthStateChanged(auth, (user) => {
     }
 });
 
+// --- LOGIC RESET ĐẦU THÁNG & ĐỒNG BỘ TỪ SERVER ---
+async function syncDataFromServer() {
+    if(!currentUser) return;
+    try {
+        const docRef = doc(db, "leaderboard", currentUser.uid);
+        const docSnap = await getDoc(docRef);
+        
+        const currentMonthKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            
+            // KIỂM TRA THÁNG ĐỂ RESET
+            if (data.monthKey !== currentMonthKey) {
+                // Sang tháng mới -> Reset điểm về 0
+                accumulatedPoints = 0;
+                localStorage.setItem('fp_aurora_points', 0);
+                showToast("Chào tháng mới! Điểm đã được reset.", "info");
+                // Cập nhật lại lên server ngay lập tức
+                await setDoc(docRef, { score: 0, monthKey: currentMonthKey }, { merge: true });
+            } else {
+                // Cùng tháng -> Đồng bộ điểm từ Server về máy (để dùng chung nhiều thiết bị)
+                // Lấy số lớn hơn giữa Server và Local để an toàn, hoặc ưu tiên Server
+                if (data.score > accumulatedPoints) {
+                    accumulatedPoints = data.score;
+                    localStorage.setItem('fp_aurora_points', accumulatedPoints);
+                    updateUserPointsUI();
+                }
+            }
+        }
+    } catch (e) {
+        console.error("Error syncing from server:", e);
+    }
+}
+
 async function syncScoreToFirebase() {
     if(!currentUser) return;
-    // Điểm số mới được lấy từ accumulatedPoints
-    const score = accumulatedPoints;
+    const currentMonthKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
     
     try {
         await setDoc(doc(db, "leaderboard", currentUser.uid), {
             displayName: currentUser.displayName,
             photoURL: currentUser.photoURL,
-            score: score,
+            score: accumulatedPoints, // Cập nhật điểm hiện tại
             studyTime: accumulatedTime,
-            lastUpdated: Date.now()
+            lastUpdated: Date.now(),
+            monthKey: currentMonthKey // Lưu tháng để kiểm tra reset
         }, { merge: true });
-        console.log("Score synced successfully: " + score);
     } catch(e) {
         console.error("Error syncing score", e);
     }
 }
 
-// --- NEW LEADERBOARD LOGIC WITH PODIUM ---
-window.fetchLeaderboard = async () => {
+// --- NEW LEADERBOARD LOGIC (REAL-TIME SNAPSHOT) ---
+window.initLeaderboardListener = () => {
+    // Nếu đã có listener rồi thì không tạo lại để tránh trùng lặp
+    if (unsubscribeLeaderboard) return;
+
     const listDiv = document.getElementById('leaderboardList');
     const podiumDiv = document.getElementById('podiumContainer');
-    listDiv.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.7;"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>';
+    listDiv.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.7;"><i class="fas fa-spinner fa-spin"></i> Đang kết nối máy chủ...</div>';
+
+    // Query Realtime
+    const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(20));
     
-    try {
-        // Query Firestore
-        const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(20));
-        const querySnapshot = await getDocs(q);
-        
-        if (querySnapshot.empty) {
+    // onSnapshot: Lắng nghe thay đổi liên tục
+    unsubscribeLeaderboard = onSnapshot(q, (querySnapshot) => {
+        const users = [];
+        querySnapshot.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
+
+        // LOGIC RENDER (GIỮ NGUYÊN NHƯ CŨ)
+        if (users.length === 0) {
              listDiv.innerHTML = '<div style="text-align:center; padding:20px;">Chưa có dữ liệu. Hãy là người đầu tiên!</div>';
              podiumDiv.style.display = 'none';
              return;
         }
 
-        const users = [];
-        querySnapshot.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
-
-        // Render Podium (Top 3)
         let podiumHTML = '';
         if(users.length > 0) {
             podiumDiv.style.display = 'flex';
-            
-            // Reorder for podium visual: 2nd - 1st - 3rd
-            const order = [1, 0, 2]; // Indices from sorted array
-            
+            const order = [1, 0, 2];
             order.forEach(idx => {
                 if(!users[idx]) return;
                 const u = users[idx];
                 const rank = idx + 1;
-                // const rankObj = getRankInfo(u.score); // Unused here but available
-                
                 let avatarHTML = `<img src="${u.photoURL}" class="podium-avatar">`;
                 if(rank === 1) avatarHTML = `<i class="fas fa-crown crown-icon"></i>` + avatarHTML;
                 
                 podiumHTML += `
-                    <div class="podium-item rank-${rank}-stage">
+                    <div class="podium-item rank-${rank}-stage animate__animated animate__fadeInUp">
                         ${avatarHTML}
                         <div class="podium-name">${u.displayName ? u.displayName.split(' ')[0] : 'User'}</div>
                         <div class="podium-score">${u.score.toLocaleString()} XP</div>
@@ -730,17 +737,16 @@ window.fetchLeaderboard = async () => {
             podiumDiv.innerHTML = podiumHTML;
         }
 
-        // Render List (Rest of users)
         let listHTML = '';
         users.forEach((u, index) => {
             const rank = index + 1;
-            if (rank <= 3) return; // Skip top 3, they are on podium
+            if (rank <= 3) return;
 
             const isMe = currentUser && u.id === currentUser.uid ? 'background:rgba(59, 130, 246, 0.15); border-left: 3px solid #60a5fa;' : '';
             const rankObj = getRankInfo(u.score);
 
             listHTML += `
-                <div class="leaderboard-row animate__animated animate__fadeInUp" style="${isMe} animation-delay: ${index * 0.05}s">
+                <div class="leaderboard-row animate__animated animate__fadeIn" style="${isMe}">
                     <div class="rank-num">${rank}</div>
                     <img src="${u.photoURL}" class="lb-avatar">
                     <div class="lb-info">
@@ -758,13 +764,11 @@ window.fetchLeaderboard = async () => {
                 </div>
             `;
         });
-        
         listDiv.innerHTML = listHTML || '<div style="text-align:center; padding:20px; opacity:0.6; font-size:0.8rem;">Chưa có thêm người chơi khác</div>';
-        
-    } catch(e) {
-        console.error("Fetch Leaderboard Error:", e);
-        listDiv.innerHTML = '<div style="text-align:center; color:#ff5252">Lỗi tải dữ liệu: ' + e.message + '<br><small>Kiểm tra Console để biết chi tiết</small></div>';
-    }
+    }, (error) => {
+        console.error("Realtime Error:", error);
+        listDiv.innerHTML = '<div style="text-align:center; color:#ff5252">Mất kết nối thời gian thực.</div>';
+    });
 };
 
 /* -------------------------------------------------------------------------
@@ -831,13 +835,7 @@ let srsData = JSON.parse(localStorage.getItem('fp_aurora_srs') || '{}');
 let masteredWords = JSON.parse(localStorage.getItem('fp_aurora_mastered') || '{}');
 
 // --- CUMULATIVE SCORE STATE ---
-// Điểm tích lũy dựa trên trả lời đúng và thời gian học
 let accumulatedPoints = parseInt(localStorage.getItem('fp_aurora_points') || 0);
-// Nếu người dùng cũ chưa có điểm nhưng đã có từ mastered, khởi tạo điểm cho họ
-if (accumulatedPoints === 0 && Object.keys(masteredWords).length > 0) {
-    accumulatedPoints = Object.keys(masteredWords).length * 100;
-    localStorage.setItem('fp_aurora_points', accumulatedPoints);
-}
 
 let config = {
     newLimit: parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5),
@@ -852,13 +850,27 @@ let currentMode = '';
 let isProcessing = false;
 let isFlipped = false;
 let selectedVoice = null;
+const translationCache = JSON.parse(localStorage.getItem('fp_aurora_trans_cache') || '{}');
+
+async function getTranslation(text) {
+    if (!text) return "";
+    if (translationCache[text]) return translationCache[text];
+    try {
+        const res = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=en|vi`);
+        const data = await res.json();
+        if(data.responseStatus === 200) {
+            translationCache[text] = data.responseData.translatedText;
+            localStorage.setItem('fp_aurora_trans_cache', JSON.stringify(translationCache));
+            return data.responseData.translatedText;
+        }
+    } catch (e) { console.error("Translate error:", e); }
+    return "Không thể dịch tự động.";
+}
 
 // --- INITIALIZATION ---
 window.initApp = function() {
     createParticles();
-    // Tạo hiệu ứng tuyết rơi Giáng sinh
     startSnow();
-    
     applyTheme();
     updateConfigUI();
     window.fetchTopics(); 
@@ -873,11 +885,10 @@ window.initApp = function() {
     updateMuteIcon();
 }
 
-// --- HÀM TẠO TUYẾT RƠI ---
 function startSnow() {
     const snowInterval = setInterval(() => {
         const snowflake = document.createElement('div');
-        snowflake.innerHTML = '❄'; // Hình bông tuyết
+        snowflake.innerHTML = '❄';
         snowflake.classList.add('snowflake');
         snowflake.style.left = Math.random() * 100 + 'vw';
         const size = Math.random() * 10 + 10 + 'px'; 
@@ -898,6 +909,7 @@ function addPoints(amount) {
     accumulatedPoints += amount;
     localStorage.setItem('fp_aurora_points', accumulatedPoints);
     updateUserPointsUI();
+    syncScoreToFirebase(); // Auto sync when points change
 }
 
 function createParticles() {
@@ -928,7 +940,7 @@ window.navTo = function(viewId) {
 
     if(viewId === 'view-home') renderDashboard();
     if(viewId === 'view-topics') renderTopicList();
-    if(viewId === 'view-leaderboard') window.fetchLeaderboard();
+    if(viewId === 'view-leaderboard') window.initLeaderboardListener(); // Kích hoạt real-time
 }
 
 // --- DATA & SYNC ---
@@ -1035,7 +1047,7 @@ window.processResult = function(isCorrect) {
     if(isCorrect) {
         playSound(SFX.CORRECT);
         confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, scalar: 0.7 });
-        addPoints(10); // +10 điểm cho câu trả lời đúng
+        addPoints(10); // +10 điểm
         
         if(data.level === 0) data.interval = 1; 
         else if(data.level === 1) data.interval = 3; 
@@ -1098,12 +1110,9 @@ function startTimer() {
     studyTimer = setInterval(() => {
         accumulatedTime++;
         localStorage.setItem('fp_aurora_time', accumulatedTime);
-        
-        // Bonus points for diligence (every 1 min)
         if(accumulatedTime % 60 === 0) {
-            addPoints(5);
+            addPoints(5); // +5 điểm mỗi phút
         }
-        
     }, 1000);
 }
 
@@ -1159,10 +1168,8 @@ function renderFlashcard() {
     const isRelearn = sessionQueue.filter(x => x === w).length > 1;
     const badge = isRelearn ? '<div style="position:absolute; top:-10px; right:-10px; background:#f59e0b; color:white; padding:5px 10px; border-radius:10px; font-size:0.7rem; font-weight:bold; box-shadow:0 5px 10px rgba(0,0,0,0.2);">HỌC LẠI</div>' : '';
 
-    // ID cho phần dịch example
     const exampleId = `ex-trans-${sessionIndex}`;
 
-    // HTML CARD
     const html = `
         <div class="scene">
             <div class="card" id="flashcardObj" onclick="window.flipCard()">
@@ -1213,7 +1220,6 @@ function renderFlashcard() {
     `;
     document.getElementById('gameContent').innerHTML = html;
     
-    // Gọi hàm dịch tự động sau khi render
     if(w.example) {
         getTranslation(w.example).then(trans => {
             const el = document.getElementById(exampleId);
@@ -1241,7 +1247,6 @@ function renderFill() {
     const sentence = w.example || `The word is ${w.english}`;
     const hidden = sentence.replace(new RegExp(w.english, 'gi'), '_____');
     
-    // Cập nhật: Thêm nút Hint
     document.getElementById('gameContent').innerHTML = `
         <div class="glass-panel animate__animated animate__zoomIn" style="padding:30px; width:95%; text-align:center; margin-bottom:25px;">
             <div style="font-size:1.4rem; margin-bottom:15px; line-height:1.5; font-weight:600; text-shadow:0 1px 2px rgba(0,0,0,0.5);">${hidden}</div>
@@ -1264,7 +1269,6 @@ function renderFill() {
 window.showHint = function(ans) {
     const inp = document.getElementById('fillInp');
     const currentVal = inp.value;
-    // Tìm ký tự tiếp theo để gợi ý
     if (currentVal.length < ans.length) {
         inp.value = ans.substring(0, currentVal.length + 1);
         playSound(SFX.POP);
@@ -1335,7 +1339,7 @@ window.matchClick = function(idx, id) {
             state.selected.el.classList.add('correct');
             state.solved++;
             state.selected = null;
-            addPoints(5); // +5 điểm mỗi cặp đúng
+            addPoints(5); 
             
             if(state.solved === state.total) {
                 setTimeout(() => { showToast("Hoàn thành xuất sắc!", "success"); window.closeGame(); }, 1000);
@@ -1509,7 +1513,7 @@ window.markMastered = function() {
     localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
     localStorage.setItem('fp_aurora_mastered', JSON.stringify(masteredWords));
     
-    addPoints(100); // +100 điểm khi master
+    addPoints(100); 
     syncScoreToFirebase();
     playSound(SFX.WIN);
     showToast("Đã chuyển vào kho Tinh thông!", "success");
@@ -1557,7 +1561,7 @@ function updateConfigUI() {
     document.getElementById('dispLimitReview').innerText = config.reviewLimit;
 }
 </script>
-  <a href="https://ngxuanhai123.github.io/" class="floating-home-btn">
+<a href="https://ngxuanhai123.github.io/" class="floating-home-btn">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
     </svg>
@@ -1565,58 +1569,28 @@ function updateConfigUI() {
 </a>
 
 <style>
-    /* CSS CHO NÚT QUAY VỀ */
     .floating-home-btn {
-        position: fixed;
-        top: 20px;
-        left: 20px;
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        gap: 10px;
+        position: fixed; top: 20px; left: 20px; z-index: 1000;
+        display: flex; align-items: center; gap: 10px;
         padding: 10px 20px;
         background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px);
-        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 50px;
-        color: white;
-        text-decoration: none;
-        font-family: 'Poppins', sans-serif;
-        font-weight: 600;
+        border-radius: 50px; color: white; text-decoration: none;
+        font-family: 'Poppins', sans-serif; font-weight: 600;
         box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease;
-        overflow: hidden;
+        transition: all 0.3s ease; overflow: hidden;
     }
-
-    .floating-home-btn svg {
-        width: 24px;
-        height: 24px;
-        transition: transform 0.3s ease;
-    }
-
-    /* Hiệu ứng Hover */
     .floating-home-btn:hover {
         background: linear-gradient(90deg, #4facfe, #00f2fe);
-        transform: translateY(2px);
-        box-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
-        border-color: transparent;
-        color: #0f172a; /* Đổi màu chữ khi hover cho dễ đọc */
+        transform: translateY(2px); box-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
+        border-color: transparent; color: #0f172a;
     }
-
-    .floating-home-btn:hover svg {
-        transform: scale(1.1);
-    }
-
-    /* Ẩn chữ trên mobile để gọn màn hình */
+    .floating-home-btn svg { width: 24px; height: 24px; transition: transform 0.3s ease; }
+    .floating-home-btn:hover svg { transform: scale(1.1); }
     @media (max-width: 640px) {
-        .floating-home-btn span {
-            display: none;
-        }
-        .floating-home-btn {
-            padding: 12px;
-            border-radius: 50%;
-        }
+        .floating-home-btn span { display: none; }
+        .floating-home-btn { padding: 12px; border-radius: 50%; }
     }
 </style>
 </body>

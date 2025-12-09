@@ -1022,11 +1022,15 @@ function getWordKey(w) {
 // --- GAME LOGIC START ---
 window.startSmartSession = function() {
     if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
-    playSound(SFX.POP);
     
+    // RELOAD CONFIG TO ENSURE IT'S UP TO DATE
+    config.newLimit = parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5);
+    config.reviewLimit = parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20);
+
     const allWords = allTopics[currentTopicKey].words;
     const now = Date.now();
     
+    // 1. Get Due Reviews based on Config Limit
     let candidatesReview = allWords.filter(w => {
         const k = getWordKey(w);
         return !masteredWords[k] && srsData[k] && srsData[k].nextReview <= now;
@@ -1034,6 +1038,7 @@ window.startSmartSession = function() {
     candidatesReview.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
     const batchReview = candidatesReview.slice(0, config.reviewLimit);
     
+    // 2. Get New Words based on Config Limit
     let candidatesNew = allWords.filter(w => {
         const k = getWordKey(w);
         return !masteredWords[k] && !srsData[k];
@@ -1041,10 +1046,25 @@ window.startSmartSession = function() {
     const batchNew = candidatesNew.slice(0, config.newLimit);
     
     if(batchNew.length === 0 && batchReview.length === 0) {
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        playSound(SFX.WIN);
-        return showToast("Bạn đã hoàn thành tất cả bài học!", "success");
+        // Check if there are future reviews to inform the user
+        let futureReviews = allWords.filter(w => {
+            const k = getWordKey(w);
+            return !masteredWords[k] && srsData[k] && srsData[k].nextReview > now;
+        });
+
+        if(futureReviews.length > 0) {
+            showToast(`Bạn đã học hết! ${futureReviews.length} từ đang chờ ôn sau.`, "info");
+        } else {
+            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            playSound(SFX.WIN);
+            showToast("Tuyệt vời! Bạn đã hoàn thành tất cả!", "success");
+        }
+        return;
     }
+
+    // VISUAL FEEDBACK: Confirm exact mix to user
+    showToast(`Bắt đầu: ${batchNew.length} từ mới + ${batchReview.length} ôn tập`, "info");
+    playSound(SFX.POP);
     
     let interleaved = [];
     let r = [...batchReview];

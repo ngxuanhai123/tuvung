@@ -515,10 +515,11 @@ import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.7.1/firebase
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// !!! FIREBASE CONFIG !!!
+// !!! FIREBASE CONFIG ĐÃ ĐƯỢC CẬP NHẬT !!!
 const firebaseConfig = {
   apiKey: "AIzaSyDtaVYb_72YvoGzvcERJZypUGS-u3skz2M",
   authDomain: "tuvung-88e8d.firebaseapp.com",
+  databaseURL: "https://tuvung-88e8d-default-rtdb.asia-southeast1.firebasedatabase.app",
   projectId: "tuvung-88e8d",
   storageBucket: "tuvung-88e8d.firebasestorage.app",
   messagingSenderId: "722559465686",
@@ -560,10 +561,13 @@ window.loginGoogle = () => {
     signInWithPopup(auth, provider)
     .then((result) => {
         showToast("Đăng nhập thành công!", "success");
-        syncScoreToFirebase();
+        // Đồng bộ điểm và sau đó cập nhật lại bảng xếp hạng
+        syncScoreToFirebase().then(() => {
+             window.fetchLeaderboard();
+        });
     }).catch((error) => {
-        console.error(error);
-        showToast("Lỗi đăng nhập: " + error.code, "error");
+        console.error("Login Error:", error);
+        showToast("Lỗi đăng nhập: " + error.message, "error");
     });
 };
 
@@ -605,8 +609,10 @@ async function syncScoreToFirebase() {
             studyTime: accumulatedTime,
             lastUpdated: Date.now()
         }, { merge: true });
+        console.log("Score synced successfully");
     } catch(e) {
         console.error("Error syncing score", e);
+        // Không show toast lỗi ở đây để tránh làm phiền nếu mạng chập chờn
     }
 }
 
@@ -617,6 +623,7 @@ window.fetchLeaderboard = async () => {
     listDiv.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.7;"><i class="fas fa-spinner fa-spin"></i> Đang tải dữ liệu...</div>';
     
     try {
+        // Query Firestore
         const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(20));
         const querySnapshot = await getDocs(q);
         
@@ -641,7 +648,7 @@ window.fetchLeaderboard = async () => {
                 if(!users[idx]) return;
                 const u = users[idx];
                 const rank = idx + 1;
-                const rankObj = getRankInfo(u.score);
+                // const rankObj = getRankInfo(u.score); // Unused here but available
                 
                 let avatarHTML = `<img src="${u.photoURL}" class="podium-avatar">`;
                 if(rank === 1) avatarHTML = `<i class="fas fa-crown crown-icon"></i>` + avatarHTML;
@@ -649,7 +656,7 @@ window.fetchLeaderboard = async () => {
                 podiumHTML += `
                     <div class="podium-item rank-${rank}-stage">
                         ${avatarHTML}
-                        <div class="podium-name">${u.displayName.split(' ')[0]}</div>
+                        <div class="podium-name">${u.displayName ? u.displayName.split(' ')[0] : 'User'}</div>
                         <div class="podium-score">${u.score}</div>
                         <div class="podium-rank">${rank}</div>
                     </div>
@@ -690,8 +697,8 @@ window.fetchLeaderboard = async () => {
         listDiv.innerHTML = listHTML || '<div style="text-align:center; padding:20px; opacity:0.6; font-size:0.8rem;">Chưa có thêm người chơi khác</div>';
         
     } catch(e) {
-        console.error(e);
-        listDiv.innerHTML = '<div style="text-align:center; color:#ff5252">Lỗi tải dữ liệu.</div>';
+        console.error("Fetch Leaderboard Error:", e);
+        listDiv.innerHTML = '<div style="text-align:center; color:#ff5252">Lỗi tải dữ liệu: ' + e.message + '<br><small>Kiểm tra Console để biết chi tiết</small></div>';
     }
 };
 

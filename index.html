@@ -1030,35 +1030,31 @@ window.startSmartSession = function() {
     const allWords = allTopics[currentTopicKey].words;
     const now = Date.now();
     
-    // 1. Get Due Reviews based on Config Limit
-    let candidatesReview = allWords.filter(w => {
-        const k = getWordKey(w);
-        return !masteredWords[k] && srsData[k] && srsData[k].nextReview <= now;
-    });
-    candidatesReview.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
-    const batchReview = candidatesReview.slice(0, config.reviewLimit);
-    
-    // 2. Get New Words based on Config Limit
+    // 1. Get New Words based on Config Limit
     let candidatesNew = allWords.filter(w => {
         const k = getWordKey(w);
         return !masteredWords[k] && !srsData[k];
     });
     const batchNew = candidatesNew.slice(0, config.newLimit);
+
+    // 2. Get Review Words (Strict + Soft)
+    // Thay vì chỉ lấy từ đã đến hạn (nextReview <= now), ta lấy TẤT CẢ từ đang học (chưa master)
+    let allLearning = allWords.filter(w => {
+        const k = getWordKey(w);
+        return !masteredWords[k] && srsData[k];
+    });
+
+    // Sắp xếp: Ưu tiên từ quá hạn (nextReview bé nhất), sau đó đến từ sắp tới hạn
+    // Điều này đảm bảo từ cần ôn nhất vẫn lên đầu, nhưng nếu thiếu thì lấy từ chưa đến hạn để điền vào
+    allLearning.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
+
+    // Cắt lấy số lượng theo reviewLimit
+    const batchReview = allLearning.slice(0, config.reviewLimit);
     
     if(batchNew.length === 0 && batchReview.length === 0) {
-        // Check if there are future reviews to inform the user
-        let futureReviews = allWords.filter(w => {
-            const k = getWordKey(w);
-            return !masteredWords[k] && srsData[k] && srsData[k].nextReview > now;
-        });
-
-        if(futureReviews.length > 0) {
-            showToast(`Bạn đã học hết! ${futureReviews.length} từ đang chờ ôn sau.`, "info");
-        } else {
-            confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-            playSound(SFX.WIN);
-            showToast("Tuyệt vời! Bạn đã hoàn thành tất cả!", "success");
-        }
+        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        playSound(SFX.WIN);
+        showToast("Tuyệt vời! Bạn đã hoàn thành tất cả!", "success");
         return;
     }
 

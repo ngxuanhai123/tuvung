@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Flashcard Pro - Aurora Rank Master</title>
+<title>Flashcard Pro - Ultimate Sync</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;600;700&family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
@@ -574,7 +574,7 @@ const provider = new GoogleAuthProvider();
 let currentUser = null;
 let studyTimer = null;
 let accumulatedTime = parseInt(localStorage.getItem('fp_aurora_time') || 0);
-let unsubscribeLeaderboard = null; // Quản lý listener real-time
+let unsubscribeLeaderboard = null; 
 
 // --- HELPER: FORMAT TIME ---
 function formatTime(seconds) {
@@ -609,7 +609,7 @@ window.logoutGoogle = () => {
     if(confirm("Bạn muốn đăng xuất?")) {
         signOut(auth).then(() => {
             showToast("Đã đăng xuất");
-            accumulatedPoints = 0; // Reset local display on logout
+            accumulatedPoints = 0; 
             updateUserPointsUI();
             renderDashboard(); 
         });
@@ -627,17 +627,17 @@ onAuthStateChanged(auth, async (user) => {
         document.getElementById('userImg').src = user.photoURL;
         document.getElementById('userName').innerText = user.displayName;
         
-        // 1. NGAY LẬP TỨC: Đồng bộ dữ liệu từ Server về máy (2 chiều)
+        // 1. NGAY LẬP TỨC: Đồng bộ TOÀN BỘ dữ liệu từ Server về máy
         await syncDataFromServer();
         // 2. Sau đó mới đẩy dữ liệu hiện tại lên (nếu có thay đổi)
-        syncScoreToFirebase(); 
+        saveProgressToCloud(); 
     } else {
         btn.style.display = 'block';
         profile.style.display = 'none';
     }
 });
 
-// --- LOGIC RESET ĐẦU THÁNG & ĐỒNG BỘ TỪ SERVER ---
+// --- LOGIC ĐỒNG BỘ TOÀN DIỆN (FULL SYNC) ---
 async function syncDataFromServer() {
     if(!currentUser) return;
     try {
@@ -649,30 +649,57 @@ async function syncDataFromServer() {
         if (docSnap.exists()) {
             const data = docSnap.data();
             
-            // KIỂM TRA THÁNG ĐỂ RESET
+            // 1. KIỂM TRA THÁNG ĐỂ RESET ĐIỂM (Chỉ reset score, giữ lại srsData)
             if (data.monthKey !== currentMonthKey) {
-                // Sang tháng mới -> Reset điểm về 0
                 accumulatedPoints = 0;
                 localStorage.setItem('fp_aurora_points', 0);
                 showToast("Chào tháng mới! Điểm đã được reset.", "info");
-                // Cập nhật lại lên server ngay lập tức
+                // Cập nhật reset lên server ngay
                 await setDoc(docRef, { score: 0, monthKey: currentMonthKey }, { merge: true });
             } else {
-                // Cùng tháng -> Đồng bộ điểm từ Server về máy (để dùng chung nhiều thiết bị)
-                // Lấy số lớn hơn giữa Server và Local để an toàn, hoặc ưu tiên Server
-                if (data.score > accumulatedPoints) {
-                    accumulatedPoints = data.score;
-                    localStorage.setItem('fp_aurora_points', accumulatedPoints);
-                    updateUserPointsUI();
-                }
+                // 2. ĐỒNG BỘ ĐIỂM SỐ & THỜI GIAN
+                if (data.score > accumulatedPoints) accumulatedPoints = data.score;
+                if (data.studyTime > accumulatedTime) accumulatedTime = data.studyTime;
             }
+            
+            // 3. ĐỒNG BỘ TIẾN ĐỘ HỌC (SRS) & CẤU HÌNH
+            if(data.srsData) {
+                srsData = JSON.parse(data.srsData);
+                localStorage.setItem('fp_aurora_srs', data.srsData);
+            }
+            if(data.masteredWords) {
+                masteredWords = JSON.parse(data.masteredWords);
+                localStorage.setItem('fp_aurora_mastered', data.masteredWords);
+            }
+            if(data.config) {
+                config = data.config;
+                // Áp dụng ngay config
+                localStorage.setItem('fp_aurora_dark', config.darkMode);
+                localStorage.setItem('fp_aurora_muted', config.muted);
+                localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
+                localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
+                applyTheme();
+                updateMuteIcon();
+                updateConfigUI();
+            }
+            if(data.currentTopicKey) {
+                currentTopicKey = data.currentTopicKey;
+                localStorage.setItem('fp_aurora_topic', currentTopicKey);
+            }
+
+            // Lưu cục bộ các giá trị điểm đã đồng bộ
+            localStorage.setItem('fp_aurora_points', accumulatedPoints);
+            localStorage.setItem('fp_aurora_time', accumulatedTime);
+            updateUserPointsUI();
+            renderDashboard();
         }
     } catch (e) {
         console.error("Error syncing from server:", e);
     }
 }
 
-async function syncScoreToFirebase() {
+// Hàm lưu trữ tất cả tiến độ lên mây (gọi khi hoàn thành bài học, đổi setting,...)
+async function saveProgressToCloud() {
     if(!currentUser) return;
     const currentMonthKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
     
@@ -680,34 +707,35 @@ async function syncScoreToFirebase() {
         await setDoc(doc(db, "leaderboard", currentUser.uid), {
             displayName: currentUser.displayName,
             photoURL: currentUser.photoURL,
-            score: accumulatedPoints, // Cập nhật điểm hiện tại
+            score: accumulatedPoints,
             studyTime: accumulatedTime,
             lastUpdated: Date.now(),
-            monthKey: currentMonthKey // Lưu tháng để kiểm tra reset
+            monthKey: currentMonthKey,
+            // Lưu thêm các trường dữ liệu lớn dạng string JSON để tiết kiệm write và dễ quản lý
+            srsData: JSON.stringify(srsData),
+            masteredWords: JSON.stringify(masteredWords),
+            config: config,
+            currentTopicKey: currentTopicKey
         }, { merge: true });
     } catch(e) {
-        console.error("Error syncing score", e);
+        console.error("Error saving progress to cloud", e);
     }
 }
 
 // --- NEW LEADERBOARD LOGIC (REAL-TIME SNAPSHOT) ---
 window.initLeaderboardListener = () => {
-    // Nếu đã có listener rồi thì không tạo lại để tránh trùng lặp
     if (unsubscribeLeaderboard) return;
 
     const listDiv = document.getElementById('leaderboardList');
     const podiumDiv = document.getElementById('podiumContainer');
     listDiv.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.7;"><i class="fas fa-spinner fa-spin"></i> Đang kết nối máy chủ...</div>';
 
-    // Query Realtime
     const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(20));
     
-    // onSnapshot: Lắng nghe thay đổi liên tục
     unsubscribeLeaderboard = onSnapshot(q, (querySnapshot) => {
         const users = [];
         querySnapshot.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
 
-        // LOGIC RENDER (GIỮ NGUYÊN NHƯ CŨ)
         if (users.length === 0) {
              listDiv.innerHTML = '<div style="text-align:center; padding:20px;">Chưa có dữ liệu. Hãy là người đầu tiên!</div>';
              podiumDiv.style.display = 'none';
@@ -909,7 +937,7 @@ function addPoints(amount) {
     accumulatedPoints += amount;
     localStorage.setItem('fp_aurora_points', accumulatedPoints);
     updateUserPointsUI();
-    syncScoreToFirebase(); // Auto sync when points change
+    saveProgressToCloud(); // Auto sync points
 }
 
 function createParticles() {
@@ -1058,6 +1086,7 @@ window.processResult = function(isCorrect) {
         
         srsData[key] = data;
         localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
+        saveProgressToCloud(); // Save SRS change
         setTimeout(() => { isProcessing = false; nextStep(); }, 600);
         
     } else {
@@ -1067,6 +1096,7 @@ window.processResult = function(isCorrect) {
         data.nextReview = Date.now(); 
         srsData[key] = data;
         localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
+        saveProgressToCloud(); // Save SRS change
 
         if(currentMode === 'smart') {
             const reInsertIdx = sessionIndex + 3;
@@ -1101,7 +1131,7 @@ window.closeGame = function() {
     document.getElementById('gameOverlay').style.display = 'none';
     window.speechSynthesis.cancel();
     stopTimer(); 
-    syncScoreToFirebase(); 
+    saveProgressToCloud(); 
     renderDashboard();
 }
 
@@ -1483,6 +1513,7 @@ function renderTopicList() {
             localStorage.setItem('fp_aurora_topic', key);
             playSound(SFX.POP);
             showToast("Đã chọn: " + t.name);
+            saveProgressToCloud(); // Save topic change
             window.navTo('view-home');
         };
         list.appendChild(el);
@@ -1514,7 +1545,7 @@ window.markMastered = function() {
     localStorage.setItem('fp_aurora_mastered', JSON.stringify(masteredWords));
     
     addPoints(100); 
-    syncScoreToFirebase();
+    syncScoreToFirebase(); // This will also save masteredWords due to our updated logic
     playSound(SFX.WIN);
     showToast("Đã chuyển vào kho Tinh thông!", "success");
     nextStep();
@@ -1544,14 +1575,15 @@ function applyTheme() {
     document.body.classList.toggle('dark-mode', config.darkMode);
     document.getElementById('themeBtn').innerHTML = config.darkMode ? '<i class="fas fa-sun" style="color:#fcd34d"></i>' : '<i class="fas fa-moon" style="color:#fff"></i>';
 }
-window.toggleTheme = function() { config.darkMode = !config.darkMode; localStorage.setItem('fp_aurora_dark', config.darkMode); applyTheme(); playSound(SFX.POP); }
-window.toggleMute = function() { config.muted = !config.muted; localStorage.setItem('fp_aurora_muted', config.muted); updateMuteIcon(); }
+window.toggleTheme = function() { config.darkMode = !config.darkMode; localStorage.setItem('fp_aurora_dark', config.darkMode); applyTheme(); playSound(SFX.POP); saveProgressToCloud(); }
+window.toggleMute = function() { config.muted = !config.muted; localStorage.setItem('fp_aurora_muted', config.muted); updateMuteIcon(); saveProgressToCloud(); }
 function updateMuteIcon() { document.getElementById('muteIcon').className = config.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up'; }
 window.saveConfig = function() {
     config.newLimit = parseInt(document.getElementById('cfgNewLimit').value);
     config.reviewLimit = parseInt(document.getElementById('cfgReviewLimit').value);
     localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
     localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
+    saveProgressToCloud();
     updateConfigUI();
 }
 function updateConfigUI() {

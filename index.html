@@ -1217,17 +1217,26 @@ window.processResult = function(isCorrect) {
     
     const w = sessionQueue[sessionIndex];
     const key = getWordKey(w);
-    let data = srsData[key] || { interval: 0, level: 0, nextReview: 0 };
+    let data = srsData[key] || { interval: 0, level: 0, nextReview: 0, consecutiveWrongs: 0 };
     
     if(isCorrect) {
         playSound(SFX.CORRECT);
         confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, scalar: 0.7 });
         addPoints(10); 
         
+        // Reset count wrong
+        data.consecutiveWrongs = 0;
+
+        // Nếu từ này từng bị đánh dấu là "Hard" (isHard), tăng interval chậm hơn
+        let multiplier = data.isHard ? 1.5 : 2.5;
+
         if(data.level === 0) data.interval = 1; 
         else if(data.level === 1) data.interval = 3; 
-        else data.interval = Math.ceil(data.interval * 2.5);
+        else data.interval = Math.ceil(data.interval * multiplier);
         
+        // Reset hard flag
+        if(data.isHard) data.isHard = false;
+
         data.level++;
         data.nextReview = Date.now() + (data.interval * 24 * 3600 * 1000);
         
@@ -1241,6 +1250,19 @@ window.processResult = function(isCorrect) {
         data.level = 0;
         data.interval = 0;
         data.nextReview = Date.now(); 
+        
+        // --- LOGIC MỚI: Đếm số lần sai liên tiếp ---
+        data.consecutiveWrongs = (data.consecutiveWrongs || 0) + 1;
+        
+        if (data.consecutiveWrongs > 3) {
+            data.isHard = true; // Đánh dấu từ khó
+            showToast("Sai quá 3 lần! Từ này sẽ được ưu tiên ôn kỹ.", "error");
+            // Thêm vào hàng đợi 2 lần nữa để bắt buộc học ngay
+            sessionQueue.push(w);
+            sessionQueue.push(w);
+        }
+        // -------------------------------------------
+
         srsData[key] = data;
         localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
         saveProgressToCloud(); 
@@ -1252,7 +1274,7 @@ window.processResult = function(isCorrect) {
             } else {
                 sessionQueue.push(w);
             }
-            showToast("Sẽ ôn lại từ này ngay!", "error");
+            if(data.consecutiveWrongs <= 3) showToast("Sẽ ôn lại từ này ngay!", "error");
         }
         
         // Nếu đang ở Flashcard thì lật để xem đáp án
@@ -1561,9 +1583,36 @@ function highlightChar(idx) {
 function renderSentence() {
     isProcessing = false;
     const w = sessionQueue[sessionIndex];
-    let original = w.example ? w.example.trim() : w.english; 
     
-    const words = original.split(/\s+/);
+    // Random direction: 0 = Arrange English (Prompt Vietnamese), 1 = Arrange Vietnamese (Prompt English)
+    // Ưu tiên sắp xếp tiếng Anh nếu có ví dụ, nếu không có ví dụ thì dùng từ đơn.
+    // Nếu random trúng sắp xếp Tiếng Việt, dùng nghĩa Tiếng Việt.
+    
+    let isEnglishTarget = Math.random() > 0.5;
+    
+    // Nếu là mode Tiếng Anh -> Tiếng Việt nhưng không có ví dụ tiếng Anh, 
+    // vẫn có thể sắp xếp từ tiếng Anh (w.english).
+    
+    let targetStr = "";
+    let promptStr = "";
+    let guideStr = "";
+
+    if (isEnglishTarget) {
+        // Mode A: Sắp xếp Tiếng Anh (Gợi ý Tiếng Việt)
+        targetStr = w.example || w.english; // Ưu tiên câu ví dụ
+        promptStr = w.vietnamese;
+        guideStr = "Sắp xếp câu Tiếng Anh";
+    } else {
+        // Mode B: Sắp xếp Tiếng Việt (Gợi ý Tiếng Anh)
+        targetStr = w.vietnamese;
+        promptStr = w.english; // Gợi ý bằng từ gốc tiếng Anh
+        guideStr = "Sắp xếp nghĩa Tiếng Việt";
+    }
+    
+    // Clean string for splitting
+    targetStr = targetStr.trim();
+    
+    const words = targetStr.split(/\s+/);
     if(words.length < 2) {
         // Fallback to flashcard if only 1 word
         renderFlashcard();
@@ -1574,8 +1623,8 @@ function renderSentence() {
 
     document.getElementById('gameContent').innerHTML = `
         <div class="glass-panel animate__animated animate__zoomIn" style="padding:20px; width:95%; text-align:center; margin-bottom:15px;">
-             <div style="opacity:0.8; font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:5px;">Sắp xếp câu ví dụ</div>
-             <div style="font-size:1.1rem; font-weight:700; color:#fff;">${w.vietnamese}</div>
+             <div style="opacity:0.8; font-size:0.85rem; text-transform:uppercase; letter-spacing:1px; margin-bottom:5px;">${guideStr}</div>
+             <div style="font-size:1.1rem; font-weight:700; color:#fff;">${promptStr}</div>
              <div style="font-size:0.9rem; opacity:0.6; margin-top:5px; font-style:italic;">(Hãy sắp xếp các từ bên dưới)</div>
         </div>
 
@@ -1587,21 +1636,24 @@ function renderSentence() {
 
         <div style="display:flex; gap:15px; margin-top:10px;">
              <button class="btn-speak-round" onclick="window.speakWord()"><i class="fas fa-volume-up"></i></button>
-             <button class="btn-primary" style="width:auto; padding:0 30px;" onclick="window.checkSentence('${original.replace(/'/g, "\\'")}')">KIỂM TRA</button>
              <button class="action-btn" style="width:50px; flex:none; background:rgba(255,255,255,0.1);" onclick="window.resetSentence()"><i class="fas fa-redo"></i></button>
         </div>
     `;
     
     window.sentenceState = {
-        original: words,
-        current: [],
-        chips: shuffled
+        targetStr: targetStr.replace(/\s+/g, ' '),
+        isEnglishTarget: isEnglishTarget
     };
+    
+    // Nếu là sắp xếp Tiếng Việt, ta không đọc mẫu Tiếng Anh ngay lúc đầu để tránh lộ bài (trừ khi user bấm loa)
+    // Nếu là sắp xếp Tiếng Anh, ta đọc mẫu luôn.
     
     setTimeout(() => {
         if(config.muted) return;
         window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(original);
+        // Chỉ đọc nếu đang xếp tiếng Anh, hoặc nếu xếp tiếng Việt thì đọc từ gọi ý (tiếng Anh)
+        const textToRead = isEnglishTarget ? (w.example || w.english) : w.english;
+        const u = new SpeechSynthesisUtterance(textToRead);
         u.lang = 'en-US';
         if(selectedVoice) u.voice = selectedVoice;
         window.speechSynthesis.speak(u);
@@ -1622,12 +1674,21 @@ window.moveWord = function(idx, word) {
     ansChip.innerText = word;
     ansChip.dataset.originIdx = idx;
     ansChip.onclick = function() {
+        if(isProcessing) return; // Không cho gỡ khi đang check
         this.remove();
         document.getElementById(`chip-${idx}`).classList.remove('used');
         playSound(SFX.FLIP);
     };
     
     ansArea.appendChild(ansChip);
+
+    // --- AUTO CHECK LOGIC ---
+    // Kiểm tra xem còn chip nào chưa dùng không
+    const remaining = document.querySelectorAll('.sentence-area .word-chip:not(.used)').length;
+    if(remaining === 0) {
+        // Tự động check sau 1 khoảng ngắn
+        setTimeout(() => window.checkSentence(window.sentenceState.targetStr), 200);
+    }
 }
 
 window.resetSentence = function() {
@@ -1644,7 +1705,8 @@ window.checkSentence = function(correctSentence) {
     const userWords = Array.from(ansArea.children).map(c => c.innerText);
     const userSentence = userWords.join(' ');
     
-    if(userSentence === correctSentence) {
+    // So sánh (case insensitive cho chắc, bỏ dấu chấm câu nếu cần thiết nhưng ở đây so exact string match từ source)
+    if(userSentence.toLowerCase() === correctSentence.toLowerCase()) {
         showToast("Tuyệt vời! Chính xác!", "success");
         window.processResult(true);
     } else {
@@ -1652,6 +1714,9 @@ window.checkSentence = function(correctSentence) {
         ansArea.classList.add('animate__animated', 'animate__shakeX');
         setTimeout(() => ansArea.classList.remove('animate__animated', 'animate__shakeX'), 500);
         showToast("Sai rồi, hãy thử lại!", "error");
+        
+        // Auto reset sau khi sai để xếp lại cho nhanh
+        setTimeout(window.resetSentence, 1000);
     }
 }
 // --- END SENTENCE MODE ---

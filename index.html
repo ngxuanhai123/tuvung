@@ -366,6 +366,37 @@
   .user-badge:active { transform: scale(0.95); }
   .user-avatar { width: 40px; height: 40px; border-radius: 50%; border: 2px solid #fff; object-fit: cover; }
 
+  /* --- SPELLING MODE STYLES --- */
+  .spelling-container {
+    display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin: 25px 0;
+    width: 100%; max-width: 95%;
+  }
+  .char-slot {
+    width: 36px; height: 48px; 
+    border-bottom: 3px solid rgba(255,255,255,0.3);
+    border-radius: 8px; display: flex; align-items: center; justify-content: center;
+    font-size: 1.6rem; font-weight: 800; text-transform: uppercase;
+    background: rgba(0,0,0,0.2); transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    color: white; text-shadow: 0 2px 5px rgba(0,0,0,0.3);
+  }
+  .char-slot.active { 
+      border-color: #fbbf24; background: rgba(251, 191, 36, 0.1);
+      transform: translateY(-5px); 
+      box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+  }
+  .char-slot.correct { 
+      background: #22c55e; border-color: #22c55e; 
+      animation: bounceIn 0.4s;
+  }
+  .char-slot.space {
+      border: none; background: transparent; width: 15px;
+  }
+  @keyframes bounceIn {
+      0% { transform: scale(0.8); opacity: 0; }
+      60% { transform: scale(1.1); opacity: 1; }
+      100% { transform: scale(1); }
+  }
+
 </style>
 </head>
 <body onload="window.initApp()">
@@ -441,6 +472,10 @@
         <div class="mode-btn" onclick="window.startGame('quiz')">
             <i class="fas fa-question-circle"></i>
             <span>Trắc nghiệm</span>
+        </div>
+        <div class="mode-btn" onclick="window.startGame('spelling')">
+            <i class="fas fa-font"></i>
+            <span>Gõ chính tả</span>
         </div>
         <div class="mode-btn" onclick="window.startGame('flashcard_all')">
             <i class="fas fa-layer-group"></i>
@@ -1192,6 +1227,7 @@ function nextStep() {
             if(currentMode === 'smart' || currentMode === 'flashcard_all') renderFlashcard(); 
             else if(currentMode === 'fill') renderFill();
             else if(currentMode === 'quiz') setupQuiz();
+            else if(currentMode === 'spelling') renderSpelling();
             
             content.classList.add('slide-in-right');
             setTimeout(() => content.classList.remove('slide-in-right'), 400);
@@ -1286,6 +1322,132 @@ window.flipCard = function() {
     card.classList.toggle('is-flipped');
     playSound(SFX.FLIP);
 }
+
+// --- NEW FUNCTION: RENDER SPELLING MODE ---
+function renderSpelling() {
+    isProcessing = false;
+    const w = sessionQueue[sessionIndex];
+    const target = w.english.trim();
+    
+    let gridHTML = '';
+    // Tạo ô cho từng chữ
+    for(let i=0; i<target.length; i++) {
+        const char = target[i];
+        if(char === ' ' || char === '-') {
+             gridHTML += `<div class="char-slot space" id="char-${i}"></div>`;
+        } else {
+             gridHTML += `<div class="char-slot" id="char-${i}"></div>`;
+        }
+    }
+
+    document.getElementById('gameContent').innerHTML = `
+        <div class="glass-panel animate__animated animate__fadeInDown" style="padding:20px; width:95%; text-align:center;">
+            <div style="font-size:1.8rem; font-weight:800; color:#fff; text-shadow:0 0 10px rgba(255,255,255,0.4); margin-bottom:5px;">
+                ${w.vietnamese}
+            </div>
+            <div style="opacity:0.8; font-size:0.9rem;">Gõ chính xác từng ký tự</div>
+        </div>
+
+        <div class="spelling-container" id="spellingGrid">
+            ${gridHTML}
+        </div>
+        
+        <input type="text" id="spellingInput" 
+               style="opacity:0; position:absolute; pointer-events:none; top:0; left:0; height:0;" 
+               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+
+        <button class="btn-speak-round" onclick="window.speakWord()" style="margin-top:20px;"><i class="fas fa-volume-up"></i></button>
+    `;
+    
+    // Logic biến
+    window.spellingTarget = target;
+    window.spellingIdx = 0;
+    
+    const inp = document.getElementById('spellingInput');
+    
+    // Tự động focus lại input nếu mất focus (để giữ bàn phím trên mobile)
+    document.addEventListener('click', () => inp.focus());
+    inp.focus();
+
+    // Check ký tự đầu tiên nếu là space/kí tự đặc biệt thì nhảy qua
+    checkSpellingChar(''); 
+
+    inp.addEventListener('input', (e) => {
+        if(isProcessing) return;
+        const val = e.target.value;
+        if(val.length > 0) {
+            const char = val[val.length - 1]; // Lấy kí tự cuối cùng vừa gõ
+            checkSpellingChar(char);
+            e.target.value = ''; // Reset input
+        }
+    });
+    
+    setTimeout(window.speakWord, 300);
+}
+
+// Hàm kiểm tra logic gõ phím
+function checkSpellingChar(inputChar) {
+    const target = window.spellingTarget;
+    let idx = window.spellingIdx;
+    
+    // Tự động bỏ qua space hoặc dấu gạch ngang
+    while(idx < target.length && (target[idx] === ' ' || target[idx] === '-')) {
+        idx++;
+    }
+    window.spellingIdx = idx; // Cập nhật lại index sau khi skip
+
+    if(idx >= target.length) return; // Đã xong
+
+    // Nếu chỉ gọi hàm để skip space (inputChar rỗng) thì return để highlight ô tiếp theo
+    if(inputChar === '') {
+        highlightChar(idx);
+        return;
+    }
+
+    const correctChar = target[idx];
+    const slot = document.getElementById(`char-${idx}`);
+
+    if(inputChar.toLowerCase() === correctChar.toLowerCase()) {
+        // ĐÚNG
+        slot.innerText = correctChar;
+        slot.classList.add('correct');
+        slot.classList.remove('active');
+        playSound(SFX.POP);
+        
+        window.spellingIdx++;
+        
+        // Skip tiếp nếu kí tự tiếp theo là space
+        while(window.spellingIdx < target.length && (target[window.spellingIdx] === ' ' || target[window.spellingIdx] === '-')) {
+            window.spellingIdx++;
+        }
+        
+        if(window.spellingIdx >= target.length) {
+            // HOÀN THÀNH
+            document.getElementById('spellingInput').blur();
+            showToast("Chính xác!", "success");
+            window.processResult(true);
+        } else {
+            highlightChar(window.spellingIdx);
+        }
+    } else {
+        // SAI
+        playSound(SFX.WRONG);
+        slot.classList.add('animate__animated', 'animate__shakeX');
+        slot.style.borderColor = '#ef4444';
+        setTimeout(() => {
+            slot.classList.remove('animate__animated', 'animate__shakeX');
+            slot.style.borderColor = '';
+        }, 500);
+    }
+}
+
+function highlightChar(idx) {
+    // Xóa highlight cũ
+    document.querySelectorAll('.char-slot').forEach(el => el.classList.remove('active'));
+    const el = document.getElementById(`char-${idx}`);
+    if(el) el.classList.add('active');
+}
+// --- END NEW SPELLING FUNCTIONS ---
 
 function renderFill() {
     isProcessing = false;
@@ -1449,10 +1611,18 @@ window.startGame = function(mode) {
     playSound(SFX.POP);
     const allWords = allTopics[currentTopicKey].words;
     
+    // Logic lấy từ: Trừ chế độ xem tất cả, các chế độ game khác ưu tiên từ đã học hoặc trộn ngẫu nhiên
     if(mode !== 'flashcard_all') {
-        const learned = allWords.filter(w => srsData[getWordKey(w)] || masteredWords[getWordKey(w)]);
-        if(learned.length < 4 && mode !== 'fill') return showToast("Cần học ít nhất 4 từ để chơi!", "error");
-        sessionQueue = learned.sort(() => Math.random() - 0.5);
+        // Với chế độ Spelling (Chính tả), ta có thể cho chơi cả từ mới lẫn cũ
+        if(mode === 'spelling') {
+             sessionQueue = allWords.sort(() => Math.random() - 0.5);
+        } else {
+             // Các chế độ khác yêu cầu tối thiểu đã học 1 chút
+             const learned = allWords.filter(w => srsData[getWordKey(w)] || masteredWords[getWordKey(w)]);
+             // Nếu ít từ đã học quá thì lấy luôn cả list để chơi cho vui
+             if(learned.length < 4) sessionQueue = allWords.sort(() => Math.random() - 0.5); 
+             else sessionQueue = learned.sort(() => Math.random() - 0.5);
+        }
     } else {
         sessionQueue = [...allWords]; 
     }
@@ -1464,6 +1634,7 @@ window.startGame = function(mode) {
     if(mode === 'fill') renderFill();
     else if(mode === 'matching') setupMatching();
     else if(mode === 'quiz') setupQuiz();
+    else if(mode === 'spelling') renderSpelling();
     else renderFlashcard();
 }
 

@@ -456,11 +456,15 @@
         <i class="fas fa-brain"></i> &nbsp; HỌC NGAY
     </button>
     <div style="font-size:0.75rem; opacity:0.9; text-align:center; margin-top:12px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
-        <i class="fas fa-atom"></i> Thuật toán Interleaving + Spaced Repetition
+        <i class="fas fa-random"></i> Xáo trộn các Game + Khoa học não bộ
     </div>
 
-    <h3 style="margin-top: 35px; margin-bottom: 15px; font-size:1.2rem; padding-left:10px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Luyện tập Game</h3>
+    <h3 style="margin-top: 35px; margin-bottom: 15px; font-size:1.2rem; padding-left:10px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Chế độ Luyện tập</h3>
     <div class="mode-grid">
+        <div class="mode-btn" onclick="window.startGame('flashcard_all')">
+            <i class="fas fa-clone"></i>
+            <span>Flashcard</span>
+        </div>
         <div class="mode-btn" onclick="window.startGame('fill')">
             <i class="fas fa-keyboard"></i>
             <span>Điền từ</span>
@@ -475,11 +479,11 @@
         </div>
         <div class="mode-btn" onclick="window.startGame('spelling')">
             <i class="fas fa-font"></i>
-            <span>Gõ chính tả</span>
+            <span>Chính tả</span>
         </div>
-        <div class="mode-btn" onclick="window.startGame('flashcard_all')">
+        <div class="mode-btn" onclick="window.navTo('view-topics')">
             <i class="fas fa-layer-group"></i>
-            <span>Xem tất cả</span>
+            <span>Đổi chủ đề</span>
         </div>
     </div>
   </div>
@@ -661,10 +665,7 @@ onAuthStateChanged(auth, async (user) => {
         profile.style.display = 'flex';
         document.getElementById('userImg').src = user.photoURL;
         document.getElementById('userName').innerText = user.displayName;
-        
-        // 1. NGAY LẬP TỨC: Đồng bộ TOÀN BỘ dữ liệu từ Server về máy
         await syncDataFromServer();
-        // 2. Sau đó mới đẩy dữ liệu hiện tại lên (nếu có thay đổi)
         saveProgressToCloud(); 
     } else {
         btn.style.display = 'block';
@@ -684,20 +685,16 @@ async function syncDataFromServer() {
         if (docSnap.exists()) {
             const data = docSnap.data();
             
-            // 1. KIỂM TRA THÁNG ĐỂ RESET ĐIỂM (Chỉ reset score, giữ lại srsData)
             if (data.monthKey !== currentMonthKey) {
                 accumulatedPoints = 0;
                 localStorage.setItem('fp_aurora_points', 0);
                 showToast("Chào tháng mới! Điểm đã được reset.", "info");
-                // Cập nhật reset lên server ngay
                 await setDoc(docRef, { score: 0, monthKey: currentMonthKey }, { merge: true });
             } else {
-                // 2. ĐỒNG BỘ ĐIỂM SỐ & THỜI GIAN
                 if (data.score > accumulatedPoints) accumulatedPoints = data.score;
                 if (data.studyTime > accumulatedTime) accumulatedTime = data.studyTime;
             }
             
-            // 3. ĐỒNG BỘ TIẾN ĐỘ HỌC (SRS) & CẤU HÌNH
             if(data.srsData) {
                 srsData = JSON.parse(data.srsData);
                 localStorage.setItem('fp_aurora_srs', data.srsData);
@@ -708,7 +705,6 @@ async function syncDataFromServer() {
             }
             if(data.config) {
                 config = data.config;
-                // Áp dụng ngay config
                 localStorage.setItem('fp_aurora_dark', config.darkMode);
                 localStorage.setItem('fp_aurora_muted', config.muted);
                 localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
@@ -722,7 +718,6 @@ async function syncDataFromServer() {
                 localStorage.setItem('fp_aurora_topic', currentTopicKey);
             }
 
-            // Lưu cục bộ các giá trị điểm đã đồng bộ
             localStorage.setItem('fp_aurora_points', accumulatedPoints);
             localStorage.setItem('fp_aurora_time', accumulatedTime);
             updateUserPointsUI();
@@ -733,7 +728,6 @@ async function syncDataFromServer() {
     }
 }
 
-// Hàm lưu trữ tất cả tiến độ lên mây (gọi khi hoàn thành bài học, đổi setting,...)
 async function saveProgressToCloud() {
     if(!currentUser) return;
     const currentMonthKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
@@ -746,7 +740,6 @@ async function saveProgressToCloud() {
             studyTime: accumulatedTime,
             lastUpdated: Date.now(),
             monthKey: currentMonthKey,
-            // Lưu thêm các trường dữ liệu lớn dạng string JSON để tiết kiệm write và dễ quản lý
             srsData: JSON.stringify(srsData),
             masteredWords: JSON.stringify(masteredWords),
             config: config,
@@ -835,7 +828,7 @@ window.initLeaderboardListener = () => {
 };
 
 /* -------------------------------------------------------------------------
-   APP LOGIC & AUDIO ENGINE (GIỮ NGUYÊN)
+   APP LOGIC & AUDIO ENGINE
    ------------------------------------------------------------------------- */
 
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -896,8 +889,6 @@ let allTopics = {};
 let currentTopicKey = localStorage.getItem('fp_aurora_topic') || '';
 let srsData = JSON.parse(localStorage.getItem('fp_aurora_srs') || '{}'); 
 let masteredWords = JSON.parse(localStorage.getItem('fp_aurora_mastered') || '{}');
-
-// --- CUMULATIVE SCORE STATE ---
 let accumulatedPoints = parseInt(localStorage.getItem('fp_aurora_points') || 0);
 
 let config = {
@@ -972,7 +963,7 @@ function addPoints(amount) {
     accumulatedPoints += amount;
     localStorage.setItem('fp_aurora_points', accumulatedPoints);
     updateUserPointsUI();
-    saveProgressToCloud(); // Auto sync points
+    saveProgressToCloud(); 
 }
 
 function createParticles() {
@@ -1003,7 +994,7 @@ window.navTo = function(viewId) {
 
     if(viewId === 'view-home') renderDashboard();
     if(viewId === 'view-topics') renderTopicList();
-    if(viewId === 'view-leaderboard') window.initLeaderboardListener(); // Kích hoạt real-time
+    if(viewId === 'view-leaderboard') window.initLeaderboardListener(); 
 }
 
 // --- DATA & SYNC ---
@@ -1058,32 +1049,23 @@ function getWordKey(w) {
 window.startSmartSession = function() {
     if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
     
-    // RELOAD CONFIG TO ENSURE IT'S UP TO DATE
     config.newLimit = parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5);
     config.reviewLimit = parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20);
 
     const allWords = allTopics[currentTopicKey].words;
-    const now = Date.now();
     
-    // 1. Get New Words based on Config Limit
     let candidatesNew = allWords.filter(w => {
         const k = getWordKey(w);
         return !masteredWords[k] && !srsData[k];
     });
     const batchNew = candidatesNew.slice(0, config.newLimit);
 
-    // 2. Get Review Words (Strict + Soft)
-    // Thay vì chỉ lấy từ đã đến hạn (nextReview <= now), ta lấy TẤT CẢ từ đang học (chưa master)
     let allLearning = allWords.filter(w => {
         const k = getWordKey(w);
         return !masteredWords[k] && srsData[k];
     });
 
-    // Sắp xếp: Ưu tiên từ quá hạn (nextReview bé nhất), sau đó đến từ sắp tới hạn
-    // Điều này đảm bảo từ cần ôn nhất vẫn lên đầu, nhưng nếu thiếu thì lấy từ chưa đến hạn để điền vào
     allLearning.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
-
-    // Cắt lấy số lượng theo reviewLimit
     const batchReview = allLearning.slice(0, config.reviewLimit);
     
     if(batchNew.length === 0 && batchReview.length === 0) {
@@ -1093,7 +1075,6 @@ window.startSmartSession = function() {
         return;
     }
 
-    // VISUAL FEEDBACK: Confirm exact mix to user
     showToast(`Bắt đầu: ${batchNew.length} từ mới + ${batchReview.length} ôn tập`, "info");
     playSound(SFX.POP);
     
@@ -1112,8 +1093,30 @@ window.startSmartSession = function() {
     currentMode = 'smart';
     
     openGameOverlay();
-    renderFlashcard();
+    // Smart mode sẽ tự quyết định hiển thị gì trong nextStep (hoặc lần đầu này)
+    decideSmartRender();
 }
+
+function decideSmartRender() {
+    const w = sessionQueue[sessionIndex];
+    const key = getWordKey(w);
+    const isNew = !srsData[key] && !masteredWords[key];
+    
+    if(isNew) {
+        // Từ mới thì luôn học Flashcard trước để biết nghĩa
+        renderFlashcard();
+    } else {
+        // Từ ôn tập -> Random mode để đỡ chán
+        const modes = ['flashcard', 'quiz', 'fill', 'spelling'];
+        const randomMode = modes[Math.floor(Math.random() * modes.length)];
+        
+        if(randomMode === 'flashcard') renderFlashcard();
+        else if(randomMode === 'quiz') setupQuiz();
+        else if(randomMode === 'fill') renderFill();
+        else renderSpelling();
+    }
+}
+
 
 window.processResult = function(isCorrect) {
     if(isProcessing) return;
@@ -1126,7 +1129,7 @@ window.processResult = function(isCorrect) {
     if(isCorrect) {
         playSound(SFX.CORRECT);
         confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, scalar: 0.7 });
-        addPoints(10); // +10 điểm
+        addPoints(10); 
         
         if(data.level === 0) data.interval = 1; 
         else if(data.level === 1) data.interval = 3; 
@@ -1137,7 +1140,7 @@ window.processResult = function(isCorrect) {
         
         srsData[key] = data;
         localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
-        saveProgressToCloud(); // Save SRS change
+        saveProgressToCloud(); 
         setTimeout(() => { isProcessing = false; nextStep(); }, 600);
         
     } else {
@@ -1147,7 +1150,7 @@ window.processResult = function(isCorrect) {
         data.nextReview = Date.now(); 
         srsData[key] = data;
         localStorage.setItem('fp_aurora_srs', JSON.stringify(srsData));
-        saveProgressToCloud(); // Save SRS change
+        saveProgressToCloud(); 
 
         if(currentMode === 'smart') {
             const reInsertIdx = sessionIndex + 3;
@@ -1159,7 +1162,8 @@ window.processResult = function(isCorrect) {
             showToast("Sẽ ôn lại từ này ngay!", "error");
         }
         
-        if(!isFlipped && (currentMode === 'smart' || currentMode === 'flashcard_all')) {
+        // Nếu đang ở Flashcard thì lật để xem đáp án
+        if(document.getElementById('flashcardObj') && !isFlipped) {
             window.flipCard();
         }
         
@@ -1192,7 +1196,7 @@ function startTimer() {
         accumulatedTime++;
         localStorage.setItem('fp_aurora_time', accumulatedTime);
         if(accumulatedTime % 60 === 0) {
-            addPoints(5); // +5 điểm mỗi phút
+            addPoints(5); 
         }
     }, 1000);
 }
@@ -1224,10 +1228,15 @@ function nextStep() {
             content.classList.remove('slide-out-left');
             content.style.opacity = 0;
             
-            if(currentMode === 'smart' || currentMode === 'flashcard_all') renderFlashcard(); 
-            else if(currentMode === 'fill') renderFill();
-            else if(currentMode === 'quiz') setupQuiz();
-            else if(currentMode === 'spelling') renderSpelling();
+            // LOGIC CHUYỂN BÀI MỚI
+            if(currentMode === 'smart') {
+                decideSmartRender();
+            } else {
+                if(currentMode === 'flashcard_all') renderFlashcard(); 
+                else if(currentMode === 'fill') renderFill();
+                else if(currentMode === 'quiz') setupQuiz();
+                else if(currentMode === 'spelling') renderSpelling();
+            }
             
             content.classList.add('slide-in-right');
             setTimeout(() => content.classList.remove('slide-in-right'), 400);
@@ -1251,6 +1260,10 @@ function renderFlashcard() {
     const badge = isRelearn ? '<div style="position:absolute; top:-10px; right:-10px; background:#f59e0b; color:white; padding:5px 10px; border-radius:10px; font-size:0.7rem; font-weight:bold; box-shadow:0 5px 10px rgba(0,0,0,0.2);">HỌC LẠI</div>' : '';
 
     const exampleId = `ex-trans-${sessionIndex}`;
+    
+    // Nếu là smart session, hiện nút đúng/sai. Nếu xem tất cả (flashcard_all) thì chỉ hiện nút next.
+    // Nếu smart session quyết định render Flashcard cho từ Review, ta vẫn hiện nút đúng/sai.
+    const isReviewMode = (currentMode === 'smart');
 
     const html = `
         <div class="scene">
@@ -1282,7 +1295,7 @@ function renderFlashcard() {
         </div>
         
         <div class="control-row">
-            ${currentMode === 'smart' ? `
+            ${isReviewMode ? `
                 <button class="action-btn btn-wrong" onclick="window.processResult(false)">
                     <i class="fas fa-times"></i> &nbsp;Chưa thuộc
                 </button>
@@ -1318,12 +1331,13 @@ function renderFlashcard() {
 window.flipCard = function() {
     if(isProcessing && currentMode === 'smart') return;
     const card = document.getElementById('flashcardObj');
+    if(!card) return;
     isFlipped = !isFlipped;
     card.classList.toggle('is-flipped');
     playSound(SFX.FLIP);
 }
 
-// --- NEW FUNCTION: RENDER SPELLING MODE ---
+// --- NEW FUNCTION: RENDER SPELLING MODE WITH HINT ---
 function renderSpelling() {
     isProcessing = false;
     const w = sessionQueue[sessionIndex];
@@ -1356,7 +1370,10 @@ function renderSpelling() {
                style="opacity:0; position:absolute; pointer-events:none; top:0; left:0; height:0;" 
                autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
 
-        <button class="btn-speak-round" onclick="window.speakWord()" style="margin-top:20px;"><i class="fas fa-volume-up"></i></button>
+        <div style="display:flex; gap:15px; margin-top:20px; align-items:center;">
+             <button class="btn-speak-round" onclick="window.speakWord()"><i class="fas fa-volume-up"></i></button>
+             <button class="btn-hint" onclick="window.revealSpellingHint()" title="Gợi ý 1 ký tự"><i class="fas fa-lightbulb"></i></button>
+        </div>
     `;
     
     // Logic biến
@@ -1366,7 +1383,7 @@ function renderSpelling() {
     const inp = document.getElementById('spellingInput');
     
     // Tự động focus lại input nếu mất focus (để giữ bàn phím trên mobile)
-    document.addEventListener('click', () => inp.focus());
+    document.addEventListener('click', () => { if(document.getElementById('spellingInput')) document.getElementById('spellingInput').focus(); });
     inp.focus();
 
     // Check ký tự đầu tiên nếu là space/kí tự đặc biệt thì nhảy qua
@@ -1383,6 +1400,21 @@ function renderSpelling() {
     });
     
     setTimeout(window.speakWord, 300);
+}
+
+// Logic gợi ý chính tả
+window.revealSpellingHint = function() {
+    if(isProcessing) return;
+    const target = window.spellingTarget;
+    let idx = window.spellingIdx;
+    
+    // Nếu chưa xong
+    if(idx < target.length) {
+        const correctChar = target[idx];
+        // Giả lập gõ đúng
+        checkSpellingChar(correctChar);
+        document.getElementById('spellingInput').focus();
+    }
 }
 
 // Hàm kiểm tra logic gõ phím
@@ -1611,15 +1643,12 @@ window.startGame = function(mode) {
     playSound(SFX.POP);
     const allWords = allTopics[currentTopicKey].words;
     
-    // Logic lấy từ: Trừ chế độ xem tất cả, các chế độ game khác ưu tiên từ đã học hoặc trộn ngẫu nhiên
+    // Logic lấy từ
     if(mode !== 'flashcard_all') {
-        // Với chế độ Spelling (Chính tả), ta có thể cho chơi cả từ mới lẫn cũ
         if(mode === 'spelling') {
              sessionQueue = allWords.sort(() => Math.random() - 0.5);
         } else {
-             // Các chế độ khác yêu cầu tối thiểu đã học 1 chút
              const learned = allWords.filter(w => srsData[getWordKey(w)] || masteredWords[getWordKey(w)]);
-             // Nếu ít từ đã học quá thì lấy luôn cả list để chơi cho vui
              if(learned.length < 4) sessionQueue = allWords.sort(() => Math.random() - 0.5); 
              else sessionQueue = learned.sort(() => Math.random() - 0.5);
         }
@@ -1700,7 +1729,7 @@ function renderTopicList() {
             localStorage.setItem('fp_aurora_topic', key);
             playSound(SFX.POP);
             showToast("Đã chọn: " + t.name);
-            saveProgressToCloud(); // Save topic change
+            saveProgressToCloud(); 
             window.navTo('view-home');
         };
         list.appendChild(el);
@@ -1732,7 +1761,7 @@ window.markMastered = function() {
     localStorage.setItem('fp_aurora_mastered', JSON.stringify(masteredWords));
     
     addPoints(100); 
-    syncScoreToFirebase(); // This will also save masteredWords due to our updated logic
+    saveProgressToCloud(); 
     playSound(SFX.WIN);
     showToast("Đã chuyển vào kho Tinh thông!", "success");
     nextStep();

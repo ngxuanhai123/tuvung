@@ -506,6 +506,16 @@
       70% { transform: scale(1); }
   }
 
+  /* TOPIC PROGRESS */
+  .topic-progress-bg {
+      height: 4px; width: 100%; background: rgba(255,255,255,0.1);
+      border-radius: 2px; margin-top: 8px; overflow: hidden;
+  }
+  .topic-progress-fill {
+      height: 100%; background: #00e676; width: 0%;
+      transition: width 0.5s ease;
+  }
+
 </style>
 <link rel="stylesheet" href="/index.css">
 </head>
@@ -676,7 +686,7 @@
         <h4 style="margin-bottom:10px; color:#FBBF24; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Mục tiêu Học tập</h4>
         
         <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-            <small>Từ mới mỗi lần học</small>
+            <small>Mục tiêu từ mới mỗi ngày</small>
             <strong id="dispLimitNew">5</strong>
         </div>
         <input type="range" id="cfgNewLimit" min="0" max="15" value="5" oninput="window.saveConfig()">
@@ -2195,18 +2205,34 @@ function renderTopicList() {
     list.innerHTML = '';
     Object.keys(allTopics).forEach(key => {
         const t = allTopics[key];
+        
+        let learnedCount = 0;
+        t.words.forEach(w => {
+            const k = getWordKey(w);
+            if(masteredWords[k] || srsData[k]) learnedCount++;
+        });
+        const pct = t.words.length > 0 ? Math.floor((learnedCount / t.words.length) * 100) : 0;
+
         const el = document.createElement('div');
         el.className = `glass-panel ${key===currentTopicKey ? 'animate__animated animate__pulse':''}`;
         el.style.padding = '20px';
         el.style.marginBottom = '15px';
-        el.style.display = 'flex'; el.style.justifyContent = 'space-between'; el.style.alignItems = 'center';
         el.style.cursor = 'pointer';
+        
         el.innerHTML = `
-            <div>
-                <div style="font-weight:700; font-size:1.1rem;">${t.name}</div>
-                <div style="font-size:0.8rem; opacity:0.7; margin-top:5px;">${t.words.length} thẻ từ</div>
+            <div style="width:100%">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-weight:700; font-size:1.1rem;">${t.name}</div>
+                    ${key===currentTopicKey ? '<i class="fas fa-check-circle" style="color:var(--success-color); font-size:1.2rem;"></i>' : ''}
+                </div>
+                <div style="display:flex; justify-content:space-between; font-size:0.75rem; opacity:0.7; margin-top:2px;">
+                    <span>${t.words.length} thẻ</span>
+                    <span>Đã học ${pct}%</span>
+                </div>
+                <div class="topic-progress-bg">
+                    <div class="topic-progress-fill" style="width:${pct}%"></div>
+                </div>
             </div>
-            ${key===currentTopicKey ? '<i class="fas fa-check-circle" style="color:var(--success-color); font-size:1.4rem;"></i>' : '<i class="fas fa-chevron-right" style="opacity:0.5"></i>'}
         `;
         el.onclick = () => {
             currentTopicKey = key;

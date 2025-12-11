@@ -1,0 +1,65 @@
+{
+  "name": "Từ vựng Tiếng Anh dụng cụ thể thao (Sports Equipment)",
+  "words": [
+    {
+      "english": "Ball",
+      "ipa": "/bɔːl/",
+      "vietnamese": "Quả bóng",
+      "example": "The children played with a red ball in the park."
+    },
+    {
+      "english": "Racket",
+      "ipa": "/ˈræk.ɪt/",
+      "vietnamese": "Vợt",
+      "example": "She hit the tennis ball with her new racket."
+    },
+    {
+      "english": "Bat",
+      "ipa": "/bæt/",
+      "vietnamese": "Gậy (bóng chày, bóng bàn)",
+      "example": "The baseball player swung the bat and hit a home run."
+    },
+    {
+      "english": "Club",
+      "ipa": "/klʌb/",
+      "vietnamese": "Gậy (gôn)",
+      "example": "He used a golf club to hit the ball onto the green."
+    },
+    {
+      "english": "Net",
+      "ipa": "/net/",
+      "vietnamese": "Lưới",
+      "example": "The volleyball went over the net."
+    },
+    {
+      "english": "Goal",
+      "ipa": "/ɡəʊl/",
+      "vietnamese": "Khung thành, gôn",
+      "example": "The striker scored a goal in the final minute."
+    },
+    {
+      "english": "Court",
+      "ipa": "/kɔːrt/",
+      "vietnamese": "Sân (tennis, bóng rổ)",
+      "example": "They played basketball on the outdoor court."
+    },
+    {
+      "english": "Field",
+      "ipa": "/fiːld/",
+      "vietnamese": "Sân (bóng đá, bóng chày)",
+      "example": "The football match was played on a muddy field."
+    },
+    {
+      "english": "Track",
+      "ipa": "/træk/",
+      "vietnamese": "Đường chạy",
+      "example": "The runners sprinted around the track."
+    },
+    {
+      "english": "Pool",
+      "ipa": "/puːl/",
+      "vietnamese": "Bể bơi",
+      "example": "We went for a swim in the pool."
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "name": "Từ vựng Tiếng Anh Người tham gia thể thao (People in Sports)",
+  "words": [
+    {
+      "english": "Player",
+      "ipa": "/ˈpleɪ.ər/",
+      "vietnamese": "Vận động viên, người chơi",
+      "example": "The player scored a goal in the last minute."
+    },
+    {
+      "english": "Athlete",
+      "ipa": "/ˈæθ.liːt/",
+      "vietnamese": "Vận động viên chuyên nghiệp",
+      "example": "She is a talented athlete who competes in many sports."
+    },
+    {
+      "english": "Coach",
+      "ipa": "/kəʊtʃ/",
+      "vietnamese": "Huấn luyện viên",
+      "example": "The coach motivated his team to work harder."
+    },
+    {
+      "english": "Referee",
+      "ipa": "/ˌref.əˈriː/",
+      "vietnamese": "Trọng tài",
+      "example": "The referee blew the whistle to signal a foul."
+    },
+    {
+      "english": "Team",
+      "ipa": "/tiːm/",
+      "vietnamese": "Đội",
+      "example": "Our team worked together to win the championship."
+    },
+    {
+      "english": "Fan",
+      "ipa": "/fæn/",
+      "vietnamese": "Người hâm mộ",
+      "example": "The fans cheered loudly for their favorite player."
+    },
+    {
+      "english": "Spectator",
+      "ipa": "/spekˈteɪ.tər/",
+      "vietnamese": "Khán giả",
+      "example": "Many spectators gathered to watch the exciting match."
+    }
+  ]
+}

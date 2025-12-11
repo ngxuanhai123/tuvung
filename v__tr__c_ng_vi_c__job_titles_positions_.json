@@ -1,0 +1,89 @@
+{
+  "name": "Vị trí công việc (Job Titles/Positions)",
+  "words": [
+    {
+      "english": "Manager",
+      "ipa": "/ˈmæn.ɪ.dʒər/",
+      "vietnamese": "Quản lý",
+      "example": "The manager oversees the entire team's performance."
+    },
+    {
+      "english": "Supervisor",
+      "ipa": "/ˈsuː.pər.vaɪ.zər/",
+      "vietnamese": "Giám sát viên",
+      "example": "The supervisor checked the quality of the work."
+    },
+    {
+      "english": "Employee",
+      "ipa": "/ɪmˈplɔɪ.iː/",
+      "vietnamese": "Nhân viên",
+      "example": "Every employee receives health benefits."
+    },
+    {
+      "english": "Employer",
+      "ipa": "/ɪmˈplɔɪ.ər/",
+      "vietnamese": "Chủ doanh nghiệp, người thuê",
+      "example": "The employer is responsible for paying salaries."
+    },
+    {
+      "english": "Colleague",
+      "ipa": "/ˈkɒl.iːɡ/",
+      "vietnamese": "Đồng nghiệp",
+      "example": "I often have lunch with my colleagues."
+    },
+    {
+      "english": "Coworker",
+      "ipa": "/kəʊˈwɜːr.kər/",
+      "vietnamese": "Đồng nghiệp",
+      "example": "My coworker helped me finish the project."
+    },
+    {
+      "english": "Boss",
+      "ipa": "/bɒs/",
+      "vietnamese": "Sếp",
+      "example": "My boss gave me a new assignment."
+    },
+    {
+      "english": "Executive",
+      "ipa": "/ɪɡˈzek.jə.tɪv/",
+      "vietnamese": "Giám đốc điều hành, người quản lý cấp cao",
+      "example": "She is a senior executive at the company."
+    },
+    {
+      "english": "CEO (Chief Executive Officer)",
+      "ipa": "/ˌsiː.iːˈəʊ/",
+      "vietnamese": "Giám đốc điều hành",
+      "example": "The CEO announced the company's new strategy."
+    },
+    {
+      "english": "Assistant",
+      "ipa": "/əˈsɪs.tənt/",
+      "vietnamese": "Trợ lý",
+      "example": "The assistant scheduled all the meetings."
+    },
+    {
+      "english": "Secretary",
+      "ipa": "/ˈsek.rə.tər.i/",
+      "vietnamese": "Thư ký",
+      "example": "The secretary typed up the meeting minutes."
+    },
+    {
+      "english": "Receptionist",
+      "ipa": "/rɪˈsep.ʃən.ɪst/",
+      "vietnamese": "Lễ tân",
+      "example": "The receptionist greeted visitors at the front desk."
+    },
+    {
+      "english": "Intern",
+      "ipa": "/ˈɪn.tɜːrn/",
+      "vietnamese": "Thực tập sinh",
+      "example": "The intern learned a lot during their summer placement."
+    },
+    {
+      "english": "Trainee",
+      "ipa": "/treɪˈniː/",
+      "vietnamese": "Thực tập sinh, người được đào tạo",
+      "example": "The new trainee is learning how to use the software."
+    }
+  ]
+}

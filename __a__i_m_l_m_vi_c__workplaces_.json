@@ -1,0 +1,53 @@
+{
+  "name": "Địa Điểm Làm Việc (Workplaces)",
+  "words": [
+    {
+      "english": "Office",
+      "ipa": "/ˈɒf.ɪs/",
+      "vietnamese": "Văn phòng",
+      "example": "I work in a big office downtown."
+    },
+    {
+      "english": "Factory",
+      "ipa": "/ˈfæk.tər.i/",
+      "vietnamese": "Nhà máy",
+      "example": "The factory produces cars."
+    },
+    {
+      "english": "Hospital",
+      "ipa": "/ˈhɒs.pɪ.təl/",
+      "vietnamese": "Bệnh viện",
+      "example": "She went to the hospital for a check-up."
+    },
+    {
+      "english": "School",
+      "ipa": "/skuːl/",
+      "vietnamese": "Trường học",
+      "example": "My children go to school every day."
+    },
+    {
+      "english": "Store",
+      "ipa": "/stɔːr/",
+      "vietnamese": "Cửa hàng",
+      "example": "I need to go to the store to buy groceries."
+    },
+    {
+      "english": "Restaurant",
+      "ipa": "/ˈres.trɒnt/",
+      "vietnamese": "Nhà hàng",
+      "example": "Let's eat at the new restaurant tonight."
+    },
+    {
+      "english": "Company",
+      "ipa": "/ˈkʌm.pə.ni/",
+      "vietnamese": "Công ty",
+      "example": "He works for a large technology company."
+    },
+    {
+      "english": "Business",
+      "ipa": "/ˈbɪz.nɪs/",
+      "vietnamese": "Kinh doanh",
+      "example": "Starting a new business can be challenging."
+    }
+  ]
+}

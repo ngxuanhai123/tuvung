@@ -1,0 +1,35 @@
+{
+  "name": "Từ vựng các tính từ liên quan đến môi trường (Environmental Adjectives)",
+  "words": [
+    {
+      "english": "Natural",
+      "ipa": "/ˈnætʃ.ər.əl/",
+      "vietnamese": "Tự nhiên",
+      "example": "The park has many natural beauties."
+    },
+    {
+      "english": "Environmental",
+      "ipa": "/ɪnˌvaɪ.rənˈmen.təl/",
+      "vietnamese": "Thuộc về môi trường",
+      "example": "Environmental protection is crucial for our planet."
+    },
+    {
+      "english": "Eco-friendly",
+      "ipa": "/ˈiː.kəʊˌfrend.li/",
+      "vietnamese": "Thân thiện với môi trường",
+      "example": "Many companies are developing eco-friendly products."
+    },
+    {
+      "english": "Sustainable",
+      "ipa": "/səˈsteɪ.nə.bəl/",
+      "vietnamese": "Bền vững",
+      "example": "Sustainable energy sources are essential for the future."
+    },
+    {
+      "english": "Polluted",
+      "ipa": "/pəˈluː.tɪd/",
+      "vietnamese": "Bị ô nhiễm",
+      "example": "The river became polluted due to industrial waste."
+    }
+  ]
+}

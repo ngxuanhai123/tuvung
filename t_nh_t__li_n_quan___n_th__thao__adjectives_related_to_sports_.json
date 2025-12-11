@@ -1,0 +1,41 @@
+{
+  "name": "Tính từ liên quan đến thể thao (Adjectives Related to Sports)",
+  "words": [
+    {
+      "english": "Competitive",
+      "ipa": "/kəmˈpet.ɪ.tɪv/",
+      "vietnamese": "Tính cạnh tranh",
+      "example": "She has a very competitive spirit when playing sports."
+    },
+    {
+      "english": "Athletic",
+      "ipa": "/æθˈlet.ɪk/",
+      "vietnamese": "Thuộc về thể thao, khỏe mạnh",
+      "example": "He is very athletic and excels in many different sports."
+    },
+    {
+      "english": "Fit",
+      "ipa": "/fɪt/",
+      "vietnamese": "Khỏe mạnh, cân đối",
+      "example": "It's important for athletes to stay fit to perform well."
+    },
+    {
+      "english": "Strong",
+      "ipa": "/strɒŋ/",
+      "vietnamese": "Mạnh mẽ",
+      "example": "Weightlifters need to be very strong to lift heavy weights."
+    },
+    {
+      "english": "Fast",
+      "ipa": "/fɑːst/",
+      "vietnamese": "Nhanh",
+      "example": "Sprinters are known for being incredibly fast runners."
+    },
+    {
+      "english": "Skilled",
+      "ipa": "/skɪld/",
+      "vietnamese": "Có kỹ năng, lành nghề",
+      "example": "A skilled basketball player can dribble and shoot with precision."
+    }
+  ]
+}

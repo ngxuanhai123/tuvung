@@ -1,0 +1,53 @@
+{
+  "name": "Các cụm từ thông dụng (Common Phrases)",
+  "words": [
+    {
+      "english": "Apply for a job",
+      "ipa": "/əˈplaɪ fɔːr ə dʒɒb/",
+      "vietnamese": "Nộp đơn xin việc",
+      "example": "I need to apply for a job soon."
+    },
+    {
+      "english": "Have a job interview",
+      "ipa": "/hæv ə dʒɒb ˈɪntərvjuː/",
+      "vietnamese": "Có một cuộc phỏng vấn xin việc",
+      "example": "She will have a job interview tomorrow morning."
+    },
+    {
+      "english": "Get a job",
+      "ipa": "/ɡɛt ə dʒɒb/",
+      "vietnamese": "Nhận được một công việc",
+      "example": "After graduating, he hopes to get a job quickly."
+    },
+    {
+      "english": "Work full-time/part-time",
+      "ipa": "/wɜːrk ˈfʊl taɪm/ /pɑːrt taɪm/",
+      "vietnamese": "Làm việc toàn thời gian/bán thời gian",
+      "example": "Many students work part-time to earn extra money."
+    },
+    {
+      "english": "Work overtime",
+      "ipa": "/wɜːrk ˈoʊvərtaɪm/",
+      "vietnamese": "Làm thêm giờ",
+      "example": "Sometimes I have to work overtime to finish projects."
+    },
+    {
+      "english": "Take a vacation/holiday",
+      "ipa": "/teɪk ə vəˈkeɪʃən/ /ˈhɒlədeɪ/",
+      "vietnamese": "Đi nghỉ mát/nghỉ lễ",
+      "example": "We plan to take a vacation next summer."
+    },
+    {
+      "english": "Be unemployed",
+      "ipa": "/biː ˌʌnɪmˈplɔɪd/",
+      "vietnamese": "Bị thất nghiệp",
+      "example": "It's tough to be unemployed for a long time."
+    },
+    {
+      "english": "Look for a job",
+      "ipa": "/lʊk fɔːr ə dʒɒb/",
+      "vietnamese": "Tìm kiếm việc làm",
+      "example": "After college, she started to look for a job in marketing."
+    }
+  ]
+}

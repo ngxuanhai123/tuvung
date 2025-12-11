@@ -1,0 +1,119 @@
+{
+  "name": "Từ vựng Tiếng Anh các vấn đề môi trường (Environmental Issues)",
+  "words": [
+    {
+      "english": "Pollution",
+      "ipa": "/pəˈluː.ʃən/",
+      "vietnamese": "Ô nhiễm",
+      "example": "Air pollution is a major problem in many cities."
+    },
+    {
+      "english": "Air pollution",
+      "ipa": "/er pəˈluː.ʃən/",
+      "vietnamese": "Ô nhiễm không khí",
+      "example": "Factories contribute significantly to air pollution."
+    },
+    {
+      "english": "Water pollution",
+      "ipa": "/ˈwɔː.tər pəˈluː.ʃən/",
+      "vietnamese": "Ô nhiễm nước",
+      "example": "Chemicals dumped into rivers cause water pollution."
+    },
+    {
+      "english": "Soil pollution",
+      "ipa": "/sɔɪl pəˈluː.ʃən/",
+      "vietnamese": "Ô nhiễm đất",
+      "example": "Pesticides can lead to severe soil pollution."
+    },
+    {
+      "english": "Climate change",
+      "ipa": "/ˈklaɪ.mət tʃeɪndʒ/",
+      "vietnamese": "Biến đổi khí hậu",
+      "example": "Climate change is affecting weather patterns worldwide."
+    },
+    {
+      "english": "Global warming",
+      "ipa": "/ˈɡləʊ.bəl ˈwɔːr.mɪŋ/",
+      "vietnamese": "Sự nóng lên toàn cầu",
+      "example": "Scientists are concerned about the effects of global warming."
+    },
+    {
+      "english": "Deforestation",
+      "ipa": "/diːˌfɒr.ɪˈsteɪ.ʃən/",
+      "vietnamese": "Phá rừng",
+      "example": "Deforestation destroys habitats for many animals."
+    },
+    {
+      "english": "Recycling",
+      "ipa": "/riːˈsaɪ.klɪŋ/",
+      "vietnamese": "Tái chế",
+      "example": "Recycling helps reduce waste and conserve resources."
+    },
+    {
+      "english": "Conservation",
+      "ipa": "/ˌkɒn.sərˈveɪ.ʃən/",
+      "vietnamese": "Bảo tồn",
+      "example": "Wildlife conservation is crucial for biodiversity."
+    },
+    {
+      "english": "Environment",
+      "ipa": "/ɪnˈvaɪ.rən.mənt/",
+      "vietnamese": "Môi trường",
+      "example": "We must protect our environment for future generations."
+    },
+    {
+      "english": "Ecosystem",
+      "ipa": "/ˈiː.kəʊˌsɪs.təm/",
+      "vietnamese": "Hệ sinh thái",
+      "example": "The rainforest is a complex ecosystem."
+    },
+    {
+      "english": "Endangered species",
+      "ipa": "/ɪnˈdeɪn.dʒərd ˈspiː.ʃiːz/",
+      "vietnamese": "Các loài nguy cấp",
+      "example": "Many organizations work to save endangered species."
+    },
+    {
+      "english": "Extinction",
+      "ipa": "/ɪkˈstɪŋk.ʃən/",
+      "vietnamese": "Sự tuyệt chủng",
+      "example": "The dodo bird is a famous example of extinction."
+    },
+    {
+      "english": "Natural disaster",
+      "ipa": "/ˈnætʃ.ər.əl dɪˈzæstər/",
+      "vietnamese": "Thảm họa thiên nhiên",
+      "example": "Earthquakes and floods are types of natural disasters."
+    },
+    {
+      "english": "Flood",
+      "ipa": "/flʌd/",
+      "vietnamese": "Lũ lụt",
+      "example": "The heavy rain caused a severe flood in the town."
+    },
+    {
+      "english": "Drought",
+      "ipa": "/draʊt/",
+      "vietnamese": "Hạn hán",
+      "example": "The long drought led to water shortages."
+    },
+    {
+      "english": "Earthquake",
+      "ipa": "/ˈɜːrθ.kweɪk/",
+      "vietnamese": "Động đất",
+      "example": "An earthquake shook the city last night."
+    },
+    {
+      "english": "Hurricane",
+      "ipa": "/ˈhʌr.ɪ.keɪn/",
+      "vietnamese": "Bão",
+      "example": "The hurricane caused widespread damage along the coast."
+    },
+    {
+      "english": "Tsunami",
+      "ipa": "/tsuːˈnɑː.mi/",
+      "vietnamese": "Sóng thần",
+      "example": "A powerful earthquake can trigger a devastating tsunami."
+    }
+  ]
+}

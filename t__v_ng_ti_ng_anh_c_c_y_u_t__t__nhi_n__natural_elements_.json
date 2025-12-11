@@ -1,0 +1,125 @@
+{
+  "name": "Từ vựng Tiếng Anh các yếu tố tự nhiên (Natural Elements)",
+  "words": [
+    {
+      "english": "Nature",
+      "ipa": "/ˈneɪ.tʃər/",
+      "vietnamese": "Thiên nhiên",
+      "example": "We should protect nature."
+    },
+    {
+      "english": "Earth",
+      "ipa": "/ɜːrθ/",
+      "vietnamese": "Trái đất",
+      "example": "The Earth revolves around the sun."
+    },
+    {
+      "english": "Land",
+      "ipa": "/lænd/",
+      "vietnamese": "Đất liền",
+      "example": "They bought a piece of land to build a house."
+    },
+    {
+      "english": "Sea",
+      "ipa": "/siː/",
+      "vietnamese": "Biển",
+      "example": "The ship sailed across the sea."
+    },
+    {
+      "english": "Ocean",
+      "ipa": "/ˈəʊ.ʃən/",
+      "vietnamese": "Đại dương",
+      "example": "Whales live in the ocean."
+    },
+    {
+      "english": "Sky",
+      "ipa": "/skaɪ/",
+      "vietnamese": "Bầu trời",
+      "example": "The birds flew high in the sky."
+    },
+    {
+      "english": "Air",
+      "ipa": "/er/",
+      "vietnamese": "Không khí",
+      "example": "We breathe fresh air."
+    },
+    {
+      "english": "Water",
+      "ipa": "/ˈwɔː.tər/",
+      "vietnamese": "Nước",
+      "example": "Please drink more water."
+    },
+    {
+      "english": "Mountain",
+      "ipa": "/ˈmaʊn.tɪn/",
+      "vietnamese": "Núi",
+      "example": "Mount Everest is a very high mountain."
+    },
+    {
+      "english": "River",
+      "ipa": "/ˈrɪv.ər/",
+      "vietnamese": "Sông",
+      "example": "The river flows to the sea."
+    },
+    {
+      "english": "Lake",
+      "ipa": "/leɪk/",
+      "vietnamese": "Hồ",
+      "example": "We went fishing in the lake."
+    },
+    {
+      "english": "Forest",
+      "ipa": "/ˈfɒr.ɪst/",
+      "vietnamese": "Rừng",
+      "example": "Many animals live in the forest."
+    },
+    {
+      "english": "Desert",
+      "ipa": "/ˈdez.ərt/",
+      "vietnamese": "Sa mạc",
+      "example": "Camels can survive in the desert."
+    },
+    {
+      "english": "Island",
+      "ipa": "/ˈaɪ.lənd/",
+      "vietnamese": "Hòn đảo",
+      "example": "They visited a beautiful tropical island."
+    },
+    {
+      "english": "Valley",
+      "ipa": "/ˈvæl.i/",
+      "vietnamese": "Thung lũng",
+      "example": "The village is located in a green valley."
+    },
+    {
+      "english": "Climate",
+      "ipa": "/ˈklaɪ.mət/",
+      "vietnamese": "Khí hậu",
+      "example": "The climate in this region is very mild."
+    },
+    {
+      "english": "Weather",
+      "ipa": "/ˈweð.ər/",
+      "vietnamese": "Thời tiết",
+      "example": "The weather is sunny today."
+    },
+    {
+      "english": "Sun",
+      "ipa": "/sʌn/",
+      "vietnamese": "Mặt trời",
+      "example": "The sun rises in the east."
+    },
+    {
+      "english": "Moon",
+      "ipa": "/muːn/",
+      "vietnamese": "Mặt trăng",
+      "example": "The moon shines brightly at night."
+    },
+    {
+      "english": "Star",
+      "ipa": "/stɑːr/",
+      "vietnamese": "Ngôi sao",
+      "example": "We can see many stars in the night sky."
+    }
+  ]
+}

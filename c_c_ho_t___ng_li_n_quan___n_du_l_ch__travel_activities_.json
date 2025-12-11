@@ -5,61 +5,61 @@
       "english": "Travel",
       "ipa": "/ˈtræv.əl/",
       "vietnamese": "Đi du lịch, sự đi lại",
-      "example": "I love to travel to new countries and experience different cultures."
+      "example": "I love to travel to new countries."
     },
     {
       "english": "Trip",
       "ipa": "/trɪp/",
       "vietnamese": "Chuyến đi ngắn ngày",
-      "example": "We took a short trip to the mountains last weekend."
+      "example": "We went on a short trip to the beach last weekend."
     },
     {
       "english": "Journey",
       "ipa": "/ˈdʒɜːr.ni/",
       "vietnamese": "Hành trình, chuyến đi dài",
-      "example": "The journey across the continent was long but rewarding."
+      "example": "The long journey across the desert was challenging."
     },
     {
-      "english": "Vacation",
-      "ipa": "/veɪˈkeɪ.ʃən/",
+      "english": "Vacation (Holiday – UK)",
+      "ipa": "/veɪˈkeɪ.ʃən/ /ˈhɒl.ə.deɪ/",
       "vietnamese": "Kỳ nghỉ",
-      "example": "They are planning a summer vacation to the beach."
+      "example": "We are planning a family vacation next summer."
     },
     {
       "english": "Visit",
       "ipa": "/ˈvɪz.ɪt/",
       "vietnamese": "Thăm quan, chuyến thăm",
-      "example": "We will visit our relatives during the holidays."
+      "example": "They plan to visit their relatives next month."
     },
     {
       "english": "Explore",
       "ipa": "/ɪkˈsplɔːr/",
       "vietnamese": "Khám phá",
-      "example": "Let's explore the ancient ruins tomorrow."
+      "example": "Let's explore the old castle and its surroundings."
     },
     {
       "english": "Sightseeing",
       "ipa": "/ˈsaɪtˌsiː.ɪŋ/",
       "vietnamese": "Tham quan ngắm cảnh",
-      "example": "We spent the whole day sightseeing in Paris."
+      "example": "We spent the whole day sightseeing in the city."
     },
     {
-      "english": "Book",
+      "english": "Book (a ticket/hotel)",
       "ipa": "/bʊk/",
       "vietnamese": "Đặt (vé/khách sạn)",
-      "example": "You should book your flight tickets in advance."
+      "example": "I need to book a flight for my trip to London."
     },
     {
       "english": "Check in/Check out",
       "ipa": "/tʃek ɪn/ /tʃek aʊt/",
       "vietnamese": "Nhận phòng/Trả phòng",
-      "example": "We need to check in at the hotel by 3 PM and check out by noon."
+      "example": "We need to check in before 3 PM and check out by noon."
     },
     {
-      "english": "Pack",
+      "english": "Pack (a suitcase/bag)",
       "ipa": "/pæk/",
-      "vietnamese": "Đóng gói",
-      "example": "Don't forget to pack your passport for the international trip."
+      "vietnamese": "Đóng gói (vali/túi)",
+      "example": "Don't forget to pack your toothbrush and passport."
     }
   ]
 }

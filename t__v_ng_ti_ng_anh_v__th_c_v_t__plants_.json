@@ -1,0 +1,35 @@
+{
+  "name": "Từ vựng Tiếng Anh về Thực vật (Plants)",
+  "words": [
+    {
+      "english": "Plant",
+      "ipa": "/plænt/",
+      "vietnamese": "Thực vật, cây",
+      "example": "The plant needs sunlight to grow."
+    },
+    {
+      "english": "Tree",
+      "ipa": "/triː/",
+      "vietnamese": "Cây (to)",
+      "example": "A tall tree stood in the middle of the park."
+    },
+    {
+      "english": "Flower",
+      "ipa": "/ˈflaʊ.ər/",
+      "vietnamese": "Hoa",
+      "example": "She picked a beautiful red flower from the garden."
+    },
+    {
+      "english": "Grass",
+      "ipa": "/ɡræs/",
+      "vietnamese": "Cỏ",
+      "example": "The children played on the soft green grass."
+    },
+    {
+      "english": "Leaf",
+      "ipa": "/liːf/",
+      "vietnamese": "Lá",
+      "example": "A single green leaf fell from the branch."
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "name": "Các môn thể thao phổ biến (Popular Sports)",
+  "words": [
+    {
+      "english": "Football (Soccer – US)",
+      "ipa": "/ˈfʊt.bɔːl/",
+      "vietnamese": "Bóng đá",
+      "example": "They played football in the park every Sunday."
+    },
+    {
+      "english": "Basketball",
+      "ipa": "/ˈbæskɪt.bɔːl/",
+      "vietnamese": "Bóng rổ",
+      "example": "She loves to play basketball with her friends."
+    },
+    {
+      "english": "Volleyball",
+      "ipa": "/ˈvɒl.i.bɔːl/",
+      "vietnamese": "Bóng chuyền",
+      "example": "The team won the volleyball match in three sets."
+    },
+    {
+      "english": "Tennis",
+      "ipa": "/ˈten.ɪs/",
+      "vietnamese": "Quần vợt",
+      "example": "He plays tennis every Saturday morning."
+    },
+    {
+      "english": "Badminton",
+      "ipa": "/ˈbæd.mɪn.tən/",
+      "vietnamese": "Cầu lông",
+      "example": "Badminton is a popular sport in many Asian countries."
+    },
+    {
+      "english": "Table tennis (Ping-pong)",
+      "ipa": "/ˈteɪ.bəl ˌten.ɪs/",
+      "vietnamese": "Bóng bàn",
+      "example": "They played a quick game of table tennis after dinner."
+    },
+    {
+      "english": "Baseball",
+      "ipa": "/ˈbeɪs.bɔːl/",
+      "vietnamese": "Bóng chày",
+      "example": "Baseball is very popular in the United States and Japan."
+    },
+    {
+      "english": "American football",
+      "ipa": "/əˈmer.ɪ.kən ˈfʊt.bɔːl/",
+      "vietnamese": "Bóng bầu dục Mỹ",
+      "example": "Many people watch American football on Sundays during the season."
+    },
+    {
+      "english": "Golf",
+      "ipa": "/ɡɒlf/",
+      "vietnamese": "Gôn",
+      "example": "He enjoys playing golf on the weekends with his colleagues."
+    },
+    {
+      "english": "Swimming",
+      "ipa": "/ˈswɪm.ɪŋ/",
+      "vietnamese": "Bơi lội",
+      "example": "Swimming is a great way to stay fit and cool in summer."
+    },
+    {
+      "english": "Athletics (Track and field)",
+      "ipa": "/æθˈlet.ɪks/",
+      "vietnamese": "Điền kinh",
+      "example": "She competes in athletics at a national level."
+    },
+    {
+      "english": "Cycling",
+      "ipa": "/ˈsaɪ.klɪŋ/",
+      "vietnamese": "Đạp xe",
+      "example": "Cycling is an eco-friendly way to travel around the city."
+    }
+  ]
+}

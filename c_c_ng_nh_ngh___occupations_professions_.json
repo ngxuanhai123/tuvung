@@ -1,0 +1,83 @@
+{
+  "name": "Các ngành nghề (Occupations/Professions)",
+  "words": [
+    {
+      "english": "Teacher",
+      "ipa": "/ˈtiː.tʃər/",
+      "vietnamese": "Giáo viên",
+      "example": "The teacher helps students learn new things every day."
+    },
+    {
+      "english": "Doctor",
+      "ipa": "/ˈdɒk.tər/",
+      "vietnamese": "Bác sĩ",
+      "example": "The doctor checked my throat and gave me medicine."
+    },
+    {
+      "english": "Nurse",
+      "ipa": "/nɜːrs/",
+      "vietnamese": "Y tá",
+      "example": "The nurse took my temperature and blood pressure."
+    },
+    {
+      "english": "Engineer",
+      "ipa": "/ˌen.dʒɪˈnɪər/",
+      "vietnamese": "Kỹ sư",
+      "example": "My brother is an engineer who designs bridges."
+    },
+    {
+      "english": "Lawyer",
+      "ipa": "/ˈlɔː.jər/",
+      "vietnamese": "Luật sư",
+      "example": "She hired a lawyer to help her with the legal case."
+    },
+    {
+      "english": "Accountant",
+      "ipa": "/əˈkaʊn.tənt/",
+      "vietnamese": "Kế toán viên",
+      "example": "The accountant helps businesses manage their money."
+    },
+    {
+      "english": "Architect",
+      "ipa": "/ˈɑːr.kɪ.tekt/",
+      "vietnamese": "Kiến trúc sư",
+      "example": "The architect designed a beautiful new building for the city."
+    },
+    {
+      "english": "Artist",
+      "ipa": "/ˈɑːr.tɪst/",
+      "vietnamese": "Họa sĩ, nghệ sĩ",
+      "example": "The artist painted a stunning landscape."
+    },
+    {
+      "english": "Writer",
+      "ipa": "/ˈraɪ.tər/",
+      "vietnamese": "Nhà văn",
+      "example": "She is a famous writer who publishes many novels."
+    },
+    {
+      "english": "Journalist",
+      "ipa": "/ˈdʒɜːr.nə.lɪst/",
+      "vietnamese": "Nhà báo",
+      "example": "The journalist reported live from the scene of the event."
+    },
+    {
+      "english": "Programmer",
+      "ipa": "/ˈprəʊ.ɡræm.ər/",
+      "vietnamese": "Lập trình viên",
+      "example": "The programmer writes code for new software applications."
+    },
+    {
+      "english": "Designer",
+      "ipa": "/dɪˈzaɪ.nər/",
+      "vietnamese": "Nhà thiết kế",
+      "example": "The fashion designer created a new line of clothing."
+    },
+    {
+      "english": "Salesperson",
+      "ipa": "/ˈseɪlzˌpɜːr.sən/",
+      "vietnamese": "Người bán hàng",
+      "example": "The salesperson helped me choose a new phone."
+    }
+  ]
+}

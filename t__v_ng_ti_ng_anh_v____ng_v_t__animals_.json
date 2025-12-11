@@ -1,0 +1,53 @@
+{
+  "name": "Từ vựng Tiếng Anh về Động vật (Animals)",
+  "words": [
+    {
+      "english": "Animal",
+      "ipa": "/ˈæn.ɪ.məl/",
+      "vietnamese": "Động vật",
+      "example": "I saw a wild animal in the forest."
+    },
+    {
+      "english": "Mammal",
+      "ipa": "/ˈmæm.əl/",
+      "vietnamese": "Động vật có vú",
+      "example": "Humans are mammals."
+    },
+    {
+      "english": "Bird",
+      "ipa": "/bɜːrd/",
+      "vietnamese": "Chim",
+      "example": "A small bird sang beautifully on the branch."
+    },
+    {
+      "english": "Fish",
+      "ipa": "/fɪʃ/",
+      "vietnamese": "Cá",
+      "example": "We caught a big fish in the lake."
+    },
+    {
+      "english": "Insect",
+      "ipa": "/ˈɪn.sekt/",
+      "vietnamese": "Côn trùng",
+      "example": "A mosquito is a common insect."
+    },
+    {
+      "english": "Reptile",
+      "ipa": "/ˈrep.taɪl/",
+      "vietnamese": "Bò sát",
+      "example": "Snakes and lizards are reptiles."
+    },
+    {
+      "english": "Amphibian",
+      "ipa": "/æmˈfɪb.i.ən/",
+      "vietnamese": "Lưỡng cư",
+      "example": "Frogs are amphibians that live in water and on land."
+    },
+    {
+      "english": "Wildlife",
+      "ipa": "/ˈwaɪld.laɪf/",
+      "vietnamese": "Động vật hoang dã",
+      "example": "We must protect the local wildlife."
+    }
+  ]
+}

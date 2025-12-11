@@ -1,0 +1,65 @@
+{
+  "name": "Địa điểm liên quan đến giao thông (Transportation Locations)",
+  "words": [
+    {
+      "english": "Airport",
+      "ipa": "/ˈeə.pɔːrt/",
+      "vietnamese": "Sân bay",
+      "example": "We arrived at the airport two hours before our flight."
+    },
+    {
+      "english": "Bus station (Bus terminal)",
+      "ipa": "/ˈbʌs ˌsteɪ.ʃən/",
+      "vietnamese": "Bến xe buýt",
+      "example": "I waited for my bus at the bus station."
+    },
+    {
+      "english": "Port",
+      "ipa": "/pɔːrt/",
+      "vietnamese": "Cảng biển",
+      "example": "Many ships dock at the port to unload cargo."
+    },
+    {
+      "english": "Railway station (Train station)",
+      "ipa": "/ˈreɪl.weɪ ˌsteɪ.ʃən/",
+      "vietnamese": "Ga tàu hỏa",
+      "example": "We bought our tickets at the railway station."
+    },
+    {
+      "english": "Road",
+      "ipa": "/rəʊd/",
+      "vietnamese": "Đường bộ",
+      "example": "The road was wet after the rain."
+    },
+    {
+      "english": "Highway (Freeway – US)",
+      "ipa": "/ˈhaɪ.weɪ/",
+      "vietnamese": "Đường cao tốc",
+      "example": "We drove on the highway to get to the city faster."
+    },
+    {
+      "english": "Street",
+      "ipa": "/striːt/",
+      "vietnamese": "Đường phố",
+      "example": "Children were playing in the street."
+    },
+    {
+      "english": "Platform",
+      "ipa": "/ˈplæt.fɔːrm/",
+      "vietnamese": "Sân ga",
+      "example": "The train arrived at platform 3."
+    },
+    {
+      "english": "Departure gate",
+      "ipa": "/dɪˈpɑːr.tʃər ɡeɪt/",
+      "vietnamese": "Cổng khởi hành",
+      "example": "Please proceed to departure gate B20."
+    },
+    {
+      "english": "Arrival gate",
+      "ipa": "/əˈraɪ.vəl ɡeɪt/",
+      "vietnamese": "Cổng đến",
+      "example": "My family met me at the arrival gate."
+    }
+  ]
+}

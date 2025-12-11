@@ -1,0 +1,53 @@
+{
+  "name": "Từ vựng Tiếng Anh các dụng cụ ăn uống (Eating Utensils) cơ bản",
+  "words": [
+    {
+      "english": "Plate",
+      "ipa": "/pleɪt/",
+      "vietnamese": "Đĩa",
+      "example": "Please put your food on the plate."
+    },
+    {
+      "english": "Bowl",
+      "ipa": "/bəʊl/",
+      "vietnamese": "Bát",
+      "example": "I like to eat soup from a bowl."
+    },
+    {
+      "english": "Glass",
+      "ipa": "/ɡlɑːs/",
+      "vietnamese": "Cốc, ly",
+      "example": "She poured water into the glass."
+    },
+    {
+      "english": "Cup",
+      "ipa": "/kʌp/",
+      "vietnamese": "Tách",
+      "example": "He drinks coffee from a cup every morning."
+    },
+    {
+      "english": "Fork",
+      "ipa": "/fɔːrk/",
+      "vietnamese": "Nĩa",
+      "example": "Use a fork to eat your salad."
+    },
+    {
+      "english": "Spoon",
+      "ipa": "/spuːn/",
+      "vietnamese": "Thìa",
+      "example": "The baby uses a small spoon to eat."
+    },
+    {
+      "english": "Knife",
+      "ipa": "/naɪf/",
+      "vietnamese": "Dao",
+      "example": "Be careful when using a sharp knife."
+    },
+    {
+      "english": "Napkin",
+      "ipa": "/ˈnæp.kɪn/",
+      "vietnamese": "Khăn ăn",
+      "example": "Don't forget to use a napkin to wipe your mouth."
+    }
+  ]
+}

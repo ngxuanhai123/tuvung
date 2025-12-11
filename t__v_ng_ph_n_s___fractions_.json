@@ -1,0 +1,29 @@
+{
+  "name": "Từ vựng phân số (Fractions)",
+  "words": [
+    {
+      "english": "Half",
+      "ipa": "/hɑːf/",
+      "vietnamese": "Một nửa (1/2)",
+      "example": "I ate half of the apple."
+    },
+    {
+      "english": "Quarter",
+      "ipa": "/ˈkwɔːr.tər/",
+      "vietnamese": "Một phần tư (1/4)",
+      "example": "He waited for a quarter of an hour."
+    },
+    {
+      "english": "Third",
+      "ipa": "/θɜːd/",
+      "vietnamese": "Một phần ba (1/3)",
+      "example": "She finished a third of the book."
+    },
+    {
+      "english": "Two-thirds",
+      "ipa": "/tuː θɜːdz/",
+      "vietnamese": "Hai phần ba (2/3)",
+      "example": "Two-thirds of the students passed the exam."
+    }
+  ]
+}

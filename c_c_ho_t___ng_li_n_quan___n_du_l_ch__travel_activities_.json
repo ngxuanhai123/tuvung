@@ -1,0 +1,65 @@
+{
+  "name": "Các hoạt động liên quan đến du lịch (Travel Activities)",
+  "words": [
+    {
+      "english": "Travel",
+      "ipa": "/ˈtræv.əl/",
+      "vietnamese": "Đi du lịch, sự đi lại",
+      "example": "I love to travel to new countries and experience different cultures."
+    },
+    {
+      "english": "Trip",
+      "ipa": "/trɪp/",
+      "vietnamese": "Chuyến đi ngắn ngày",
+      "example": "We took a short trip to the mountains last weekend."
+    },
+    {
+      "english": "Journey",
+      "ipa": "/ˈdʒɜːr.ni/",
+      "vietnamese": "Hành trình, chuyến đi dài",
+      "example": "The journey across the continent was long but rewarding."
+    },
+    {
+      "english": "Vacation",
+      "ipa": "/veɪˈkeɪ.ʃən/",
+      "vietnamese": "Kỳ nghỉ",
+      "example": "They are planning a summer vacation to the beach."
+    },
+    {
+      "english": "Visit",
+      "ipa": "/ˈvɪz.ɪt/",
+      "vietnamese": "Thăm quan, chuyến thăm",
+      "example": "We will visit our relatives during the holidays."
+    },
+    {
+      "english": "Explore",
+      "ipa": "/ɪkˈsplɔːr/",
+      "vietnamese": "Khám phá",
+      "example": "Let's explore the ancient ruins tomorrow."
+    },
+    {
+      "english": "Sightseeing",
+      "ipa": "/ˈsaɪtˌsiː.ɪŋ/",
+      "vietnamese": "Tham quan ngắm cảnh",
+      "example": "We spent the whole day sightseeing in Paris."
+    },
+    {
+      "english": "Book",
+      "ipa": "/bʊk/",
+      "vietnamese": "Đặt (vé/khách sạn)",
+      "example": "You should book your flight tickets in advance."
+    },
+    {
+      "english": "Check in/Check out",
+      "ipa": "/tʃek ɪn/ /tʃek aʊt/",
+      "vietnamese": "Nhận phòng/Trả phòng",
+      "example": "We need to check in at the hotel by 3 PM and check out by noon."
+    },
+    {
+      "english": "Pack",
+      "ipa": "/pæk/",
+      "vietnamese": "Đóng gói",
+      "example": "Don't forget to pack your passport for the international trip."
+    }
+  ]
+}

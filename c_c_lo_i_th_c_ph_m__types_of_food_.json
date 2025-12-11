@@ -1,0 +1,101 @@
+{
+  "name": "Các loại thực phẩm (Types of Food)",
+  "words": [
+    {
+      "english": "Fruit",
+      "ipa": "/fruːt/",
+      "vietnamese": "Trái cây",
+      "example": "I like to eat fresh fruit every morning."
+    },
+    {
+      "english": "Vegetable",
+      "ipa": "/ˈvedʒ.ə.tə.bəl/",
+      "vietnamese": "Rau củ",
+      "example": "Eating vegetables is good for your health."
+    },
+    {
+      "english": "Meat",
+      "ipa": "/miːt/",
+      "vietnamese": "Thịt",
+      "example": "Many people enjoy eating meat with their dinner."
+    },
+    {
+      "english": "Seafood",
+      "ipa": "/ˈsiː.fuːd/",
+      "vietnamese": "Hải sản",
+      "example": "We had delicious seafood at the beach restaurant."
+    },
+    {
+      "english": "Grain",
+      "ipa": "/ɡreɪn/",
+      "vietnamese": "Ngũ cốc",
+      "example": "Whole grains are an important part of a healthy diet."
+    },
+    {
+      "english": "Dairy",
+      "ipa": "/ˈdeə.ri/",
+      "vietnamese": "Sản phẩm từ sữa",
+      "example": "Milk and cheese are common dairy products."
+    },
+    {
+      "english": "Bread",
+      "ipa": "/bred/",
+      "vietnamese": "Bánh mì",
+      "example": "I bought a fresh loaf of bread from the bakery."
+    },
+    {
+      "english": "Rice",
+      "ipa": "/raɪs/",
+      "vietnamese": "Gạo",
+      "example": "Rice is a staple food in many Asian countries."
+    },
+    {
+      "english": "Pasta",
+      "ipa": "/ˈpæs.tə/",
+      "vietnamese": "Mì ống",
+      "example": "She cooked a big bowl of pasta for dinner."
+    },
+    {
+      "english": "Egg",
+      "ipa": "/eɡ/",
+      "vietnamese": "Trứng",
+      "example": "I usually have an egg for breakfast."
+    },
+    {
+      "english": "Cheese",
+      "ipa": "/tʃiːz/",
+      "vietnamese": "Phô mai",
+      "example": "Would you like some cheese on your sandwich?"
+    },
+    {
+      "english": "Butter",
+      "ipa": "/ˈbʌt.ər/",
+      "vietnamese": "Bơ",
+      "example": "Spread some butter on the toast."
+    },
+    {
+      "english": "Oil",
+      "ipa": "/ɔɪl/",
+      "vietnamese": "Dầu ăn",
+      "example": "We use olive oil for cooking."
+    },
+    {
+      "english": "Sugar",
+      "ipa": "/ˈʃʊɡ.ər/",
+      "vietnamese": "Đường",
+      "example": "Add a spoonful of sugar to your coffee."
+    },
+    {
+      "english": "Salt",
+      "ipa": "/sɔːlt/",
+      "vietnamese": "Muối",
+      "example": "Don't forget to add salt to the soup."
+    },
+    {
+      "english": "Spice",
+      "ipa": "/spaɪs/",
+      "vietnamese": "Gia vị",
+      "example": "Curry is a dish rich in various spices."
+    }
+  ]
+}

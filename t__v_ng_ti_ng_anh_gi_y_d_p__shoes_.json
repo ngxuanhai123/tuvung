@@ -1,0 +1,41 @@
+{
+  "name": "Từ vựng Tiếng Anh giày dép (Shoes)",
+  "words": [
+    {
+      "english": "Shoes",
+      "ipa": "/ʃuːz/",
+      "vietnamese": "giày",
+      "example": "I need to buy new shoes for work."
+    },
+    {
+      "english": "Boots",
+      "ipa": "/buːts/",
+      "vietnamese": "ủng/giày ống",
+      "example": "She wears boots in the winter."
+    },
+    {
+      "english": "Sandals",
+      "ipa": "/ˈsæn.dəlz/",
+      "vietnamese": "dép xăng đan",
+      "example": "He likes to wear sandals on the beach."
+    },
+    {
+      "english": "Slippers",
+      "ipa": "/ˈslɪp.ərz/",
+      "vietnamese": "dép đi trong nhà",
+      "example": "I put on my slippers when I get home."
+    },
+    {
+      "english": "Sneakers",
+      "ipa": "/ˈsniː.kərz/",
+      "vietnamese": "giày thể thao",
+      "example": "He wears sneakers when he goes running."
+    },
+    {
+      "english": "Heels",
+      "ipa": "/hiːlz/",
+      "vietnamese": "giày cao gót",
+      "example": "She prefers to wear heels for special occasions."
+    }
+  ]
+}

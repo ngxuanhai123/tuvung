@@ -1,0 +1,65 @@
+{
+  "name": "Từ vựng Tiếng Anh phụ kiện (Accessories)",
+  "words": [
+    {
+      "english": "Hat",
+      "ipa": "/hæt/",
+      "vietnamese": "mũ",
+      "example": "I wear a hat to protect myself from the sun."
+    },
+    {
+      "english": "Scarf",
+      "ipa": "/skɑːrf/",
+      "vietnamese": "khăn quàng cổ",
+      "example": "She wrapped a warm scarf around her neck."
+    },
+    {
+      "english": "Gloves",
+      "ipa": "/ɡlʌvz/",
+      "vietnamese": "găng tay",
+      "example": "He put on his gloves before going out in the cold."
+    },
+    {
+      "english": "Belt",
+      "ipa": "/belt/",
+      "vietnamese": "thắt lưng",
+      "example": "He tightened his belt after losing weight."
+    },
+    {
+      "english": "Tie",
+      "ipa": "/taɪ/",
+      "vietnamese": "cà vạt",
+      "example": "He wore a blue tie to the interview."
+    },
+    {
+      "english": "Bow tie",
+      "ipa": "/ˌbəʊ ˈtaɪ/",
+      "vietnamese": "nơ đeo cổ",
+      "example": "The waiter wore a black bow tie."
+    },
+    {
+      "english": "Jewelry",
+      "ipa": "/ˈdʒuː.əl.ri/",
+      "vietnamese": "trang sức",
+      "example": "She loves wearing antique jewelry."
+    },
+    {
+      "english": "Necklace",
+      "ipa": "/ˈnek.ləs/",
+      "vietnamese": "vòng cổ",
+      "example": "He bought her a beautiful pearl necklace."
+    },
+    {
+      "english": "Earrings",
+      "ipa": "/ˈɪə.rɪŋz/",
+      "vietnamese": "bông tai",
+      "example": "She lost one of her earrings."
+    },
+    {
+      "english": "Bracelet",
+      "ipa": "/ˈbreɪ.slɪt/",
+      "vietnamese": "vòng tay",
+      "example": "She wears a silver bracelet on her wrist."
+    }
+  ]
+}

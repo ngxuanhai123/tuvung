@@ -1,0 +1,35 @@
+{
+  "name": "Bữa ăn (Meals)",
+  "words": [
+    {
+      "english": "Breakfast",
+      "ipa": "/ˈbrek.fəst/",
+      "vietnamese": "Bữa sáng",
+      "example": "I eat breakfast every morning before school."
+    },
+    {
+      "english": "Lunch",
+      "ipa": "/lʌntʃ/",
+      "vietnamese": "Bữa trưa",
+      "example": "We usually have lunch at noon."
+    },
+    {
+      "english": "Dinner",
+      "ipa": "/ˈdɪn.ər/",
+      "vietnamese": "Bữa tối",
+      "example": "What are we having for dinner tonight?"
+    },
+    {
+      "english": "Snack",
+      "ipa": "/snæk/",
+      "vietnamese": "Bữa ăn nhẹ",
+      "example": "I often have a fruit snack in the afternoon."
+    },
+    {
+      "english": "Meal",
+      "ipa": "/miːl/",
+      "vietnamese": "Bữa ăn",
+      "example": "This restaurant serves delicious meals."
+    }
+  ]
+}

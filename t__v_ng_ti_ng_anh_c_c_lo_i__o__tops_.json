@@ -1,0 +1,65 @@
+{
+  "name": "Từ vựng Tiếng Anh các loại áo (Tops)",
+  "words": [
+    {
+      "english": "T-shirt",
+      "ipa": "/ˈtiː.ʃɜːrt/",
+      "vietnamese": "áo phông",
+      "example": "I like to wear a comfortable T-shirt on weekends."
+    },
+    {
+      "english": "Shirt",
+      "ipa": "/ʃɜːrt/",
+      "vietnamese": "áo sơ mi",
+      "example": "He wore a blue shirt to the office."
+    },
+    {
+      "english": "Blouse",
+      "ipa": "/blaʊz/",
+      "vietnamese": "áo kiểu (thường cho nữ)",
+      "example": "She bought a new silk blouse for the party."
+    },
+    {
+      "english": "Sweater",
+      "ipa": "/ˈswet.ər/",
+      "vietnamese": "áo len chui đầu",
+      "example": "It's cold outside, so I'll wear a warm sweater."
+    },
+    {
+      "english": "Cardigan",
+      "ipa": "/ˈkɑːr.dɪ.ɡən/",
+      "vietnamese": "áo len cài khuy",
+      "example": "She put on a cardigan over her dress."
+    },
+    {
+      "english": "Hoodie",
+      "ipa": "/ˈhʊd.i/",
+      "vietnamese": "áo nỉ có mũ",
+      "example": "He always wears his favorite hoodie when he goes out."
+    },
+    {
+      "english": "Vest",
+      "ipa": "/vest/",
+      "vietnamese": "áo ghi lê",
+      "example": "The waiter wore a black vest over his white shirt."
+    },
+    {
+      "english": "Tank top",
+      "ipa": "/ˈtæŋk ˌtɒp/",
+      "vietnamese": "áo ba lỗ",
+      "example": "It's hot, so I'm wearing a tank top."
+    },
+    {
+      "english": "Polo shirt",
+      "ipa": "/ˈpəʊ.ləʊ ʃɜːrt/",
+      "vietnamese": "áo polo",
+      "example": "He prefers to wear a polo shirt for casual events."
+    },
+    {
+      "english": "Crop top",
+      "ipa": "/ˈkrɒp tɒp/",
+      "vietnamese": "áo croptop (áo hở eo)",
+      "example": "She wore a crop top with high-waisted jeans."
+    }
+  ]
+}

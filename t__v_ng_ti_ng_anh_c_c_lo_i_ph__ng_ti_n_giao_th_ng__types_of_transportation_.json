@@ -1,0 +1,89 @@
+{
+  "name": "Từ vựng Tiếng Anh các loại phương tiện giao thông (Types of Transportation)",
+  "words": [
+    {
+      "english": "Airplane",
+      "ipa": "/ˈeə.rpleɪn/",
+      "vietnamese": "Máy bay",
+      "example": "The airplane took off smoothly from the runway."
+    },
+    {
+      "english": "Bicycle",
+      "ipa": "/ˈbaɪ.sɪ.kəl/",
+      "vietnamese": "Xe đạp",
+      "example": "She rides her bicycle to work every day."
+    },
+    {
+      "english": "Boat",
+      "ipa": "/bəʊt/",
+      "vietnamese": "Thuyền",
+      "example": "We took a small boat out on the lake."
+    },
+    {
+      "english": "Bus",
+      "ipa": "/bʌs/",
+      "vietnamese": "Xe buýt",
+      "example": "I missed the bus this morning and had to walk."
+    },
+    {
+      "english": "Car",
+      "ipa": "/kɑːr/",
+      "vietnamese": "Ô tô",
+      "example": "He bought a new car last month."
+    },
+    {
+      "english": "Coach",
+      "ipa": "/kəʊtʃ/",
+      "vietnamese": "Xe khách đường dài",
+      "example": "We traveled by coach from London to Edinburgh."
+    },
+    {
+      "english": "Helicopter",
+      "ipa": "/ˈhel.ɪ.kɒp.tər/",
+      "vietnamese": "Máy bay trực thăng",
+      "example": "A helicopter rescued the climbers from the mountain."
+    },
+    {
+      "english": "Motorcycle",
+      "ipa": "/ˈməʊ.tərˌsaɪ.kəl/",
+      "vietnamese": "Xe máy",
+      "example": "He enjoys riding his motorcycle on weekends."
+    },
+    {
+      "english": "Ship",
+      "ipa": "/ʃɪp/",
+      "vietnamese": "Tàu thủy",
+      "example": "The cargo ship sailed across the ocean."
+    },
+    {
+      "english": "Taxi",
+      "ipa": "/ˈtæk.si/",
+      "vietnamese": "Xe taxi",
+      "example": "Let's take a taxi to the airport to catch our flight."
+    },
+    {
+      "english": "Train",
+      "ipa": "/treɪn/",
+      "vietnamese": "Tàu hỏa",
+      "example": "The train arrived at the station on time."
+    },
+    {
+      "english": "Tram",
+      "ipa": "/træm/",
+      "vietnamese": "Xe điện",
+      "example": "We took the tram to explore the city center."
+    },
+    {
+      "english": "Subway",
+      "ipa": "/ˈsʌb.weɪ/",
+      "vietnamese": "Tàu điện ngầm",
+      "example": "The subway is a fast way to travel in the city."
+    },
+    {
+      "english": "Van",
+      "ipa": "/ˈvæn/",
+      "vietnamese": "Xe van",
+      "example": "The delivery driver uses a large van for packages."
+    }
+  ]
+}

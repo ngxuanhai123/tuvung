@@ -1,0 +1,41 @@
+{
+  "name": "Trạng từ chỉ tần suất (Adverbs of Frequency)",
+  "words": [
+    {
+      "english": "Always",
+      "ipa": "/ˈɔːl.weɪz/",
+      "vietnamese": "Luôn luôn",
+      "example": "I always brush my teeth before bed."
+    },
+    {
+      "english": "Usually",
+      "ipa": "/ˈjuː.ʒu.ə.li/",
+      "vietnamese": "Thường xuyên",
+      "example": "She usually walks to school."
+    },
+    {
+      "english": "Often",
+      "ipa": "/ˈɒf.ən/",
+      "vietnamese": "Thường",
+      "example": "We often go to the park on weekends."
+    },
+    {
+      "english": "Sometimes",
+      "ipa": "/ˈsʌm.taɪmz/",
+      "vietnamese": "Thỉnh thoảng",
+      "example": "Sometimes it rains in the desert."
+    },
+    {
+      "english": "Rarely",
+      "ipa": "/ˈrer.li/",
+      "vietnamese": "Hiếm khi",
+      "example": "He rarely eats fast food."
+    },
+    {
+      "english": "Never",
+      "ipa": "/ˈnev.ər/",
+      "vietnamese": "Không bao giờ",
+      "example": "I have never seen a ghost."
+    }
+  ]
+}

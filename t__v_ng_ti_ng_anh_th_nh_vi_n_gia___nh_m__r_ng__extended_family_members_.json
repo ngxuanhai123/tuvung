@@ -1,0 +1,65 @@
+{
+  "name": "Từ vựng Tiếng Anh thành viên gia đình mở rộng (Extended Family Members)",
+  "words": [
+    {
+      "english": "Grandfather (Grandpa/Granddad)",
+      "ipa": "/ˈɡræn.fɑː.ðər/ (ˈɡræn.pɑː/ˈɡræn.dæd)",
+      "vietnamese": "Ông (nội/ngoại)",
+      "example": "My grandfather loves to tell stories about his youth."
+    },
+    {
+      "english": "Grandmother (Grandma/Granny)",
+      "ipa": "/ˈɡræn.mʌð.ər/ (ˈɡræn.mɑː/ˈɡræn.i)",
+      "vietnamese": "Bà (nội/ngoại)",
+      "example": "My grandmother bakes the best cookies."
+    },
+    {
+      "english": "Grandparent(s)",
+      "ipa": "/ˈɡræn.per.ənt(s)/",
+      "vietnamese": "Ông bà",
+      "example": "My grandparents live in a small house by the sea."
+    },
+    {
+      "english": "Grandson",
+      "ipa": "/ˈɡræn.sʌn/",
+      "vietnamese": "Cháu trai (của ông bà)",
+      "example": "Their grandson is visiting them for the summer."
+    },
+    {
+      "english": "Granddaughter",
+      "ipa": "/ˈɡræn.dɔː.tər/",
+      "vietnamese": "Cháu gái (của ông bà)",
+      "example": "She is a proud grandmother of two granddaughters."
+    },
+    {
+      "english": "Uncle",
+      "ipa": "/ˈʌŋ.kəl/",
+      "vietnamese": "Chú/Cậu/Bác trai",
+      "example": "My uncle taught me how to ride a bike."
+    },
+    {
+      "english": "Aunt (Auntie)",
+      "ipa": "/ænt/ /ˈæn.ti/",
+      "vietnamese": "Cô/Dì/Bác gái",
+      "example": "My aunt always brings me a gift when she visits."
+    },
+    {
+      "english": "Nephew",
+      "ipa": "/ˈnef.juː/",
+      "vietnamese": "Cháu trai (của cô/dì/chú/bác)",
+      "example": "My sister's son is my nephew."
+    },
+    {
+      "english": "Niece",
+      "ipa": "/niːs/",
+      "vietnamese": "Cháu gái (của cô/dì/chú/bác)",
+      "example": "My brother's daughter is my niece."
+    },
+    {
+      "english": "Cousin",
+      "ipa": "/ˈkʌz.ən/",
+      "vietnamese": "Anh/chị/em họ",
+      "example": "I often play with my cousin on weekends."
+    }
+  ]
+}

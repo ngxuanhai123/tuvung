@@ -1,0 +1,47 @@
+{
+  "name": "Các hương vị (Tastes)",
+  "words": [
+    {
+      "english": "Sweet",
+      "ipa": "/swiːt/",
+      "vietnamese": "Ngọt",
+      "example": "The cake was very sweet."
+    },
+    {
+      "english": "Sour",
+      "ipa": "/ˈsaʊ.ər/",
+      "vietnamese": "Chua",
+      "example": "Lemons have a very sour taste."
+    },
+    {
+      "english": "Salty",
+      "ipa": "/ˈsɔːl.ti/",
+      "vietnamese": "Mặn",
+      "example": "The ocean water is salty."
+    },
+    {
+      "english": "Bitter",
+      "ipa": "/ˈbɪt.ər/",
+      "vietnamese": "Đắng",
+      "example": "Coffee can taste bitter without sugar."
+    },
+    {
+      "english": "Spicy",
+      "ipa": "/ˈspaɪ.si/",
+      "vietnamese": "Cay",
+      "example": "I love spicy food like chili."
+    },
+    {
+      "english": "Delicious",
+      "ipa": "/dɪˈlɪʃ.əs/",
+      "vietnamese": "Ngon",
+      "example": "The meal was absolutely delicious."
+    },
+    {
+      "english": "Tasty",
+      "ipa": "/ˈteɪ.sti/",
+      "vietnamese": "Ngon, đậm đà",
+      "example": "This soup is very tasty."
+    }
+  ]
+}

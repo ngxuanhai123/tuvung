@@ -1,0 +1,41 @@
+{
+  "name": "Cách Chế Biến (Cooking Methods)",
+  "words": [
+    {
+      "english": "Boil",
+      "ipa": "/bɔɪl/",
+      "vietnamese": "Luộc",
+      "example": "Please boil the water for the pasta."
+    },
+    {
+      "english": "Fry",
+      "ipa": "/fraɪ/",
+      "vietnamese": "Chiên",
+      "example": "She likes to fry eggs for breakfast."
+    },
+    {
+      "english": "Bake",
+      "ipa": "/beɪk/",
+      "vietnamese": "Nướng bánh",
+      "example": "My grandmother loves to bake cookies."
+    },
+    {
+      "english": "Roast",
+      "ipa": "/rəʊst/",
+      "vietnamese": "Quay, nướng thịt",
+      "example": "We will roast a chicken for dinner."
+    },
+    {
+      "english": "Grill",
+      "ipa": "/ɡrɪl/",
+      "vietnamese": "Nướng vỉ",
+      "example": "Let's grill some vegetables for the barbecue."
+    },
+    {
+      "english": "Steam",
+      "ipa": "/stiːm/",
+      "vietnamese": "Hấp",
+      "example": "She prefers to steam her fish."
+    }
+  ]
+}

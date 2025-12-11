@@ -1,0 +1,77 @@
+{
+  "name": "Thành viên gia đình (Family Members)",
+  "words": [
+    {
+      "english": "Mother",
+      "ipa": "/ˈmʌð.ər/",
+      "vietnamese": "Mẹ",
+      "example": "My mother bakes delicious cookies."
+    },
+    {
+      "english": "Father",
+      "ipa": "/ˈfɑː.ðər/",
+      "vietnamese": "Bố",
+      "example": "His father works as an engineer."
+    },
+    {
+      "english": "Parent",
+      "ipa": "/ˈper.ənt/",
+      "vietnamese": "Bố/Mẹ (cha mẹ nói chung)",
+      "example": "Every child needs a loving parent."
+    },
+    {
+      "english": "Son",
+      "ipa": "/sʌn/",
+      "vietnamese": "Con trai",
+      "example": "They have one son and two daughters."
+    },
+    {
+      "english": "Daughter",
+      "ipa": "/ˈdɔː.tər/",
+      "vietnamese": "Con gái",
+      "example": "My daughter loves to read books."
+    },
+    {
+      "english": "Child",
+      "ipa": "/tʃaɪld/",
+      "vietnamese": "Con (số ít/số nhiều)",
+      "example": "A child needs care and attention."
+    },
+    {
+      "english": "Husband",
+      "ipa": "/ˈhʌz.bənd/",
+      "vietnamese": "Chồng",
+      "example": "Her husband is a very kind man."
+    },
+    {
+      "english": "Wife",
+      "ipa": "/waɪf/",
+      "vietnamese": "Vợ",
+      "example": "He introduced his wife to his colleagues."
+    },
+    {
+      "english": "Spouse",
+      "ipa": "/spaʊz/",
+      "vietnamese": "Vợ/Chồng (vợ chồng nói chung)",
+      "example": "Each employee can bring a spouse to the company picnic."
+    },
+    {
+      "english": "Sibling",
+      "ipa": "/ˈsɪb.lɪŋ/",
+      "vietnamese": "Anh/chị/em ruột",
+      "example": "Do you have any siblings?"
+    },
+    {
+      "english": "Brother",
+      "ipa": "/ˈbrʌð.ər/",
+      "vietnamese": "Anh/Em trai",
+      "example": "My brother lives in another city."
+    },
+    {
+      "english": "Sister",
+      "ipa": "/ˈsɪs.tər/",
+      "vietnamese": "Chị/Em gái",
+      "example": "She has an older sister."
+    }
+  ]
+}

@@ -1,0 +1,41 @@
+{
+  "name": "Từ vựng các cách diễn đạt khác (Other Expressions)",
+  "words": [
+    {
+      "english": "A couple of",
+      "ipa": "/ə ˈkʌp.əl əv/",
+      "vietnamese": "Một vài, một đôi",
+      "example": "I need a couple of days to finish this task."
+    },
+    {
+      "english": "A few",
+      "ipa": "/ə fjuː/",
+      "vietnamese": "Một vài (ít)",
+      "example": "She bought a few apples at the market."
+    },
+    {
+      "english": "Several",
+      "ipa": "/ˈsev.ər.əl/",
+      "vietnamese": "Một vài (nhiều hơn a few)",
+      "example": "Several students volunteered for the project."
+    },
+    {
+      "english": "Many",
+      "ipa": "/ˈmen.i/",
+      "vietnamese": "Nhiều",
+      "example": "There are many books on the shelf."
+    },
+    {
+      "english": "Much",
+      "ipa": "/mʌtʃ/",
+      "vietnamese": "Nhiều (dùng với danh từ không đếm được)",
+      "example": "He doesn't have much time left."
+    },
+    {
+      "english": "A lot of/Lots of",
+      "ipa": "/ə ˈlɒt əv/ /lɒts əv/",
+      "vietnamese": "Nhiều",
+      "example": "There are a lot of people at the party."
+    }
+  ]
+}

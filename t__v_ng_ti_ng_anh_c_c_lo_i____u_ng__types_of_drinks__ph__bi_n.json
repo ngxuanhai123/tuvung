@@ -1,0 +1,65 @@
+{
+  "name": "Từ vựng Tiếng Anh các loại đồ uống (Types of Drinks) phổ biến",
+  "words": [
+    {
+      "english": "Water",
+      "ipa": "/ˈwɔː.tər/",
+      "vietnamese": "Nước",
+      "example": "I like to drink water every morning."
+    },
+    {
+      "english": "Juice",
+      "ipa": "/dʒuːs/",
+      "vietnamese": "Nước ép",
+      "example": "Orange juice is my favorite."
+    },
+    {
+      "english": "Soda",
+      "ipa": "/ˈsəʊ.də/",
+      "vietnamese": "Nước ngọt có ga",
+      "example": "He ordered a soda with his meal."
+    },
+    {
+      "english": "Coffee",
+      "ipa": "/ˈkɒf.i/",
+      "vietnamese": "Cà phê",
+      "example": "I drink coffee to wake up."
+    },
+    {
+      "english": "Tea",
+      "ipa": "/tiː/",
+      "vietnamese": "Trà",
+      "example": "Would you like a cup of tea?"
+    },
+    {
+      "english": "Milk",
+      "ipa": "/mɪlk/",
+      "vietnamese": "Sữa",
+      "example": "Children should drink milk for strong bones."
+    },
+    {
+      "english": "Wine",
+      "ipa": "/waɪn/",
+      "vietnamese": "Rượu vang",
+      "example": "They celebrated with a glass of wine."
+    },
+    {
+      "english": "Beer",
+      "ipa": "/bɪər/",
+      "vietnamese": "Bia",
+      "example": "He enjoys a cold beer on a hot day."
+    },
+    {
+      "english": "Cocktail",
+      "ipa": "/ˈkɒk.teɪl/",
+      "vietnamese": "Cocktail",
+      "example": "She ordered a colorful cocktail at the bar."
+    },
+    {
+      "english": "Smoothie",
+      "ipa": "/ˈsmuː.ði/",
+      "vietnamese": "Sinh tố",
+      "example": "I often make a fruit smoothie for breakfast."
+    }
+  ]
+}

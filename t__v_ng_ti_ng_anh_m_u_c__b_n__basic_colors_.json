@@ -1,0 +1,71 @@
+{
+  "name": "Từ vựng Tiếng Anh màu cơ bản (Basic Colors)",
+  "words": [
+    {
+      "english": "Red",
+      "ipa": "/red/",
+      "vietnamese": "Đỏ",
+      "example": "The apple is red."
+    },
+    {
+      "english": "Blue",
+      "ipa": "/bluː/",
+      "vietnamese": "Xanh dương",
+      "example": "The sky is blue."
+    },
+    {
+      "english": "Yellow",
+      "ipa": "/ˈjel.əʊ/",
+      "vietnamese": "Vàng",
+      "example": "The sun is yellow."
+    },
+    {
+      "english": "Green",
+      "ipa": "/ɡriːn/",
+      "vietnamese": "Xanh lá cây",
+      "example": "The grass is green."
+    },
+    {
+      "english": "Orange",
+      "ipa": "/ˈɒr.ɪndʒ/",
+      "vietnamese": "Cam",
+      "example": "I like to eat an orange."
+    },
+    {
+      "english": "Purple",
+      "ipa": "/ˈpɜːr.pəl/",
+      "vietnamese": "Tím",
+      "example": "Her favorite color is purple."
+    },
+    {
+      "english": "Pink",
+      "ipa": "/pɪŋk/",
+      "vietnamese": "Hồng",
+      "example": "The flower is pink."
+    },
+    {
+      "english": "Brown",
+      "ipa": "/braʊn/",
+      "vietnamese": "Nâu",
+      "example": "The bear is brown."
+    },
+    {
+      "english": "Black",
+      "ipa": "/blæk/",
+      "vietnamese": "Đen",
+      "example": "The night sky is black."
+    },
+    {
+      "english": "White",
+      "ipa": "/waɪt/",
+      "vietnamese": "Trắng",
+      "example": "Snow is white."
+    },
+    {
+      "english": "Gray",
+      "ipa": "/ɡreɪ/",
+      "vietnamese": "Xám",
+      "example": "The elephant is gray."
+    }
+  ]
+}

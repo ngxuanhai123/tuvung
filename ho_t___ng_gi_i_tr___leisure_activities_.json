@@ -1,0 +1,53 @@
+{
+  "name": "Hoạt động giải trí (Leisure Activities)",
+  "words": [
+    {
+      "english": "Go out",
+      "ipa": "/ɡəʊ aʊt/",
+      "vietnamese": "Đi ra ngoài (vui chơi, giải trí)",
+      "example": "Let's go out for dinner tonight."
+    },
+    {
+      "english": "Hang out with friends",
+      "ipa": "/hæŋ aʊt wɪθ frendz/",
+      "vietnamese": "Đi chơi với bạn bè",
+      "example": "I love to hang out with friends on weekends."
+    },
+    {
+      "english": "Go to the cinema/movies",
+      "ipa": "/ɡəʊ tuː ðə ˈsɪn.ə.mə/ /ˈmuː.viz/",
+      "vietnamese": "Đi xem phim",
+      "example": "We often go to the cinema on Friday nights."
+    },
+    {
+      "english": "Listen to music",
+      "ipa": "/ˈlɪs.ən tuː ˈmjuː.zɪk/",
+      "vietnamese": "Nghe nhạc",
+      "example": "She likes to listen to music while she works."
+    },
+    {
+      "english": "Play sports",
+      "ipa": "/pleɪ spɔːrts/",
+      "vietnamese": "Chơi thể thao",
+      "example": "Do you like to play sports after school?"
+    },
+    {
+      "english": "Exercise",
+      "ipa": "/ˈek.sər.saɪz/",
+      "vietnamese": "Tập thể dục",
+      "example": "It's important to exercise regularly."
+    },
+    {
+      "english": "Go shopping",
+      "ipa": "/ɡəʊ ˈʃɒp.ɪŋ/",
+      "vietnamese": "Đi mua sắm",
+      "example": "My sister loves to go shopping for new clothes."
+    },
+    {
+      "english": "Travel",
+      "ipa": "/ˈtræv.əl/",
+      "vietnamese": "Du lịch",
+      "example": "They plan to travel around the world next year."
+    }
+  ]
+}

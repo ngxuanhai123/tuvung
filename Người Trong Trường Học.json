@@ -1,0 +1,41 @@
+{
+  "name": "Người Trong Trường Học (People in School)",
+  "words": [
+    {
+      "english": "student (pupil)",
+      "ipa": "/ˈstuː.dənt/ - /ˈpjuː.pəl/",
+      "vietnamese": "học sinh, sinh viên",
+      "example": "Every student must wear a uniform to school."
+    },
+    {
+      "english": "teacher (instructor)",
+      "ipa": "/ˈtiː.tʃər/ - /ɪnˈstrʌk.tər/",
+      "vietnamese": "giáo viên, người hướng dẫn",
+      "example": "The teacher explains the lesson clearly to the class."
+    },
+    {
+      "english": "professor (lecturer)",
+      "ipa": "/prəˈfes.ər/ - /ˈlek.tʃər.ər/",
+      "vietnamese": "giáo sư, giảng viên (đại học)",
+      "example": "The professor is giving a lecture on history at the university."
+    },
+    {
+      "english": "principal (headmaster)",
+      "ipa": "/ˈprɪn.sə.pəl/ - /ˈhedˌmæs.tər/",
+      "vietnamese": "hiệu trưởng",
+      "example": "The principal announced the new school rules this morning."
+    },
+    {
+      "english": "classmate",
+      "ipa": "/ˈklæs.meɪt/",
+      "vietnamese": "bạn cùng lớp",
+      "example": "I usually study with my classmate after school."
+    },
+    {
+      "english": "schoolmate",
+      "ipa": "/ˈskuːl.meɪt/",
+      "vietnamese": "bạn cùng trường",
+      "example": "We were schoolmates in high school but we were not in the same class."
+    }
+  ]
+}

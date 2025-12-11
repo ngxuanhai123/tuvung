@@ -1,0 +1,83 @@
+{
+  "name": "Hoạt Động Trong Lớp Học (Classroom Activities)",
+  "words": [
+    {
+      "english": "learn",
+      "ipa": "/lɜːrn/",
+      "vietnamese": "học",
+      "example": "We learn new things every day in school."
+    },
+    {
+      "english": "study",
+      "ipa": "/ˈstʌd.i/",
+      "vietnamese": "học tập, nghiên cứu",
+      "example": "I need to study hard for the upcoming exam."
+    },
+    {
+      "english": "teach",
+      "ipa": "/tiːtʃ/",
+      "vietnamese": "dạy",
+      "example": "Mr. Smith teaches mathematics."
+    },
+    {
+      "english": "read",
+      "ipa": "/riːd/",
+      "vietnamese": "đọc",
+      "example": "Please read the text on page ten."
+    },
+    {
+      "english": "write",
+      "ipa": "/raɪt/",
+      "vietnamese": "viết",
+      "example": "Students write essays about their summer vacation."
+    },
+    {
+      "english": "listen",
+      "ipa": "/ˈlɪs.ən/",
+      "vietnamese": "nghe",
+      "example": "Listen carefully to the teacher's instructions."
+    },
+    {
+      "english": "speak",
+      "ipa": "/spiːk/",
+      "vietnamese": "nói",
+      "example": "We practice speaking English in pairs."
+    },
+    {
+      "english": "answer",
+      "ipa": "/ˈæn.sər/",
+      "vietnamese": "trả lời",
+      "example": "Raise your hand if you know how to answer the question."
+    },
+    {
+      "english": "ask",
+      "ipa": "/æsk/",
+      "vietnamese": "hỏi",
+      "example": "Don't be afraid to ask for help if you are confused."
+    },
+    {
+      "english": "explain",
+      "ipa": "/ɪkˈspleɪn/",
+      "vietnamese": "giải thích",
+      "example": "Can you explain this grammar rule again?"
+    },
+    {
+      "english": "understand",
+      "ipa": "/ˌʌn.dərˈstænd/",
+      "vietnamese": "hiểu",
+      "example": "Do you understand the lesson so far?"
+    },
+    {
+      "english": "remember",
+      "ipa": "/rɪˈmem.bər/",
+      "vietnamese": "nhớ",
+      "example": "Try to remember the new vocabulary words."
+    },
+    {
+      "english": "forget",
+      "ipa": "/fəˈɡet/",
+      "vietnamese": "quên",
+      "example": "Don't forget to bring your homework tomorrow."
+    }
+  ]
+}

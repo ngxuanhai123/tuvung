@@ -1,0 +1,83 @@
+{
+  "name": "Từ Vựng Chủ Đề Môn Học (School Subjects)",
+  "words": [
+    {
+      "english": "math (mathematics)",
+      "ipa": "/mæθ/ - /ˌmæθ.əˈmæt.ɪks/",
+      "vietnamese": "toán học",
+      "example": "Math is my favorite subject because I love numbers."
+    },
+    {
+      "english": "science",
+      "ipa": "/ˈsaɪ.əns/",
+      "vietnamese": "khoa học",
+      "example": "We learn about the laws of nature in science class."
+    },
+    {
+      "english": "biology",
+      "ipa": "/baɪˈɒl.ə.dʒi/",
+      "vietnamese": "sinh học",
+      "example": "Biology involves the study of living organisms."
+    },
+    {
+      "english": "chemistry",
+      "ipa": "/ˈkem.ɪ.stri/",
+      "vietnamese": "hóa học",
+      "example": "Students mix chemicals in the chemistry laboratory."
+    },
+    {
+      "english": "physics",
+      "ipa": "/ˈfɪz.ɪks/",
+      "vietnamese": "vật lý",
+      "example": "Physics helps us understand how gravity works."
+    },
+    {
+      "english": "history",
+      "ipa": "/ˈhɪs.tər.i/",
+      "vietnamese": "lịch sử",
+      "example": "We learn about the past in history lessons."
+    },
+    {
+      "english": "geography",
+      "ipa": "/dʒiˈɒɡ.rə.fi/",
+      "vietnamese": "địa lý",
+      "example": "Geography teaches us about different countries and maps."
+    },
+    {
+      "english": "literature",
+      "ipa": "/ˈlɪt.rə.tʃər/",
+      "vietnamese": "văn học",
+      "example": "We read famous novels in literature class."
+    },
+    {
+      "english": "english",
+      "ipa": "/ˈɪŋ.ɡlɪʃ/",
+      "vietnamese": "tiếng Anh",
+      "example": "She speaks English very fluently."
+    },
+    {
+      "english": "art",
+      "ipa": "/ɑːrt/",
+      "vietnamese": "mỹ thuật",
+      "example": "I painted a picture of flowers in art class."
+    },
+    {
+      "english": "music",
+      "ipa": "/ˈmjuː.zɪk/",
+      "vietnamese": "âm nhạc",
+      "example": "We are learning to play the piano in music class."
+    },
+    {
+      "english": "physical education (PE)",
+      "ipa": "/ˌfɪz.ɪ.kəl ˌedʒ.uˈkeɪ.ʃən/ - /piː iː/",
+      "vietnamese": "thể dục",
+      "example": "We usually play soccer during PE."
+    },
+    {
+      "english": "information technology (IT)",
+      "ipa": "/ˌɪn.fəˈmeɪ.ʃən tekˈnɒl.ə.dʒi/ - /aɪ tiː/",
+      "vietnamese": "công nghệ thông tin (tin học)",
+      "example": "IT is a popular subject for students who love computers."
+    }
+  ]
+}

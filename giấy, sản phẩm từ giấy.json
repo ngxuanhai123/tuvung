@@ -1,0 +1,65 @@
+{
+  "name": "Giấy và Các Sản Phẩm Từ Giấy (Paper Products)",
+  "words": [
+    {
+      "english": "paper",
+      "ipa": "/ˈpeɪ.pər/",
+      "vietnamese": "giấy",
+      "example": "We should recycle paper to save trees."
+    },
+    {
+      "english": "notebook",
+      "ipa": "/ˈnəʊt.bʊk/",
+      "vietnamese": "vở, sổ tay",
+      "example": "I write my daily tasks in a small notebook."
+    },
+    {
+      "english": "textbook",
+      "ipa": "/ˈtekst.bʊk/",
+      "vietnamese": "sách giáo khoa",
+      "example": "Please open your history textbook to page fifty."
+    },
+    {
+      "english": "exercise book",
+      "ipa": "/ˈek.sər.saɪz ˌbʊk/",
+      "vietnamese": "vở bài tập",
+      "example": "The teacher collected our exercise books for grading."
+    },
+    {
+      "english": "loose-leaf paper",
+      "ipa": "/ˈluːs.liːf ˈpeɪ.pər/",
+      "vietnamese": "giấy rời (thường có đục lỗ)",
+      "example": "He prefers using loose-leaf paper in his binder."
+    },
+    {
+      "english": "binder",
+      "ipa": "/ˈbaɪn.dər/",
+      "vietnamese": "bìa còng, bìa đựng tài liệu",
+      "example": "Keep all your biology notes in this binder."
+    },
+    {
+      "english": "file",
+      "ipa": "/faɪl/",
+      "vietnamese": "tệp, hồ sơ",
+      "example": "She organized the documents into a labeled file."
+    },
+    {
+      "english": "folder",
+      "ipa": "/ˈfəʊl.dər/",
+      "vietnamese": "bìa kẹp hồ sơ",
+      "example": "Put the signed contracts in the blue folder."
+    },
+    {
+      "english": "sheet of paper",
+      "ipa": "/ʃiːt əv ˈpeɪ.pər/",
+      "vietnamese": "tờ giấy",
+      "example": "Can I borrow a blank sheet of paper?"
+    },
+    {
+      "english": "graph paper",
+      "ipa": "/ˈɡræf ˌpeɪ.pər/",
+      "vietnamese": "giấy kẻ ô (giấy vẽ đồ thị)",
+      "example": "You need graph paper to draw accurate charts in math class."
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "name": "Dụng cụ Viết và Vẽ (Writing and Drawing Utensils)",
+  "words": [
+    {
+      "english": "pen",
+      "ipa": "/pen/",
+      "vietnamese": "bút bi, bút mực",
+      "example": "I need a pen to sign this document."
+    },
+    {
+      "english": "pencil",
+      "ipa": "/ˈpen.səl/",
+      "vietnamese": "bút chì",
+      "example": "She drew a quick sketch with a pencil."
+    },
+    {
+      "english": "pencil case",
+      "ipa": "/ˈpen.səl ˌkeɪs/",
+      "vietnamese": "hộp bút",
+      "example": "My pencil case is full of colorful pens."
+    },
+    {
+      "english": "eraser (rubber)",
+      "ipa": "/ɪˈreɪ.zər/ - /ˈrʌb.ər/",
+      "vietnamese": "cục tẩy",
+      "example": "Use an eraser to correct your mistake."
+    },
+    {
+      "english": "sharpener",
+      "ipa": "/ˈʃɑːr.pən.ər/",
+      "vietnamese": "gọt bút chì",
+      "example": "My pencil is blunt, so I need a sharpener."
+    },
+    {
+      "english": "marker",
+      "ipa": "/ˈmɑːr.kər/",
+      "vietnamese": "bút lông",
+      "example": "He used a red marker to write on the whiteboard."
+    },
+    {
+      "english": "highlighter",
+      "ipa": "/ˈhaɪˌlaɪ.tər/",
+      "vietnamese": "bút nhớ dòng (bút dạ quang)",
+      "example": "Use a highlighter to mark the important dates."
+    },
+    {
+      "english": "crayon",
+      "ipa": "/ˈkreɪ.ən/",
+      "vietnamese": "bút sáp màu",
+      "example": "The children love coloring with crayons."
+    },
+    {
+      "english": "paintbrush",
+      "ipa": "/ˈpeɪnt.brʌʃ/",
+      "vietnamese": "cọ vẽ",
+      "example": "She dipped the paintbrush into the blue paint."
+    },
+    {
+      "english": "ink",
+      "ipa": "/ɪŋk/",
+      "vietnamese": "mực",
+      "example": "The printer is running out of ink."
+    }
+  ]
+}

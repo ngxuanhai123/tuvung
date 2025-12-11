@@ -1,0 +1,83 @@
+{
+  "name": "Từ Vựng Chủ Đề Trường Học (School & Education)",
+  "words": [
+    {
+      "english": "kindergarten",
+      "ipa": "/ˈkɪn.dərˌɡɑːr.tən/",
+      "vietnamese": "trường mẫu giáo",
+      "example": "Children usually start kindergarten at the age of five."
+    },
+    {
+      "english": "nursery school (preschool)",
+      "ipa": "/ˈnɜːr.sər.i skuːl/ - /ˈpriː.skuːl/",
+      "vietnamese": "trường mầm non",
+      "example": "She takes her daughter to nursery school every morning."
+    },
+    {
+      "english": "primary school (elementary school)",
+      "ipa": "/ˈpraɪ.mər.i skuːl/ - /ˌel.əˈmen.t̬ə.ri skuːl/",
+      "vietnamese": "trường tiểu học",
+      "example": "Students learn basic math and reading in primary school."
+    },
+    {
+      "english": "secondary school",
+      "ipa": "/ˈsek.ən.der.i skuːl/",
+      "vietnamese": "trường trung học (cấp 2 và 3)",
+      "example": "Secondary school prepares students for higher education."
+    },
+    {
+      "english": "middle school (junior high school)",
+      "ipa": "/ˈmɪd.əl skuːl/ - /ˈdʒuː.ni.ər haɪ skuːl/",
+      "vietnamese": "trường trung học cơ sở (cấp 2)",
+      "example": "Middle school acts as a bridge between elementary and high school."
+    },
+    {
+      "english": "high school",
+      "ipa": "/haɪ skuːl/",
+      "vietnamese": "trường trung học phổ thông (cấp 3)",
+      "example": "They are organizing a reunion for their high school class."
+    },
+    {
+      "english": "college",
+      "ipa": "/ˈkɒl.ɪdʒ/",
+      "vietnamese": "trường cao đẳng, đại học",
+      "example": "He wants to go to college to study engineering."
+    },
+    {
+      "english": "university",
+      "ipa": "/ˌjuː.nɪˈvɜːr.sə.ti/",
+      "vietnamese": "trường đại học",
+      "example": "This university is famous for its medical research."
+    },
+    {
+      "english": "academy",
+      "ipa": "/əˈkæd.ə.mi/",
+      "vietnamese": "học viện",
+      "example": "He is training at a military academy."
+    },
+    {
+      "english": "institute",
+      "ipa": "/ˈɪn.stɪ.tjuːt/",
+      "vietnamese": "viện, học viện",
+      "example": "The Institute of Technology offers many specialized courses."
+    },
+    {
+      "english": "boarding school",
+      "ipa": "/ˈbɔːr.dɪŋ skuːl/",
+      "vietnamese": "trường nội trú",
+      "example": "Students live and study at a boarding school."
+    },
+    {
+      "english": "private school",
+      "ipa": "/ˈpraɪ.vət skuːl/",
+      "vietnamese": "trường tư thục",
+      "example": "Tuition fees at a private school can be quite high."
+    },
+    {
+      "english": "public school",
+      "ipa": "/ˈpʌb.lɪk skuːl/",
+      "vietnamese": "trường công lập",
+      "example": "Most children in the neighborhood attend the local public school."
+    }
+  ]
+}

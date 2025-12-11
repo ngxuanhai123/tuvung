@@ -1,0 +1,65 @@
+{
+  "name": "Các Phòng & Khu Vực Trong Trường (School Areas)",
+  "words": [
+    {
+      "english": "classroom",
+      "ipa": "/ˈklæs.ruːm/",
+      "vietnamese": "lớp học",
+      "example": "The students are sitting quietly in the classroom."
+    },
+    {
+      "english": "library",
+      "ipa": "/ˈlaɪ.brər.i/",
+      "vietnamese": "thư viện",
+      "example": "You must be quiet when you are in the library."
+    },
+    {
+      "english": "laboratory (lab)",
+      "ipa": "/ləˈbɒr.ə.tɔːr.i/ - /læb/",
+      "vietnamese": "phòng thí nghiệm",
+      "example": "We do science experiments in the laboratory."
+    },
+    {
+      "english": "gymnasium (gym)",
+      "ipa": "/dʒɪmˈneɪ.zi.əm/ - /dʒɪm/",
+      "vietnamese": "phòng tập thể dục",
+      "example": "Students play basketball in the gymnasium."
+    },
+    {
+      "english": "cafeteria (canteen)",
+      "ipa": "/ˌkæf.əˈtɪə.ri.ə/ - /kænˈtiːn/",
+      "vietnamese": "nhà ăn, căng tin",
+      "example": "We usually eat lunch in the cafeteria."
+    },
+    {
+      "english": "auditorium",
+      "ipa": "/ˌɔː.dɪˈtɔːr.i.əm/",
+      "vietnamese": "hội trường",
+      "example": "The school concert took place in the auditorium."
+    },
+    {
+      "english": "principal’s office",
+      "ipa": "/ˈprɪn.sə.pəlz ˈɔː.fɪs/",
+      "vietnamese": "văn phòng hiệu trưởng",
+      "example": "He was sent to the principal’s office for misbehaving."
+    },
+    {
+      "english": "staff room (teacher’s room)",
+      "ipa": "/stæf ruːm/ - /ˈtiː.tʃərz ruːm/",
+      "vietnamese": "phòng giáo viên",
+      "example": "The teachers are having a meeting in the staff room."
+    },
+    {
+      "english": "playground",
+      "ipa": "/ˈpleɪ.ɡraʊnd/",
+      "vietnamese": "sân chơi",
+      "example": "Children love playing on the slide in the playground."
+    },
+    {
+      "english": "playing field",
+      "ipa": "/ˈpleɪ.ɪŋ fiːld/",
+      "vietnamese": "sân vận động, sân thi đấu thể thao",
+      "example": "The soccer match is being held on the playing field."
+    }
+  ]
+}

@@ -1174,8 +1174,6 @@ function playSound(sfx) {
 
 // --- GLOBAL STATE ---
 let allTopics = {};
-// State is now dependent on currentLang
-let currentLang = localStorage.getItem('fp_aurora_lang') || 'en';
 let currentTopicKey = localStorage.getItem(getDataKey('fp_aurora_topic')) || '';
 let srsData = {};
 let masteredWords = {};

@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Hihi Vocabulary - Ultimate</title>
+<title>Hihi Vocabulary</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;600;700&family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
@@ -33,12 +32,6 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
-  
-  /* Fix input selection issue caused by global user-select: none */
-  input, textarea { user-select: text !important; -webkit-user-select: text !important; }
-
-  /* Enforce pointer events on buttons */
-  button, .btn-primary, .lang-opt, .mode-btn, .stat-card { pointer-events: auto !important; cursor: pointer; }
 
   body {
     font-family: var(--font-main);
@@ -58,7 +51,6 @@
     background-size: 400% 400%;
     animation: gradientBG 15s ease infinite;
     opacity: 0.8;
-    pointer-events: none; /* Prevent blocking clicks */
   }
   
   body.dark-mode .aurora-bg {
@@ -72,16 +64,10 @@
     100% { background-position: 0% 50%; }
   }
 
-  /* PARTICLES CONTAINER */
-  #particles {
-      position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; pointer-events: none;
-  }
-
   /* PARTICLES */
   .particle {
     position: absolute; border-radius: 50%; background: white;
-    opacity: 0.3; animation: floatUp linear infinite;
-    pointer-events: none; /* Prevent blocking clicks */
+    opacity: 0.3; animation: floatUp linear infinite; z-index: -1;
   }
   @keyframes floatUp {
     0% { transform: translateY(100vh) scale(0); opacity: 0; }
@@ -120,7 +106,6 @@
     box-shadow: 0 8px 20px rgba(0,0,0,0.2);
     transition: all 0.2s;
     text-shadow: 0 2px 4px rgba(0,0,0,0.3);
-    z-index: 50; /* Ensure clickable */
   }
   .btn-primary:active { transform: scale(0.96); box-shadow: 0 2px 10px rgba(0,0,0,0.2); }
 
@@ -135,11 +120,8 @@
 
   /* --- LAYOUT --- */
   header { 
-      margin: 20px 0 10px 0; width: 100%; padding: 0 20px; position: relative;
+      margin: 20px 0 10px 0; width: 100%; padding: 0 20px; z-index: 2; 
   }
-  /* Enable pointer events for children of header */
-  header * { pointer-events: auto; }
-
   .header-content {
       display: flex; justify-content: space-between; align-items: flex-start;
       width: 100%;
@@ -204,7 +186,7 @@
   .list-word-sub { font-size: 0.85rem; color: rgba(255,255,255,0.7); margin-top: 2px; }
 
   /* --- FLASHCARD 3D --- */
-  .scene { width: 100%; height: 500px; perspective: 1500px; margin: 20px 0; }
+  .scene { width: 100%; height: 550px; perspective: 1500px; margin: 20px 0; }
   .card { width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); transform-style: preserve-3d; cursor: pointer; }
   .card.is-flipped { transform: rotateY(180deg); }
   
@@ -217,14 +199,6 @@
     box-shadow: 0 20px 50px rgba(0,0,0,0.3);
     color: var(--card-text-main);
   }
-
-  .card-img {
-      width: 140px; height: 140px; object-fit: cover; border-radius: 20px;
-      margin-bottom: 15px; box-shadow: 0 8px 20px rgba(0,0,0,0.15);
-      background: rgba(0,0,0,0.05);
-      transition: transform 0.3s;
-  }
-  .card-img:hover { transform: scale(1.05); }
   
   body.dark-mode .card__face { 
     background: rgba(30, 41, 59, 0.95); 
@@ -246,7 +220,7 @@
 
   .word-vn { font-size: 2.2rem; font-weight: 700; color: var(--card-text-main); margin-bottom: 15px; }
   
-  .ipa { font-family: 'Times New Roman', serif; font-style: italic; color: var(--card-text-sub); font-size: 1.4rem; margin-bottom: 10px; }
+  .ipa { font-family: 'Times New Roman', serif; font-style: italic; color: var(--card-text-sub); font-size: 1.2rem; margin-bottom: 10px; }
   
   .example-box {
       font-style: italic; opacity: 0.9; font-size: 1rem; padding: 10px;
@@ -257,6 +231,21 @@
       width: 100%;
   }
   body.dark-mode .example-box { background: rgba(255,255,255,0.08); }
+
+  /* FLASHCARD IMAGE */
+  .flashcard-img {
+      width: 100%; height: auto; object-fit: contain;
+      border-radius: 16px; margin: 10px 0;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      max-height: 200px;
+      display: block;
+      background: rgba(0,0,0,0.05);
+  }
+  @media (min-width: 768px) {
+      /* Adjusted to 90% of original desktop size (260px -> 234px, 600px -> 540px) */
+      .flashcard-img { max-height: 234px; }
+      .scene { height: 540px; }
+  }
 
   /* --- GAME OVERLAY --- */
   #gameOverlay {
@@ -493,46 +482,17 @@
   }
   .ans-chip:hover { background: #ef4444; }
 
-  /* LANG SWITCHER UPDATED */
+  /* LANG SWITCHER */
   .lang-switcher {
-      display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;
-      background: rgba(0,0,0,0.2); padding: 5px; border-radius: 40px;
-      width: fit-content; margin-left: auto; margin-right: auto;
-      border: 1px solid rgba(255,255,255,0.1);
+      display: flex; background: rgba(0,0,0,0.3); border-radius: 30px; padding: 4px;
+      margin-bottom: 20px; border: 1px solid rgba(255,255,255,0.2);
   }
   .lang-opt {
-      width: auto; height: auto; 
-      padding: 10px 20px; border-radius: 30px;
-      background: transparent; border: none;
-      display: flex; align-items: center; gap: 8px;
-      font-size: 0.95rem; font-weight: 700;
-      cursor: pointer; transition: all 0.3s;
-      opacity: 0.7; box-shadow: none;
-      color: white;
+      padding: 8px 16px; border-radius: 25px; cursor: pointer; font-weight: 700; font-size: 0.85rem;
+      transition: all 0.3s; opacity: 0.6; display: flex; align-items: center; gap: 6px;
   }
-  .lang-opt.active {
-      transform: none; opacity: 1;
-      background: rgba(255,255,255,0.15);
-      color: #00d2ff;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-  }
-  .lang-opt:active { transform: scale(0.96); }
-  .lang-flag { font-size: 1.4rem; }
-
-  /* REPO TOGGLE IN LIBRARY */
-  .repo-toggle {
-      display: flex; margin-bottom: 20px;
-      background: rgba(0,0,0,0.2); border-radius: 15px; padding: 5px;
-      border: 1px solid rgba(255,255,255,0.1);
-  }
-  .repo-opt {
-      flex: 1; text-align: center; padding: 10px; border-radius: 10px;
-      font-weight: 600; cursor: pointer; font-size: 0.9rem; opacity: 0.7; transition: 0.2s;
-  }
-  .repo-opt.active {
-      background: rgba(255,255,255,0.15); color: #00d2ff; opacity: 1;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-  }
+  .lang-opt.active { background: #fff; color: #0f172a; opacity: 1; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+  .lang-flag { font-size: 1.2rem; }
 
   /* THEME TOGGLE TOP */
   .theme-toggle-top {
@@ -571,7 +531,27 @@
       transition: width 0.5s ease;
   }
 
+  /* Repo Toggle Switch */
+  .repo-toggle {
+    display: inline-flex; background: rgba(0,0,0,0.3); padding: 3px; border-radius: 20px;
+    border: 1px solid rgba(255,255,255,0.2); margin-bottom: 15px;
+  }
+  .repo-btn {
+    padding: 6px 15px; border-radius: 18px; font-size: 0.75rem; font-weight: 700; cursor: pointer;
+    transition: 0.2s; opacity: 0.7; color: white;
+  }
+  .repo-btn.active { background: #3b82f6; opacity: 1; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+
 </style>
+<script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+  }
+}
+</script>
 </head>
 <body onload="window.initApp()">
 
@@ -590,18 +570,18 @@
   </div>
 </header>
 
-<div id="appContainer" style="width: 100%; display: flex; justify-content: center; position: relative; z-index: 10;">
+<div id="appContainer" style="width: 100%; display: flex; justify-content: center;">
   
   <div id="view-home" class="view-container animate__animated animate__fadeIn">
     
-    <div id="userSection" style="display: flex; flex-direction: column; align-items: center; position: relative; z-index: 50;">
+    <div id="userSection" style="display: flex; flex-direction: column; align-items: center;">
         
         <div class="lang-switcher">
-            <div class="lang-opt active" id="btn-lang-en" onclick="window.switchLanguageFamily('en')">
-                <span class="lang-flag">🇬🇧</span> <span>Tiếng Anh</span>
+            <div class="lang-opt active" id="lang-en" onclick="window.switchLanguage('en')">
+                <span class="lang-flag">🇺🇸</span> Eng
             </div>
-            <div class="lang-opt" id="btn-lang-id" onclick="window.switchLanguageFamily('id')">
-                <span class="lang-flag">🇮🇩</span> <span>Indonesia</span>
+            <div class="lang-opt" id="lang-id" onclick="window.switchLanguage('id')">
+                <span class="lang-flag">🇮🇩</span> Indo
             </div>
         </div>
 
@@ -617,14 +597,12 @@
         </div>
     </div>
     
-    <!-- Login message hidden by default to allow guest use -->
-    <div id="requireLoginMsg" style="text-align:center; margin-top:50px; padding:20px; display:none;">
+    <div id="requireLoginMsg" style="text-align:center; margin-top:50px; padding:20px; display:block;">
         <i class="fas fa-lock" style="font-size:3rem; margin-bottom:15px; opacity:0.7;"></i>
         <div style="font-weight:600;">Vui lòng đăng nhập để sử dụng.</div>
     </div>
 
-    <!-- Dashboard visible by default -->
-    <div id="dashboardContent" style="display: block;">
+    <div id="dashboardContent" style="display: none;">
         <div class="glass-panel" style="padding: 24px; position: relative; overflow: hidden;">
             <div style="position:absolute; top:-10px; right:-10px; width:80px; height:80px; background:white; opacity:0.1; border-radius:50%; filter:blur(20px);"></div>
             
@@ -701,7 +679,7 @@
   </div>
 
   <div id="view-leaderboard" class="view-container animate__animated animate__fadeIn" style="display:none;">
-      <h2 style="margin-bottom: 5px; padding-left: 10px; text-align:center; text-shadow: 0 2px 4px rgba(0,0,0,0.5);"><i class="fas fa-crown" style="color:#fbbf24"></i> Đấu Trường Tri Thức</h2>
+      <h2 style="margin-bottom: 5px; padding-left: 10px; text-align:center; text-shadow: 0 2px 4px rgba(0,0,0,0.5);"><i class="fas fa-crown" style="color:#fbbf24"></i> Đấu Trường <span id="lb-lang-label"></span></h2>
       <div style="text-align:center; font-size:0.85rem; opacity:0.8; margin-bottom:10px;">Vinh danh những học giả xuất sắc nhất</div>
       
       <div id="podiumContainer" class="podium-container" style="display:none;">
@@ -723,6 +701,27 @@
 
   <div id="view-topics" class="view-container animate__animated animate__fadeIn" style="display:none;">
     <h2 style="margin-bottom: 20px; padding-left: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Thư viện chủ đề</h2>
+    
+    <!-- Repo Switcher for English -->
+    <div id="repo-controls" style="display:none; text-align:center;">
+        <div class="repo-toggle">
+            <div class="repo-btn active" id="repo-standard" onclick="window.setRepo('standard')">Cơ bản (Tuvung)</div>
+            <div class="repo-btn" id="repo-advanced" onclick="window.setRepo('advanced')">Nâng cao (3000tv)</div>
+        </div>
+    </div>
+    
+    <!-- Overall Stats -->
+    <div class="glass-panel" style="padding: 20px; margin-bottom: 20px; display:flex; align-items:center; justify-content:space-between;">
+        <div>
+            <div style="font-size:0.75rem; text-transform:uppercase; font-weight:700; opacity:0.8;">Tổng quan kho từ</div>
+            <div style="font-size:1.4rem; font-weight:800; color:#fff;" id="repoTotalWords">0</div>
+        </div>
+        <div style="text-align:right;">
+             <div style="font-size:0.8rem; font-weight:600; color:#4ade80;">Đã học: <span id="repoLearned">0</span></div>
+             <div style="font-size:0.8rem; font-weight:600; color:#60a5fa;">Tiến độ: <span id="repoPercent">0</span>%</div>
+        </div>
+    </div>
+
     <div id="topicList"></div>
   </div>
   
@@ -731,8 +730,8 @@
     <div class="glass-panel" style="padding: 24px;">
         
         <h4 style="margin-bottom:15px; color:#60A5FA; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Kho dữ liệu (GitHub)</h4>
-        <input type="text" id="gh-user" class="input-glass" placeholder="Username" value="ngxuanhai123">
-        <input type="text" id="gh-repo" class="input-glass" placeholder="Repository" value="tuvung">
+        <input type="text" id="gh-user" class="input-glass" placeholder="Username" value="ngxuanhai123" readonly>
+        <input type="text" id="gh-repo" class="input-glass" placeholder="Repository" value="tuvung" readonly>
         <button class="btn-primary" style="padding: 12px; font-size: 0.9rem; background: rgba(59, 130, 246, 0.5);" onclick="window.fetchTopics(true)">
             <i class="fas fa-sync-alt"></i> Đồng bộ dữ liệu
         </button>
@@ -824,16 +823,10 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-let app, auth, db, provider;
-try {
-    app = initializeApp(firebaseConfig);
-    auth = getAuth(app);
-    db = getFirestore(app);
-    provider = new GoogleAuthProvider();
-} catch (e) {
-    console.error("Firebase init error", e);
-    // Continue running app in offline/limited mode if possible
-}
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
 
 let currentUser = null;
 let studyTimer = null;
@@ -858,34 +851,31 @@ function getRankInfo(score) {
     return { title: 'TẬP SỰ', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.2)', icon: 'fas fa-seedling' };
 }
 
-// --- LANGUAGE/REPO CONFIG ---
+// --- LANGUAGE & REPO CONFIG ---
 const LANG_CONFIG = {
     en: { 
-        repo: 'tuvung',
-        user: 'ngxuanhai123',
-        label: 'Tiếng Anh (Cơ bản)', 
+        repos: {
+            standard: { user: 'ngxuanhai123', name: 'tuvung', label: 'Cơ bản (Tuvung)' },
+            advanced: { user: 'ngxuanhai123', name: '3000tv', label: 'Nâng cao (3000tv)' }
+        },
+        defaultRepo: 'standard',
+        label: 'Tiếng Anh', 
         tts: 'en-US', 
         transPair: 'en|vi',
         flag: '🇺🇸'
     },
-    en_adv: {
-        repo: '3000tv',
-        user: 'ngxuanhai123',
-        label: 'Tiếng Anh (Nâng cao)',
-        tts: 'en-US',
-        transPair: 'en|vi',
-        flag: '🇬🇧'
-    },
     id: { 
-        repo: 'indo',
-        user: 'ngxuanhai123',
+        repo: 'indo', 
         label: 'Indonesia', 
         tts: 'id-ID', 
         transPair: 'id|vi',
         flag: '🇮🇩'
     }
 };
+
 let currentLang = localStorage.getItem('fp_aurora_lang') || 'en';
+// Repo state mainly for English
+let currentRepoType = localStorage.getItem('fp_aurora_repo_type_en') || 'standard'; 
 
 // --- DATA KEY HELPERS ---
 function getDataKey(prefix) {
@@ -894,7 +884,6 @@ function getDataKey(prefix) {
 
 // --- FIREBASE FUNCTIONS ---
 window.loginGoogle = () => {
-    if(!auth) { showToast("Lỗi kết nối máy chủ", "error"); return; }
     signInWithPopup(auth, provider)
     .then((result) => {
         showToast("Đăng nhập thành công!", "success");
@@ -905,54 +894,45 @@ window.loginGoogle = () => {
 };
 
 window.logoutGoogle = () => {
-    if(!auth) return;
     if(confirm("Bạn muốn đăng xuất?")) {
         signOut(auth).then(() => {
             showToast("Đã đăng xuất");
             accumulatedPoints = 0; 
             updateUserPointsUI();
-            
-            // Still allow access after logout
-            document.getElementById('btnLogin').style.display = 'block';
-            document.getElementById('userProfile').style.display = 'none';
+            document.getElementById('dashboardContent').style.display = 'none';
+            document.getElementById('requireLoginMsg').style.display = 'block';
         });
     }
 };
 
-if(auth) {
-    onAuthStateChanged(auth, async (user) => {
-        currentUser = user;
-        const btn = document.getElementById('btnLogin');
-        const profile = document.getElementById('userProfile');
-        const dash = document.getElementById('dashboardContent');
-        const reqMsg = document.getElementById('requireLoginMsg');
-        
-        if (user) {
-            btn.style.display = 'none';
-            profile.style.display = 'flex';
-            
-            document.getElementById('userImg').src = user.photoURL;
-            document.getElementById('userName').innerText = user.displayName;
-            await syncDataFromServer();
-            saveProgressToCloud(); 
-        } else {
-            // GUEST MODE: Allow access
-            btn.style.display = 'block';
-            profile.style.display = 'none';
-            
-            // Ensure data is rendered from local storage
-            renderDashboard();
-        }
-        
-        // Always show dashboard, never block
+onAuthStateChanged(auth, async (user) => {
+    currentUser = user;
+    const btn = document.getElementById('btnLogin');
+    const profile = document.getElementById('userProfile');
+    const dash = document.getElementById('dashboardContent');
+    const reqMsg = document.getElementById('requireLoginMsg');
+    
+    if (user) {
+        btn.style.display = 'none';
+        profile.style.display = 'flex';
         reqMsg.style.display = 'none';
-        dash.style.display = 'block';
-    });
-}
+        dash.style.display = 'block'; // SHOW DASHBOARD
+        
+        document.getElementById('userImg').src = user.photoURL;
+        document.getElementById('userName').innerText = user.displayName;
+        await syncDataFromServer();
+        saveProgressToCloud(); 
+    } else {
+        btn.style.display = 'block';
+        profile.style.display = 'none';
+        reqMsg.style.display = 'block';
+        dash.style.display = 'none'; // HIDE DASHBOARD
+    }
+});
 
 // --- LOGIC ĐỒNG BỘ TOÀN DIỆN (FULL SYNC) ---
 async function syncDataFromServer() {
-    if(!currentUser || !db) return;
+    if(!currentUser) return;
     try {
         const docRef = doc(db, "leaderboard", currentUser.uid);
         const docSnap = await getDoc(docRef);
@@ -962,15 +942,16 @@ async function syncDataFromServer() {
         if (docSnap.exists()) {
             const data = docSnap.data();
             
-            if (data.monthKey !== currentMonthKey) {
-                accumulatedPoints = 0;
-                localStorage.setItem('fp_aurora_points', 0);
-                showToast("Chào tháng mới! Điểm đã được reset.", "info");
-                await setDoc(docRef, { score: 0, monthKey: currentMonthKey }, { merge: true });
+            // Score handling: Load language specific score
+            const scoreKey = `score_${currentLang}`;
+            if (data[scoreKey]) {
+                accumulatedPoints = data[scoreKey];
+                localStorage.setItem(`fp_aurora_points_${currentLang}`, accumulatedPoints);
             } else {
-                if (data.score > accumulatedPoints) accumulatedPoints = data.score;
-                if (data.studyTime > accumulatedTime) accumulatedTime = data.studyTime;
+                accumulatedPoints = 0;
             }
+
+            if (data.studyTime > accumulatedTime) accumulatedTime = data.studyTime;
             
             // Sync Language Specific Data
             const srsKey = `srsData_${currentLang}`;
@@ -1001,7 +982,6 @@ async function syncDataFromServer() {
                 updateConfigUI();
             }
 
-            localStorage.setItem('fp_aurora_points', accumulatedPoints);
             localStorage.setItem('fp_aurora_time', accumulatedTime);
             updateUserPointsUI();
             renderDashboard();
@@ -1012,19 +992,21 @@ async function syncDataFromServer() {
 }
 
 async function saveProgressToCloud() {
-    if(!currentUser || !db) return;
+    if(!currentUser) return;
     const currentMonthKey = new Date().getFullYear() + '-' + (new Date().getMonth() + 1);
     
     // Dynamic keys based on language
     const srsKey = `srsData_${currentLang}`;
     const masterKey = `masteredWords_${currentLang}`;
     const topicKey = `currentTopicKey_${currentLang}`;
+    const scoreKey = `score_${currentLang}`;
 
     try {
         await setDoc(doc(db, "leaderboard", currentUser.uid), {
             displayName: currentUser.displayName,
             photoURL: currentUser.photoURL,
-            score: accumulatedPoints,
+            [scoreKey]: accumulatedPoints, // Save score to language specific field
+            score: accumulatedPoints, // Keep global score update for backward compat/total (approximated)
             studyTime: accumulatedTime,
             lastUpdated: Date.now(),
             monthKey: currentMonthKey,
@@ -1040,17 +1022,24 @@ async function saveProgressToCloud() {
 
 // --- NEW LEADERBOARD LOGIC (REAL-TIME SNAPSHOT) ---
 window.initLeaderboardListener = () => {
-    if (unsubscribeLeaderboard || !db) return;
+    if (unsubscribeLeaderboard) unsubscribeLeaderboard(); // Reset listener on nav
 
     const listDiv = document.getElementById('leaderboardList');
     const podiumDiv = document.getElementById('podiumContainer');
     listDiv.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.7;"><i class="fas fa-spinner fa-spin"></i> Đang kết nối máy chủ...</div>';
-
-    const q = query(collection(db, "leaderboard"), orderBy("score", "desc"), limit(20));
     
+    const sortField = `score_${currentLang}`;
+    const q = query(collection(db, "leaderboard"), orderBy(sortField, "desc"), limit(20));
+    
+    document.getElementById('lb-lang-label').innerText = LANG_CONFIG[currentLang].label;
+
     unsubscribeLeaderboard = onSnapshot(q, (querySnapshot) => {
         const users = [];
-        querySnapshot.forEach(doc => users.push({ id: doc.id, ...doc.data() }));
+        querySnapshot.forEach(doc => {
+            const d = doc.data();
+            const langScore = d[sortField] || 0;
+            users.push({ id: doc.id, ...d, displayScore: langScore });
+        });
 
         if (users.length === 0) {
              listDiv.innerHTML = '<div style="text-align:center; padding:20px;">Chưa có dữ liệu. Hãy là người đầu tiên!</div>';
@@ -1073,7 +1062,7 @@ window.initLeaderboardListener = () => {
                     <div class="podium-item rank-${rank}-stage animate__animated animate__fadeInUp">
                         ${avatarHTML}
                         <div class="podium-name">${u.displayName ? u.displayName.split(' ')[0] : 'User'}</div>
-                        <div class="podium-score">${u.score.toLocaleString()} XP</div>
+                        <div class="podium-score">${u.displayScore.toLocaleString()} XP</div>
                         <div class="podium-rank">${rank}</div>
                     </div>
                 `;
@@ -1087,7 +1076,7 @@ window.initLeaderboardListener = () => {
             if (rank <= 3) return;
 
             const isMe = currentUser && u.id === currentUser.uid ? 'background:rgba(59, 130, 246, 0.15); border-left: 3px solid #60a5fa;' : '';
-            const rankObj = getRankInfo(u.score);
+            const rankObj = getRankInfo(u.displayScore);
 
             listHTML += `
                 <div class="leaderboard-row animate__animated animate__fadeIn" style="${isMe}">
@@ -1102,7 +1091,7 @@ window.initLeaderboardListener = () => {
                         </div>
                     </div>
                     <div class="lb-stats">
-                        <div class="lb-score">${u.score.toLocaleString()}</div>
+                        <div class="lb-score">${u.displayScore.toLocaleString()}</div>
                         <div class="lb-time">${formatTime(u.studyTime || 0)}</div>
                     </div>
                 </div>
@@ -1111,7 +1100,7 @@ window.initLeaderboardListener = () => {
         listDiv.innerHTML = listHTML || '<div style="text-align:center; padding:20px; opacity:0.6; font-size:0.8rem;">Chưa có thêm người chơi khác</div>';
     }, (error) => {
         console.error("Realtime Error:", error);
-        listDiv.innerHTML = '<div style="text-align:center; color:#ff5252">Mất kết nối thời gian thực.</div>';
+        listDiv.innerHTML = '<div style="text-align:center; color:#ff5252; font-size:0.8rem; padding:10px;">Lỗi tải BXH: Cần tạo Index trong Firestore (Consoloe) hoặc chưa có dữ liệu.</div>';
     });
 };
 
@@ -1174,15 +1163,12 @@ function playSound(sfx) {
 
 // --- GLOBAL STATE ---
 let allTopics = {};
+// State is now dependent on currentLang
 let currentTopicKey = localStorage.getItem(getDataKey('fp_aurora_topic')) || '';
-let srsData = {};
-let masteredWords = {};
-try {
-    srsData = JSON.parse(localStorage.getItem(getDataKey('fp_aurora_srs')) || '{}'); 
-    masteredWords = JSON.parse(localStorage.getItem(getDataKey('fp_aurora_mastered')) || '{}');
-} catch(e) { console.error(e); }
-
-let accumulatedPoints = parseInt(localStorage.getItem('fp_aurora_points') || 0);
+let srsData = JSON.parse(localStorage.getItem(getDataKey('fp_aurora_srs')) || '{}'); 
+let masteredWords = JSON.parse(localStorage.getItem(getDataKey('fp_aurora_mastered')) || '{}');
+// Load context specific points
+let accumulatedPoints = parseInt(localStorage.getItem(`fp_aurora_points_${currentLang}`) || 0);
 
 let config = {
     newLimit: parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5),
@@ -1215,6 +1201,23 @@ async function getTranslation(text) {
     return "Không thể dịch tự động.";
 }
 
+// --- HELPER: GET IMAGE URL ---
+function getImageUrl(word) {
+    // Using Bing Thumbnail Proxy for stable, relevant illustrations
+    return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(word)}+illustration&w=600&h=400&c=7&rs=1&p=0`;
+}
+
+// --- HELPER: PRELOAD NEXT IMAGES ---
+function preloadImages() {
+    if (!sessionQueue || sessionQueue.length === 0) return;
+    const start = sessionIndex + 1;
+    const end = Math.min(start + 4, sessionQueue.length); // Load next 3-4 images
+    for (let i = start; i < end; i++) {
+        const img = new Image();
+        img.src = getImageUrl(sessionQueue[i].english);
+    }
+}
+
 // --- INITIALIZATION ---
 window.initApp = function() {
     createParticles();
@@ -1236,30 +1239,16 @@ window.initApp = function() {
 
 function updateLangUI() {
     document.querySelectorAll('.lang-opt').forEach(el => el.classList.remove('active'));
-    // If en OR en_adv, highlight English button
-    if(currentLang === 'en' || currentLang === 'en_adv') {
-        document.getElementById('btn-lang-en').classList.add('active');
-    } else {
-        document.getElementById('btn-lang-id').classList.add('active');
-    }
+    document.getElementById(`lang-${currentLang}`).classList.add('active');
     
-    // Update config inputs to reflect current language repo
-    const conf = LANG_CONFIG[currentLang];
-    document.getElementById('gh-repo').value = conf.repo;
-    document.getElementById('gh-user').value = conf.user;
-}
-
-// Logic mới cho Home screen: chỉ chọn hệ ngôn ngữ
-window.switchLanguageFamily = function(family) {
-    if(family === 'en') {
-        // Nếu đang ở EN hoặc EN_ADV thì giữ nguyên, nếu không thì default về 'en'
-        if(currentLang !== 'en' && currentLang !== 'en_adv') {
-            window.switchLanguage('en');
-        }
+    // Update repo info display inputs
+    const langCfg = LANG_CONFIG[currentLang];
+    if(currentLang === 'en') {
+        const repoInfo = langCfg.repos[currentRepoType];
+        document.getElementById('gh-repo').value = repoInfo.name;
     } else {
-        window.switchLanguage('id');
+        document.getElementById('gh-repo').value = langCfg.repo;
     }
-    updateLangUI();
 }
 
 window.switchLanguage = function(lang) {
@@ -1269,6 +1258,10 @@ window.switchLanguage = function(lang) {
     localStorage.setItem('fp_aurora_lang', lang);
     updateLangUI();
     
+    // Switch Points Context
+    accumulatedPoints = parseInt(localStorage.getItem(`fp_aurora_points_${currentLang}`) || 0);
+    updateUserPointsUI();
+
     // Reload Data for new language
     currentTopicKey = localStorage.getItem(getDataKey('fp_aurora_topic')) || '';
     srsData = JSON.parse(localStorage.getItem(getDataKey('fp_aurora_srs')) || '{}'); 
@@ -1279,6 +1272,21 @@ window.switchLanguage = function(lang) {
     
     // Try to sync to ensure we have latest data for this language
     syncDataFromServer();
+}
+
+// --- REPO SWITCHING LOGIC ---
+window.setRepo = function(type) {
+    if(currentRepoType === type) return;
+    
+    currentRepoType = type;
+    localStorage.setItem('fp_aurora_repo_type_en', type);
+    
+    // Reset topic key because topics will differ
+    currentTopicKey = '';
+    localStorage.removeItem(getDataKey('fp_aurora_topic'));
+    
+    playSound(SFX.POP);
+    window.fetchTopics(true); // reload topics
 }
 
 function startSnow() {
@@ -1303,7 +1311,7 @@ function updateUserPointsUI() {
 
 function addPoints(amount) {
     accumulatedPoints += amount;
-    localStorage.setItem('fp_aurora_points', accumulatedPoints);
+    localStorage.setItem(`fp_aurora_points_${currentLang}`, accumulatedPoints);
     updateUserPointsUI();
     saveProgressToCloud(); 
 }
@@ -1340,64 +1348,73 @@ window.navTo = function(viewId) {
 }
 
 // --- DATA & SYNC ---
-// --- UPDATED FETCH TOPICS WITH PARALLEL LOADING ---
 window.fetchTopics = async function(manual = false) {
-    let user = document.getElementById('gh-user').value;
-    let repo = document.getElementById('gh-repo').value;
-
-    if(!manual) {
-        const conf = LANG_CONFIG[currentLang];
-        user = conf.user;
-        repo = conf.repo;
-        document.getElementById('gh-user').value = user;
-        document.getElementById('gh-repo').value = repo;
-    }
-
     const status = document.getElementById('status-msg');
     
+    let ghUser = 'ngxuanhai123';
+    let ghRepo = 'tuvung';
+    const langCfg = LANG_CONFIG[currentLang];
+    
+    if(currentLang === 'en') {
+        const repoInfo = langCfg.repos[currentRepoType];
+        ghUser = repoInfo.user;
+        ghRepo = repoInfo.name;
+    } else {
+        ghRepo = langCfg.repo;
+    }
+
+    document.getElementById('gh-user').value = ghUser;
+    document.getElementById('gh-repo').value = ghRepo;
+
     if(manual) {
         status.innerText = "Đang đồng bộ...";
         playSound(SFX.POP);
     }
     
     try {
-        const api = `https://api.github.com/repos/${user}/${repo}/contents/`;
+        const api = `https://api.github.com/repos/${ghUser}/${ghRepo}/contents/`;
         const res = await fetch(api);
         if(!res.ok) throw new Error("Kết nối thất bại");
         
         const files = await res.json();
         const jsonFiles = files.filter(f => f.name.endsWith('.json'));
         
-        // --- PARALLEL FETCHING OPTIMIZATION ---
-        const fetchPromises = jsonFiles.map(async f => {
-            const raw = await fetch(f.download_url);
-            const data = await raw.json();
-            return {
-                filename: f.name,
-                data: Array.isArray(data) ? data : (data.words || []),
-                name: (data.name || f.name.replace('.json','')).replace(/_/g,' ')
-            };
-        });
+        allTopics = {};
+        
+        // --- OPTIMIZATION: CONCURRENT FETCHING ---
+        // Fetch all topic files in parallel instead of sequential await
+        const fetchPromises = jsonFiles.map(f => 
+            fetch(f.download_url)
+                .then(r => r.json())
+                .then(data => ({ name: f.name, data: data }))
+                .catch(err => {
+                    console.warn(`Failed to fetch topic ${f.name}`, err);
+                    return null;
+                })
+        );
 
         const results = await Promise.all(fetchPromises);
 
-        allTopics = {};
-        results.forEach(item => {
-            if(item.data.length) {
-                allTopics[item.filename] = {
-                    name: item.name,
-                    words: item.data
+        results.forEach(result => {
+            if (!result) return;
+            const { name, data } = result;
+            const words = Array.isArray(data) ? data : (data.words || []);
+            if(words.length) {
+                allTopics[name] = {
+                    name: (data.name || name.replace('.json','')).replace(/_/g,' '),
+                    words: words
                 };
             }
         });
-        // ----------------------------------------
+        // ------------------------------------------
         
         status.innerText = "Aurora Rank Master • Ready";
+        // Ensure topic logic respects the saved key, only fallback if invalid
         if(!currentTopicKey || !allTopics[currentTopicKey]) {
             if(allTopics[currentTopicKey]) {
-                // Key is valid
+                // Key is valid, keep it
             } else {
-                currentTopicKey = Object.keys(allTopics)[0];
+                currentTopicKey = Object.keys(allTopics)[0] || '';
                 localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
             }
         }
@@ -1415,28 +1432,9 @@ function getWordKey(w) {
     return (w.english + '_' + (w.vietnamese || '').substring(0,3)).toLowerCase().replace(/\s/g,'');
 }
 
-// --- IMAGE GENERATION / SEARCH HELPER ---
-function getImageUrl(word) {
-    // Using Pollinations.ai for dynamic generation without API Key.
-    // Adding keywords to make it simple vector/minimalist style suitable for flashcards.
-    const cleanWord = encodeURIComponent(word);
-    return `https://image.pollinations.ai/prompt/minimalist%20cute%20vector%20illustration%20of%20${cleanWord}?width=300&height=300&nologo=true`;
-}
-
-// --- IMAGE PRELOADING ---
-function preloadImages(startIdx, count) {
-     for(let i = startIdx; i < startIdx + count; i++) {
-         if(i < sessionQueue.length) {
-             const img = new Image();
-             // Preload the image
-             img.src = getImageUrl(sessionQueue[i].english);
-         }
-     }
-}
-
 // --- GAME LOGIC START ---
 window.startSmartSession = function() {
-    if(!currentUser) return showToast("Vui lòng đăng nhập để học và đồng bộ kết quả!", "error");
+    if(!currentUser) return showToast("Vui lòng đăng nhập!", "error");
     if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
     
     config.newLimit = parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5);
@@ -1482,10 +1480,8 @@ window.startSmartSession = function() {
     sessionIndex = 0;
     currentMode = 'smart';
     
-    // Start Preloading First 4 images
-    preloadImages(0, 4);
-
     openGameOverlay();
+    preloadImages(); // Preload images for session
     decideSmartRender();
 }
 
@@ -1634,12 +1630,10 @@ function nextStep() {
         const content = document.getElementById('gameContent');
         content.classList.add('slide-out-left');
         
-        // Preload next batch (keep 3 images ahead)
-        preloadImages(sessionIndex + 1, 3);
-
         setTimeout(() => {
             sessionIndex++;
             updateProgress();
+            preloadImages(); // Preload next images
             
             content.classList.remove('slide-out-left');
             content.style.opacity = 0;
@@ -1680,19 +1674,20 @@ function renderFlashcard() {
     
     const isReviewMode = (currentMode === 'smart');
     const labelLang = LANG_CONFIG[currentLang].label;
-
-    const imageUrl = getImageUrl(w.english);
+    const imgUrl = getImageUrl(w.english);
 
     const html = `
         <div class="scene">
             <div class="card" id="flashcardObj" onclick="window.flipCard()">
                 <div class="card__face card__face--front">
                     ${badge}
-                    <img src="${imageUrl}" class="card-img" alt="${w.english}" onerror="this.style.display='none'">
-                    
-                    <div style="font-size:0.8rem; opacity:0.6; margin-bottom:5px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">${labelLang}</div>
                     <div class="word-en">${w.english}</div>
                     <div class="ipa">${w.ipa || ''}</div>
+                    
+                    <img src="${imgUrl}" class="flashcard-img" alt="${w.english}" onerror="this.style.display='none'" />
+                    
+                    <div style="font-size:0.8rem; opacity:0.7; margin-bottom:5px;">Ví dụ mẫu:</div>
+                    <div class="example-box">"${w.example || ''}"</div>
                     
                     <div style="margin-top:auto; opacity:0.6; font-size:0.8rem;"><i class="fas fa-touch-app"></i> Chạm để lật</div>
                 </div>
@@ -1702,9 +1697,7 @@ function renderFlashcard() {
                     <div class="word-vn">${w.vietnamese}</div>
                     
                     <div style="width:100%; border-top:1px dashed rgba(0,0,0,0.1); margin: 20px 0;"></div>
-                    <div style="font-size:0.8rem; opacity:0.7; margin-bottom:5px;">Ví dụ mẫu:</div>
-                    <div class="example-box">"${w.example || ''}"</div>
-                    <div style="font-size:0.8rem; opacity:0.7; margin-top:5px;">Dịch ví dụ:</div>
+                    <div style="font-size:0.8rem; opacity:0.7; margin-bottom:5px;">Dịch ví dụ:</div>
                     <div class="example-box" id="${exampleId}">
                         <i class="fas fa-spinner fa-spin"></i> Đang dịch...
                     </div>
@@ -2169,24 +2162,9 @@ function setupQuiz() {
     setTimeout(window.speakWord, 500);
 }
 
-window.handleQuiz = function(el, isCorrect) {
-    if(isProcessing) return;
-    
-    if(isCorrect) {
-        el.style.background = '#00e676';
-        el.style.color = 'white';
-        window.processResult(true);
-    } else {
-        el.style.background = '#ff5252';
-        el.style.color = 'white';
-        el.classList.add('animate__animated', 'animate__shakeX');
-        window.processResult(false);
-    }
-}
-
 // --- UTILITIES ---
 window.startGame = function(mode) {
-    if(!currentUser) return showToast("Vui lòng đăng nhập để luyện tập!", "error");
+    if(!currentUser) return showToast("Vui lòng đăng nhập!", "error");
     if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
     playSound(SFX.POP);
     const allWords = allTopics[currentTopicKey].words;
@@ -2195,30 +2173,31 @@ window.startGame = function(mode) {
     config.reviewLimit = parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20);
     const totalLimit = config.newLimit + config.reviewLimit;
     
-    if(mode === 'flashcard_all') {
-        // Flashcard mode shows all words (Preview Mode)
-        sessionQueue = [...allWords]; 
-    } else {
-        // OTHER GAMES: Only show learned words (SRS or Mastered)
-        let learnedWords = allWords.filter(w => {
+    let candidates = [...allWords];
+
+    // --- GAME RESTRICTION: Only 'learned' words allowed for games (except flashcards) ---
+    if (mode !== 'flashcard_all') {
+        candidates = candidates.filter(w => {
             const k = getWordKey(w);
             return srsData[k] || masteredWords[k];
         });
-
-        if (learnedWords.length === 0) {
-            return showToast("Bạn chưa học từ nào! Hãy chọn 'HỌC NGAY' để bắt đầu.", "error");
+        
+        if (candidates.length === 0) {
+            showToast("Trò chơi chỉ dành cho từ đã học! Hãy học Flashcard trước.", "error");
+            return;
         }
-
-        if (mode === 'matching' && learnedWords.length < 2) {
-            return showToast("Cần ít nhất 2 từ đã học để chơi ghép thẻ!", "error");
-        }
-
-        // Shuffle and limit learned words
-        learnedWords.sort(() => Math.random() - 0.5);
-        if(learnedWords.length > totalLimit) {
-            sessionQueue = learnedWords.slice(0, totalLimit);
+    }
+    // -----------------------------------------------------------------------------------
+    
+    if(mode === 'flashcard_all') {
+        sessionQueue = [...candidates]; 
+    } else {
+        // Shuffle and take only the limit amount
+        candidates.sort(() => Math.random() - 0.5);
+        if(candidates.length > totalLimit) {
+            sessionQueue = candidates.slice(0, totalLimit);
         } else {
-            sessionQueue = learnedWords;
+            sessionQueue = candidates;
         }
     }
     
@@ -2228,12 +2207,10 @@ window.startGame = function(mode) {
     
     sessionIndex = 0;
     currentMode = mode;
-    
-    // Start Preloading for specific game modes that might use images (flashcard)
-    if(mode === 'flashcard_all') preloadImages(0, 4);
-
     openGameOverlay();
     
+    preloadImages(); // Preload for start
+
     if(mode === 'fill') renderFill();
     else if(mode === 'matching') setupMatching();
     else if(mode === 'quiz') setupQuiz();
@@ -2243,7 +2220,7 @@ window.startGame = function(mode) {
 }
 
 function renderDashboard() {
-    // REMOVED LOGIN CHECK to allow guest access
+    if(!currentUser) return; // Don't render if not logged in
     document.getElementById('dashTime').innerText = formatTime(accumulatedTime);
     updateUserPointsUI();
     if(!currentTopicKey || !allTopics[currentTopicKey]) return;
@@ -2370,55 +2347,35 @@ function renderTopicList() {
     const list = document.getElementById('topicList');
     list.innerHTML = '';
 
-    // If active language is English (Basic or Advanced), show repo switcher tab
-    if (currentLang.startsWith('en')) {
-        const switcher = document.createElement('div');
-        switcher.className = 'repo-toggle animate__animated animate__fadeIn';
-        const isBasic = currentLang === 'en';
-        switcher.innerHTML = `
-            <div class="repo-opt ${isBasic ? 'active' : ''}" onclick="window.switchLanguage('en')">
-                <i class="fas fa-seedling"></i> Kho Cơ bản (tuvung)
-            </div>
-            <div class="repo-opt ${!isBasic ? 'active' : ''}" onclick="window.switchLanguage('en_adv')">
-                <i class="fas fa-graduation-cap"></i> Kho Nâng cao (3000tv)
-            </div>
-        `;
-        list.appendChild(switcher);
+    // Show Repo Switcher if English
+    const repoControls = document.getElementById('repo-controls');
+    if(currentLang === 'en') {
+        repoControls.style.display = 'block';
+        document.getElementById('repo-standard').className = `repo-btn ${currentRepoType==='standard'?'active':''}`;
+        document.getElementById('repo-advanced').className = `repo-btn ${currentRepoType==='advanced'?'active':''}`;
+    } else {
+        repoControls.style.display = 'none';
     }
 
-    // Calculate Grand Totals for current Repo
-    let repoTotalWords = 0;
-    let repoTotalLearned = 0;
+    // Calculate Global Repository Stats
+    let totalRepoWords = 0;
+    let totalRepoLearned = 0;
 
     Object.keys(allTopics).forEach(key => {
         const t = allTopics[key];
-        repoTotalWords += t.words.length;
+        totalRepoWords += t.words.length;
         t.words.forEach(w => {
-             const k = getWordKey(w);
-             if(masteredWords[k] || srsData[k]) repoTotalLearned++;
+            const k = getWordKey(w);
+            if(masteredWords[k] || srsData[k]) totalRepoLearned++;
         });
     });
 
-    // Render Grand Summary Card
-    const summaryPct = repoTotalWords > 0 ? Math.floor((repoTotalLearned/repoTotalWords)*100) : 0;
+    const repoPercent = totalRepoWords > 0 ? Math.floor((totalRepoLearned / totalRepoWords) * 100) : 0;
     
-    const summaryDiv = document.createElement('div');
-    summaryDiv.className = "glass-panel animate__animated animate__fadeInDown";
-    summaryDiv.style.padding = "20px";
-    summaryDiv.style.marginBottom = "25px";
-    summaryDiv.style.background = "rgba(59, 130, 246, 0.15)";
-    summaryDiv.style.border = "1px solid rgba(59, 130, 246, 0.4)";
-    summaryDiv.innerHTML = `
-        <div style="text-align:center;">
-            <h3 style="color:#fff; margin-bottom:5px; text-transform:uppercase; letter-spacing:1px; font-size:0.9rem;">Tổng quan Kho từ</h3>
-            <div style="font-size:2.5rem; font-weight:800; color:#38bdf8; text-shadow:0 0 10px rgba(56,189,248,0.5)">${repoTotalLearned} <span style="font-size:1rem; color:#94a3b8">/ ${repoTotalWords}</span></div>
-            <div style="font-size:0.9rem; margin-top:5px; font-weight:600;">Tiến độ: ${summaryPct}%</div>
-            <div class="topic-progress-bg" style="margin-top:10px; height:8px;">
-                <div class="topic-progress-fill" style="width:${summaryPct}%; background:#38bdf8; box-shadow:0 0 10px #38bdf8;"></div>
-            </div>
-        </div>
-    `;
-    list.appendChild(summaryDiv);
+    // Update Stats UI
+    animateValue("repoTotalWords", parseInt(document.getElementById('repoTotalWords').innerText), totalRepoWords, 800);
+    animateValue("repoLearned", parseInt(document.getElementById('repoLearned').innerText), totalRepoLearned, 800);
+    animateValue("repoPercent", parseInt(document.getElementById('repoPercent').innerText), repoPercent, 800);
 
     Object.keys(allTopics).forEach(key => {
         const t = allTopics[key];
@@ -2504,7 +2461,7 @@ window.resetProgress = function() {
     
     localStorage.removeItem(getDataKey('fp_aurora_srs'));
     localStorage.removeItem(getDataKey('fp_aurora_mastered'));
-    localStorage.removeItem('fp_aurora_points');
+    localStorage.removeItem(`fp_aurora_points_${currentLang}`);
     localStorage.removeItem('fp_aurora_time');
     
     saveProgressToCloud();
@@ -2591,5 +2548,6 @@ function updateConfigUI() {
         .floating-home-btn { padding: 12px; border-radius: 50%; }
     }
 </style>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>

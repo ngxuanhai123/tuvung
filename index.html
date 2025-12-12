@@ -2162,6 +2162,27 @@ function setupQuiz() {
     setTimeout(window.speakWord, 500);
 }
 
+window.handleQuiz = function(el, isCorrect) {
+    if(isProcessing) return;
+    
+    // Disable all buttons to prevent double clicking
+    const btns = document.querySelectorAll('#gameContent .action-btn');
+    btns.forEach(b => b.style.pointerEvents = 'none');
+
+    if(isCorrect) {
+        el.style.background = '#22c55e'; // Green
+        el.style.color = 'white';
+        el.innerHTML += ' <i class="fas fa-check"></i>';
+    } else {
+        el.style.background = '#ef4444'; // Red
+        el.style.color = 'white';
+        el.innerHTML += ' <i class="fas fa-times"></i>';
+        el.classList.add('animate__animated', 'animate__shakeX');
+    }
+    
+    window.processResult(isCorrect);
+}
+
 // --- UTILITIES ---
 window.startGame = function(mode) {
     if(!currentUser) return showToast("Vui lòng đăng nhập!", "error");

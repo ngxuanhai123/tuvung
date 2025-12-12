@@ -492,23 +492,31 @@
   }
   .ans-chip:hover { background: #ef4444; }
 
-  /* LANG SWITCHER */
+  /* LANG SWITCHER UPDATED */
   .lang-switcher {
-      display: flex; gap: 15px; justify-content: center; margin-bottom: 20px;
+      display: flex; gap: 10px; justify-content: center; margin-bottom: 20px;
+      background: rgba(0,0,0,0.2); padding: 5px; border-radius: 40px;
+      width: fit-content; margin-left: auto; margin-right: auto;
+      border: 1px solid rgba(255,255,255,0.1);
   }
   .lang-opt {
-      width: 55px; height: 55px; border-radius: 50%;
-      background: rgba(0,0,0,0.2); border: 2px solid rgba(255,255,255,0.1);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 2rem; cursor: pointer; transition: all 0.3s;
-      opacity: 0.6; box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      width: auto; height: auto; 
+      padding: 10px 20px; border-radius: 30px;
+      background: transparent; border: none;
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.95rem; font-weight: 700;
+      cursor: pointer; transition: all 0.3s;
+      opacity: 0.7; box-shadow: none;
+      color: white;
   }
   .lang-opt.active {
-      transform: scale(1.15); opacity: 1;
-      border-color: #00d2ff; background: rgba(255,255,255,0.1);
-      box-shadow: 0 0 15px rgba(0, 210, 255, 0.5);
+      transform: none; opacity: 1;
+      background: rgba(255,255,255,0.15);
+      color: #00d2ff;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.2);
   }
-  .lang-opt:active { transform: scale(0.95); }
+  .lang-opt:active { transform: scale(0.96); }
+  .lang-flag { font-size: 1.4rem; }
 
   /* REPO TOGGLE IN LIBRARY */
   .repo-toggle {
@@ -588,11 +596,11 @@
     <div id="userSection" style="display: flex; flex-direction: column; align-items: center; position: relative; z-index: 50;">
         
         <div class="lang-switcher">
-            <div class="lang-opt active" id="btn-lang-en" onclick="window.switchLanguageFamily('en')" title="English">
-                🇬🇧
+            <div class="lang-opt active" id="btn-lang-en" onclick="window.switchLanguageFamily('en')">
+                <span class="lang-flag">🇬🇧</span> <span>Tiếng Anh</span>
             </div>
-            <div class="lang-opt" id="btn-lang-id" onclick="window.switchLanguageFamily('id')" title="Indonesia">
-                🇮🇩
+            <div class="lang-opt" id="btn-lang-id" onclick="window.switchLanguageFamily('id')">
+                <span class="lang-flag">🇮🇩</span> <span>Indonesia</span>
             </div>
         </div>
 
@@ -608,12 +616,14 @@
         </div>
     </div>
     
-    <div id="requireLoginMsg" style="text-align:center; margin-top:50px; padding:20px; display:block;">
+    <!-- Login message hidden by default to allow guest use -->
+    <div id="requireLoginMsg" style="text-align:center; margin-top:50px; padding:20px; display:none;">
         <i class="fas fa-lock" style="font-size:3rem; margin-bottom:15px; opacity:0.7;"></i>
         <div style="font-weight:600;">Vui lòng đăng nhập để sử dụng.</div>
     </div>
 
-    <div id="dashboardContent" style="display: none;">
+    <!-- Dashboard visible by default -->
+    <div id="dashboardContent" style="display: block;">
         <div class="glass-panel" style="padding: 24px; position: relative; overflow: hidden;">
             <div style="position:absolute; top:-10px; right:-10px; width:80px; height:80px; background:white; opacity:0.1; border-radius:50%; filter:blur(20px);"></div>
             
@@ -900,8 +910,10 @@ window.logoutGoogle = () => {
             showToast("Đã đăng xuất");
             accumulatedPoints = 0; 
             updateUserPointsUI();
-            document.getElementById('dashboardContent').style.display = 'none';
-            document.getElementById('requireLoginMsg').style.display = 'block';
+            
+            // Still allow access after logout
+            document.getElementById('btnLogin').style.display = 'block';
+            document.getElementById('userProfile').style.display = 'none';
         });
     }
 };
@@ -917,19 +929,23 @@ if(auth) {
         if (user) {
             btn.style.display = 'none';
             profile.style.display = 'flex';
-            reqMsg.style.display = 'none';
-            dash.style.display = 'block'; // SHOW DASHBOARD
             
             document.getElementById('userImg').src = user.photoURL;
             document.getElementById('userName').innerText = user.displayName;
             await syncDataFromServer();
             saveProgressToCloud(); 
         } else {
+            // GUEST MODE: Allow access
             btn.style.display = 'block';
             profile.style.display = 'none';
-            reqMsg.style.display = 'block';
-            dash.style.display = 'none'; // HIDE DASHBOARD
+            
+            // Ensure data is rendered from local storage
+            renderDashboard();
         }
+        
+        // Always show dashboard, never block
+        reqMsg.style.display = 'none';
+        dash.style.display = 'block';
     });
 }
 
@@ -1421,7 +1437,7 @@ function preloadImages(startIdx, count) {
 
 // --- GAME LOGIC START ---
 window.startSmartSession = function() {
-    if(!currentUser) return showToast("Vui lòng đăng nhập!", "error");
+    if(!currentUser) return showToast("Vui lòng đăng nhập để học và đồng bộ kết quả!", "error");
     if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
     
     config.newLimit = parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5);
@@ -2171,7 +2187,7 @@ window.handleQuiz = function(el, isCorrect) {
 
 // --- UTILITIES ---
 window.startGame = function(mode) {
-    if(!currentUser) return showToast("Vui lòng đăng nhập!", "error");
+    if(!currentUser) return showToast("Vui lòng đăng nhập để luyện tập!", "error");
     if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
     playSound(SFX.POP);
     const allWords = allTopics[currentTopicKey].words;
@@ -2228,7 +2244,7 @@ window.startGame = function(mode) {
 }
 
 function renderDashboard() {
-    if(!currentUser) return; // Don't render if not logged in
+    // REMOVED LOGIN CHECK to allow guest access
     document.getElementById('dashTime').innerText = formatTime(accumulatedTime);
     updateUserPointsUI();
     if(!currentTopicKey || !allTopics[currentTopicKey]) return;

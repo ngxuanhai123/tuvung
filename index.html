@@ -1934,6 +1934,7 @@ function getWordKey(w) {
 
 // --- GAME LOGIC START ---
 window.startSmartSession = function(isExtra = false) {
+    // 1. Validation (Login/Trial)
     if(!currentUser) {
         if(trialCount > 3) {
              showToast("Hết phiên dùng thử (3/3). Vui lòng đăng nhập!", "error");
@@ -1944,16 +1945,27 @@ window.startSmartSession = function(isExtra = false) {
     }
 
     if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
+
+    // Reset Global Flag
+    window.isGlobalReviewSession = false;
+
+    // 2. Sort Topics Alphabetically
+    const topicKeys = Object.keys(allTopics).sort(); 
     
-    // --- RESET SESSION STREAK ---
+    // Verify currentTopicKey exists, if not fallback to first
+    if (!allTopics[currentTopicKey]) {
+        currentTopicKey = topicKeys[0];
+        if (!currentTopicKey) return showToast("Không có dữ liệu chủ đề!", "error");
+        localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
+    }
+
+    // 3. Reset Session Streak
     window.sessionCorrectStreak = 0;
     
     config.newLimit = parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5);
     config.reviewLimit = parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20);
 
-    const allWords = allTopics[currentTopicKey].words;
-    
-    // --- DAILY LIMIT LOGIC ---
+    // 4. Daily Limit Logic
     checkDailyLimit();
     let limitNew = config.newLimit;
     let learnedToday = dailyTracking.count;
@@ -1969,66 +1981,86 @@ window.startSmartSession = function(isExtra = false) {
         // If user explicitly clicked 'Learn More', add extra buffer
         if(isExtra) maxNewToAdd += Math.ceil(limitNew * 0.5);
     }
-    // -------------------------
 
-    let candidatesNew = allWords.filter(w => {
+    // 5. Gather Words from Current Topic
+    let currentTopicData = allTopics[currentTopicKey];
+    let allWordsCurrent = currentTopicData.words;
+
+    // Filter New Candidates from Current Topic
+    let candidatesNewCurrent = allWordsCurrent.filter(w => {
         const k = getWordKey(w);
         return !masteredWords[k] && !srsData[k];
     });
-    const batchNew = candidatesNew.slice(0, maxNewToAdd);
 
-    let allLearning = allWords.filter(w => {
+    // 6. Logic for Fetching New Words (Auto-Advance)
+    let batchNew = [];
+    
+    if (candidatesNewCurrent.length >= maxNewToAdd) {
+        // Current topic has enough
+        batchNew = candidatesNewCurrent.slice(0, maxNewToAdd);
+    } else {
+        // Current topic has some, but not enough (or zero)
+        batchNew = [...candidatesNewCurrent]; // Take all remaining
+        const deficit = maxNewToAdd - batchNew.length;
+
+        if (deficit > 0) {
+            // Find Next Topic
+            const currentIdx = topicKeys.indexOf(currentTopicKey);
+            if (currentIdx !== -1 && currentIdx < topicKeys.length - 1) {
+                const nextKey = topicKeys[currentIdx + 1];
+                const nextTopicData = allTopics[nextKey];
+                
+                // Get words from next topic
+                const allWordsNext = nextTopicData.words;
+                const candidatesNewNext = allWordsNext.filter(w => {
+                    const k = getWordKey(w);
+                    return !masteredWords[k] && !srsData[k];
+                });
+
+                if (candidatesNewNext.length > 0) {
+                    // Take needed amount
+                    const nextTakeCount = Math.min(deficit, candidatesNewNext.length);
+                    const batchNext = candidatesNewNext.slice(0, nextTakeCount);
+                    
+                    batchNew = [...batchNew, ...batchNext];
+
+                    // UPDATE CURRENT TOPIC KEY
+                    currentTopicKey = nextKey;
+                    localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
+                    saveProgressToCloud();
+                    
+                    showToast(`Đã học hết chủ đề cũ, đang chuyển sang: ${nextTopicData.name}`, "success");
+                    renderDashboard(); // Update UI
+                }
+            }
+        }
+    }
+
+    // 7. Get Review Words (From the original current topic logic usually, or globally)
+    // Here we stick to filtering from `allWordsCurrent` to keep it simple for this session,
+    // as SRS data is keyed globally anyway.
+    // If we switched topics, next session will pull reviews from new topic context if strictly scoped, 
+    // but usually SRS should be global. In this code structure, `allLearning` comes from `allWordsCurrent`.
+    // Let's keep it as is.
+    let allLearningCurrent = allWordsCurrent.filter(w => {
         const k = getWordKey(w);
         return !masteredWords[k] && srsData[k];
     });
-
-    allLearning.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
-    const batchReview = allLearning.slice(0, config.reviewLimit);
+    allLearningCurrent.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
+    const batchReview = allLearningCurrent.slice(0, config.reviewLimit);
     
+    // 8. Check if Empty
     if(batchNew.length === 0 && batchReview.length === 0) {
-        // --- AUTO SWITCH TOPIC LOGIC ---
-        // Check if the current topic is truly exhausted (no new words left at all, regardless of daily limit)
-        // If candidatesNew.length is 0, it means we have learned everything in this topic.
+        // Edge case: if we are here, it means even after trying to switch, we found nothing.
+        // Or limits are hit and no reviews pending.
         
-        if (candidatesNew.length === 0) {
-            const topicKeys = Object.keys(allTopics);
-            const currentIdx = topicKeys.indexOf(currentTopicKey);
-            
-            if(currentIdx !== -1 && currentIdx < topicKeys.length - 1) {
-                 const nextKey = topicKeys[currentIdx + 1];
-                 const nextTopicName = allTopics[nextKey].name;
-                 
-                 currentTopicKey = nextKey;
-                 localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
-                 saveProgressToCloud(); // Save change to firestore
-                 
-                 showToast(`Hoàn thành! Đang chuyển sang: ${nextTopicName}`, "success");
-                 playSound(SFX.POP);
-                 
-                 // Update UI
-                 renderDashboard();
-                 
-                 // Automatically start session for the new topic
-                 setTimeout(() => {
-                     window.startSmartSession(isExtra);
-                 }, 1500);
-                 return;
-            } else {
-                 showToast("Bạn đã hoàn thành tất cả các chủ đề!", "success");
-            }
-        }
-        // -------------------------------
-
-        if(!isExtra) {
-            // Only confetti if user didn't force a session and there's nothing naturally available
-            if(!config.ecoMode) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        }
+        if(!isExtra && !config.ecoMode) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         playSound(SFX.WIN);
         showToast("Tuyệt vời! Bạn đã hoàn thành tất cả!", "success");
         return;
     }
 
-    // Flag for silent injection later
+    // 9. Construct Queue
     window.isReviewOnlySession = (batchNew.length === 0 && batchReview.length > 0);
 
     showToast(`Bắt đầu: ${batchNew.length} từ mới + ${batchReview.length} ôn tập`, "info");
@@ -2049,7 +2081,50 @@ window.startSmartSession = function(isExtra = false) {
     currentMode = 'smart';
     
     openGameOverlay();
-    preloadImages(); // Preload images for session
+    preloadImages(); 
+    decideSmartRender();
+}
+
+// --- NEW FEATURE: GLOBAL REVIEW ---
+window.startGlobalReview = function() {
+    // 1. Scan all topics for due words
+    let globalDueWords = [];
+    const now = Date.now();
+    
+    Object.keys(allTopics).forEach(topicKey => {
+        const topic = allTopics[topicKey];
+        topic.words.forEach(w => {
+            const key = getWordKey(w);
+            // Check SRS data
+            if(srsData[key] && !masteredWords[key]) {
+                if(srsData[key].nextReview <= now) {
+                    globalDueWords.push(w);
+                }
+            }
+        });
+    });
+
+    if(globalDueWords.length === 0) {
+        if(!config.ecoMode) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        playSound(SFX.WIN);
+        showToast('Bạn đã ôn sạch sẽ tất cả các chủ đề!', 'success');
+        return;
+    }
+
+    // 2. Shuffle
+    globalDueWords.sort(() => Math.random() - 0.5);
+
+    // 3. Set Queue
+    sessionQueue = globalDueWords;
+    sessionIndex = 0;
+    currentMode = 'smart';
+    window.isGlobalReviewSession = true; // Flag to prevent new word injection
+
+    showToast(`Ôn tập tổng hợp: ${sessionQueue.length} từ`, "info");
+    playSound(SFX.POP);
+    
+    openGameOverlay();
+    preloadImages();
     decideSmartRender();
 }
 
@@ -2262,8 +2337,8 @@ function nextStep() {
             
             // --- SILENT INJECTION LOGIC ---
             // New Condition: Inject if streak of 3 correct answers in a review-only session
-            // sessionIndex 3 means we have completed 0, 1, 2 (3 items)
-            if(currentMode === 'smart' && window.isReviewOnlySession && sessionIndex === 3) {
+            // Prevent injection if global review session
+            if(currentMode === 'smart' && window.isReviewOnlySession && !window.isGlobalReviewSession && sessionIndex === 3) {
                  if(window.sessionCorrectStreak >= 3) {
                      injectSilentWords(3); // Add 3 words
                      window.isReviewOnlySession = false; // Disable flag so it only happens once
@@ -2996,6 +3071,17 @@ function renderDashboard() {
     animateValue("statLearned", parseInt(document.getElementById('statLearned').innerText), cntLearned, 1000);
     animateValue("statMastered", parseInt(document.getElementById('statMastered').innerText), cntMaster, 1000);
 
+    // --- GLOBAL DUE CHECK ---
+    let globalDueCount = 0;
+    Object.keys(allTopics).forEach(k => {
+        allTopics[k].words.forEach(w => {
+            const key = getWordKey(w);
+            if(srsData[key] && !masteredWords[key] && srsData[key].nextReview <= now) {
+                globalDueCount++;
+            }
+        });
+    });
+
     // --- DAILY LIMIT UI LOGIC ---
     checkDailyLimit();
     const currentLimit = config.newLimit;
@@ -3004,22 +3090,38 @@ function renderDashboard() {
 
     const actionArea = document.getElementById('actionArea');
     if(actionArea) {
-        if (remaining === 0) {
+        // Condition: Either new words available OR current topic review available
+        const currentHasTask = (remaining > 0 && cntNew > 0) || (cntDue > 0);
+
+        if (currentHasTask) {
+            let label = remaining === 0 ? "HỌC NGAY" : `HỌC NGAY (${remaining} từ mới)`;
+            if(remaining === 0 && cntDue > 0) label = `ÔN TẬP (${cntDue} từ)`;
+
              actionArea.innerHTML = `
                 <button class="btn-primary animate__animated animate__pulse animate__infinite" style="animation-duration: 2s;" onclick="window.startSmartSession(false)">
-                    <i class="fas fa-brain"></i> &nbsp; HỌC NGAY
+                    <i class="fas fa-brain"></i> &nbsp; ${label}
                 </button>
-                <div style="font-size:0.8rem; color:#4ade80; font-weight:700; text-align:center; margin-top:10px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
-                    <i class="fas fa-check-circle"></i> Đã hoàn thành mục tiêu hôm nay
+                <div style="font-size:0.75rem; opacity:0.9; text-align:center; margin-top:12px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
+                    <i class="fas fa-random"></i> Xáo trộn các Game + Khoa học não bộ
+                </div>
+             `;
+        } else if (globalDueCount > 0) {
+             // Global Review Mode (Disguised but with clear visual cue)
+             actionArea.innerHTML = `
+                <button class="btn-primary animate__animated animate__pulse animate__infinite" style="animation-duration: 2s; background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); border-color:rgba(139, 92, 246, 0.5);" onclick="window.startGlobalReview()">
+                    <i class="fas fa-sync-alt"></i> &nbsp; ÔN TẬP TỔNG HỢP (${globalDueCount})
+                </button>
+                <div style="font-size:0.75rem; opacity:0.9; text-align:center; margin-top:12px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
+                    <i class="fas fa-globe-asia"></i> Quét toàn bộ kho từ vựng
                 </div>
              `;
         } else {
              actionArea.innerHTML = `
-                <button class="btn-primary animate__animated animate__pulse animate__infinite" style="animation-duration: 2s;" onclick="window.startSmartSession(false)">
-                    <i class="fas fa-brain"></i> &nbsp; HỌC NGAY (${remaining} từ mới)
+                <button class="btn-primary" style="background: rgba(255,255,255,0.1); border: 1px solid rgba(255,255,255,0.2); color: rgba(255,255,255,0.6);" onclick="window.startSmartSession(true)">
+                    <i class="fas fa-plus-circle"></i> &nbsp; HỌC THÊM (Vượt chỉ tiêu)
                 </button>
-                <div style="font-size:0.75rem; opacity:0.9; text-align:center; margin-top:12px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
-                    <i class="fas fa-random"></i> Xáo trộn các Game + Khoa học não bộ
+                <div style="font-size:0.8rem; color:#4ade80; font-weight:700; text-align:center; margin-top:10px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
+                    <i class="fas fa-check-circle"></i> Đã hoàn thành mục tiêu hôm nay
                 </div>
              `;
         }

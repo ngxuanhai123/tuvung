@@ -31,6 +31,36 @@
     --card-text-sub: #cbd5e1;
   }
 
+  /* --- ECO MODE STYLES --- */
+  body.eco-mode .aurora-bg,
+  body.eco-mode #particles,
+  body.eco-mode .snowflake,
+  body.eco-mode .heart-beat { display: none !important; }
+  
+  /* Disable costly effects */
+  body.eco-mode .glass-panel,
+  body.eco-mode .streak-panel,
+  body.eco-mode .tab-bar,
+  body.eco-mode .btn-primary,
+  body.eco-mode #gameOverlay {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+      box-shadow: none !important;
+  }
+  
+  /* Solid backgrounds for readability in Eco Mode */
+  body.eco-mode .glass-panel { background: rgba(30, 41, 59, 0.98); border: 1px solid #334155; }
+  body.eco-mode .streak-panel { background: rgba(30, 41, 59, 0.98); }
+  body.eco-mode .tab-bar { background: #0f172a; border-top: 1px solid #334155; }
+  body.eco-mode .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
+  
+  /* Brightness Overlay */
+  #brightness-overlay {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: black; opacity: 0; pointer-events: none; z-index: 99999;
+      transition: opacity 0.1s linear;
+  }
+
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
 
   body {
@@ -623,6 +653,22 @@
   }
   .repo-btn.active { background: #3b82f6; opacity: 1; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
 
+  /* Toggle Switch */
+  .switch-container { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+  .toggle-switch {
+      position: relative; width: 50px; height: 26px;
+      -webkit-appearance: none; background: rgba(255,255,255,0.2);
+      outline: none; border-radius: 15px; box-shadow: inset 0 0 5px rgba(0,0,0,0.2);
+      transition: 0.3s; cursor: pointer;
+  }
+  .toggle-switch:checked { background: #4ade80; }
+  .toggle-switch::before {
+      content: ''; position: absolute; width: 20px; height: 20px;
+      border-radius: 50%; top: 3px; left: 3px; background: #fff;
+      transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  }
+  .toggle-switch:checked::before { transform: translateX(24px); }
+
   /* --- RESPONSIVE ADJUSTMENTS --- */
   @media (max-width: 600px) {
     .scene { height: 400px; }
@@ -664,6 +710,7 @@
 </head>
 <body onload="window.initApp()">
 
+<div id="brightness-overlay"></div>
 <div class="aurora-bg"></div>
 <div id="particles"></div>
 
@@ -869,6 +916,21 @@
             <strong id="dispLimitReview">20</strong>
         </div>
         <input type="range" id="cfgReviewLimit" min="5" max="50" value="20" oninput="window.saveConfig()">
+
+        <hr style="border:0; border-top:1px solid var(--glass-border); margin: 25px 0;">
+
+        <h4 style="margin-bottom:15px; color:#A78BFA; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Hiệu năng & Hiển thị</h4>
+        
+        <div class="switch-container">
+            <span>Chế độ Tiết kiệm pin (Máy yếu)</span>
+            <input type="checkbox" id="cfgEco" class="toggle-switch" onchange="window.saveConfig()">
+        </div>
+
+        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
+            <small>Độ sáng màn hình</small>
+            <strong id="dispBrightness">100%</strong>
+        </div>
+        <input type="range" id="cfgBrightness" min="20" max="100" value="100" oninput="window.saveConfig()">
         
         <hr style="border:0; border-top:1px solid var(--glass-border); margin: 25px 0;">
 
@@ -877,7 +939,7 @@
         </button>
 
         <div style="margin-top:20px; font-size:0.8rem; opacity:0.6; text-align:center;">
-            Sound FX Engine v2.1 &bull; Realtime DB
+            Sound FX Engine v2.2 &bull; Realtime DB
         </div>
     </div>
   </div>
@@ -1164,10 +1226,17 @@ async function syncDataFromServer() {
 
             if(data.config) {
                 config = data.config;
+                // Merge fallback defaults for new keys
+                if (config.ecoMode === undefined) config.ecoMode = false;
+                if (config.brightness === undefined) config.brightness = 100;
+
                 localStorage.setItem('fp_aurora_dark', config.darkMode);
                 localStorage.setItem('fp_aurora_muted', config.muted);
                 localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
                 localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
+                localStorage.setItem('fp_aurora_eco', config.ecoMode);
+                localStorage.setItem('fp_aurora_brightness', config.brightness);
+                
                 applyTheme();
                 updateMuteIcon();
                 updateConfigUI();
@@ -1401,6 +1470,7 @@ function initAudio() {
 const SFX = { CORRECT: 'correct', WRONG: 'wrong', FLIP: 'flip', WIN: 'win', POP: 'pop' };
 
 function playTone(freq, type, duration, startTime, vol=0.1) {
+    if(config.muted) return;
     const osc = audioCtx.createOscillator();
     const gain = audioCtx.createGain();
     osc.type = type;
@@ -1456,7 +1526,9 @@ let config = {
     newLimit: parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5),
     reviewLimit: parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20),
     darkMode: localStorage.getItem('fp_aurora_dark') === 'true',
-    muted: localStorage.getItem('fp_aurora_muted') === 'true'
+    muted: localStorage.getItem('fp_aurora_muted') === 'true',
+    ecoMode: localStorage.getItem('fp_aurora_eco') === 'true',
+    brightness: parseInt(localStorage.getItem('fp_aurora_brightness') || '100')
 };
 
 let sessionQueue = []; 
@@ -1516,7 +1588,7 @@ window.initApp = function() {
     checkDailyLimit();
     createParticles();
     startSnow();
-    applyTheme();
+    applyTheme(); // Applies dark mode, eco mode, brightness
     updateConfigUI();
     updateLangUI();
     window.fetchTopics(); 
@@ -1593,6 +1665,7 @@ window.setRepo = function(type) {
 
 function startSnow() {
     const snowInterval = setInterval(() => {
+        if(config.ecoMode) return; // Disable generation in Eco mode
         const snowflake = document.createElement('div');
         snowflake.innerHTML = '❄';
         snowflake.classList.add('snowflake');
@@ -1624,7 +1697,9 @@ function addPoints(amount) {
 }
 
 function createParticles() {
+    if(config.ecoMode) return;
     const container = document.getElementById('particles');
+    container.innerHTML = '';
     for(let i=0; i<15; i++) {
         const p = document.createElement('div');
         p.className = 'particle';
@@ -1665,7 +1740,7 @@ function renderStreakCalendar() {
     
     // Header
     let html = `
-        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+        <div class="streak-header">
              <div style="font-size:0.9rem; font-weight:700; display:flex; align-items:center; gap:8px;">
                 <i class="fas fa-fire" style="color:#fbbf24"></i> 
                 ${calendarViewMode === 'week' ? 'Tuần này' : 'Lịch sử tháng'}
@@ -1938,11 +2013,16 @@ window.startSmartSession = function(isExtra = false) {
                      window.startSmartSession(isExtra);
                  }, 1500);
                  return;
+            } else {
+                 showToast("Bạn đã hoàn thành tất cả các chủ đề!", "success");
             }
         }
         // -------------------------------
 
-        confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        if(!isExtra) {
+            // Only confetti if user didn't force a session and there's nothing naturally available
+            if(!config.ecoMode) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        }
         playSound(SFX.WIN);
         showToast("Tuyệt vời! Bạn đã hoàn thành tất cả!", "success");
         return;
@@ -2017,7 +2097,7 @@ window.processResult = function(isCorrect, skipNext = false) {
         window.sessionCorrectStreak = (window.sessionCorrectStreak || 0) + 1;
 
         playSound(SFX.CORRECT);
-        confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, scalar: 0.7 });
+        if(!config.ecoMode) confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, scalar: 0.7 });
         addPoints(10); 
         
         // --- DAILY TRACKING INCREMENT (LANGUAGE SPECIFIC) ---
@@ -2215,7 +2295,7 @@ function nextStep() {
         }, 350);
     } else {
         playSound(SFX.WIN);
-        confetti({ particleCount: 300, spread: 100, origin: { y: 0.6 } });
+        if(!config.ecoMode) confetti({ particleCount: 300, spread: 100, origin: { y: 0.6 } });
         renderSessionEnd();
     }
 }
@@ -2234,7 +2314,7 @@ function renderSessionEnd() {
     `;
 }
 
-// --- CARD RENDERERS ---
+// --- CARD RENDERER ---
 function renderFlashcard() {
     const w = sessionQueue[sessionIndex];
     isFlipped = false;
@@ -2373,7 +2453,6 @@ function renderSpelling() {
             e.target.value = ''; 
         }
     });
-    // Removed auto-speak on start
 }
 
 window.revealSpellingHint = function() {
@@ -2574,8 +2653,6 @@ async function renderSentence() {
         originalMode: mode,
         textToSpeak: sourceEnglish // Always speak the target/source concept (usually English or main language)
     };
-
-    // Removed auto-speak on start for arrange_vn
 }
 
 window.moveWord = function(idx, word) {
@@ -3230,6 +3307,8 @@ function setupVoice() {
 
 function applyTheme() {
     document.body.classList.toggle('dark-mode', config.darkMode);
+    document.body.classList.toggle('eco-mode', config.ecoMode);
+    document.getElementById('brightness-overlay').style.opacity = (100 - config.brightness) / 100;
     document.getElementById('themeBtn').innerHTML = config.darkMode ? '<i class="fas fa-sun" style="color:#fcd34d"></i>' : '<i class="fas fa-moon" style="color:#fff"></i>';
 }
 window.toggleTheme = function() { config.darkMode = !config.darkMode; localStorage.setItem('fp_aurora_dark', config.darkMode); applyTheme(); playSound(SFX.POP); saveProgressToCloud(); }
@@ -3238,16 +3317,26 @@ function updateMuteIcon() { document.getElementById('muteIcon').className = conf
 window.saveConfig = function() {
     config.newLimit = parseInt(document.getElementById('cfgNewLimit').value);
     config.reviewLimit = parseInt(document.getElementById('cfgReviewLimit').value);
+    config.ecoMode = document.getElementById('cfgEco').checked;
+    config.brightness = parseInt(document.getElementById('cfgBrightness').value);
+    
     localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
     localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
+    localStorage.setItem('fp_aurora_eco', config.ecoMode);
+    localStorage.setItem('fp_aurora_brightness', config.brightness);
+
     saveProgressToCloud();
     updateConfigUI();
+    applyTheme(); // Apply eco mode and brightness changes immediately
 }
 function updateConfigUI() {
     document.getElementById('cfgNewLimit').value = config.newLimit;
     document.getElementById('dispLimitNew').innerText = config.newLimit;
     document.getElementById('cfgReviewLimit').value = config.reviewLimit;
     document.getElementById('dispLimitReview').innerText = config.reviewLimit;
+    document.getElementById('cfgEco').checked = config.ecoMode;
+    document.getElementById('cfgBrightness').value = config.brightness;
+    document.getElementById('dispBrightness').innerText = config.brightness + '%';
 }
 </script>
 <a href="https://ngxuanhai123.github.io/" class="floating-home-btn">

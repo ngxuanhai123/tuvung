@@ -3285,6 +3285,42 @@ window.speakText = function(text, onEnd) {
         if(onEnd) setTimeout(onEnd, 600); 
         return;
     }
+
+    // Mapping for Google TTS
+    let tl = 'en'; // default fallback
+    if (currentLang === 'en') tl = 'en-US'; // Use en-US for better English
+    else if (currentLang === 'id') tl = 'id';
+    else if (currentLang === 'vi') tl = 'vi';
+
+    // Google TTS URL
+    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${tl}&client=tw-ob`;
+    
+    const audio = new Audio(url);
+    
+    const playPromise = audio.play();
+    
+    if (playPromise !== undefined) {
+        playPromise
+        .then(() => {
+            if(onEnd) {
+                audio.onended = onEnd;
+            }
+        })
+        .catch(error => {
+            console.warn("Google TTS Error/Blocked:", error);
+            window.speakFallback(text, onEnd);
+        });
+    } else {
+         window.speakFallback(text, onEnd);
+    }
+    
+    audio.onerror = function() {
+        console.warn("Google TTS Network Error");
+        window.speakFallback(text, onEnd);
+    };
+}
+
+window.speakFallback = function(text, onEnd) {
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     u.lang = LANG_CONFIG[currentLang].tts; 

@@ -370,8 +370,10 @@
   }
   body.dark-mode .match-card { background: rgba(51, 65, 85, 0.95); color: white; }
   .match-card:active { top: 3px; box-shadow: 0 2px 0 rgba(0,0,0,0.1); }
-  .match-card.selected { background: #3b82f6; color: white; transform: scale(1.02); }
-  .match-card.wrong { background: #ef4444; color: white; animation: shake 0.4s; }
+  
+  /* FIXED: Added !important to override dark mode specificity */
+  .match-card.selected { background: #3b82f6 !important; color: white !important; transform: scale(1.02); border: 2px solid #fff; }
+  .match-card.wrong { background: #ef4444 !important; color: white !important; animation: shake 0.4s; border: 2px solid #fff; }
   .match-card.correct { opacity: 0; visibility: hidden; transition: opacity 0.3s; }
 
   /* Toast */
@@ -923,6 +925,14 @@
         <h4 style="margin-bottom:15px; color:#A78BFA; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Hiệu năng & Hiển thị</h4>
         
         <div class="switch-container">
+            <span>Giọng đọc Google (Hay hơn)</span>
+            <input type="checkbox" id="cfgVoiceGoogle" class="toggle-switch" onchange="window.saveConfig()">
+        </div>
+        <div style="font-size: 0.75rem; opacity: 0.7; margin-top: -10px; margin-bottom: 15px;">
+            Tắt để dùng giọng mặc định của máy (Nhanh hơn, không cần mạng).
+        </div>
+        
+        <div class="switch-container">
             <span>Chế độ Tiết kiệm pin (Máy yếu)</span>
             <input type="checkbox" id="cfgEco" class="toggle-switch" onchange="window.saveConfig()">
         </div>
@@ -1021,6 +1031,11 @@ let studyTimer = null;
 let accumulatedTime = parseInt(localStorage.getItem('fp_aurora_time') || 0);
 let unsubscribeLeaderboard = null; 
 let currentLbTab = 'week';
+const imageCache = {}; // Cache for images to prevent reload
+
+// --- GLOBAL AUDIO FOR GOOGLE TTS UNLOCKING ---
+const ttsPlayer = new Audio();
+let ttsUnlocked = false;
 
 // --- NEW GLOBALS ---
 // Language config is loaded before dailyTracking to ensure correct key
@@ -1235,8 +1250,9 @@ async function syncDataFromServer() {
             if(data.config) {
                 config = data.config;
                 // Merge fallback defaults for new keys
-                if (config.ecoMode === undefined) config.ecoMode = false;
+                if (config.ecoMode === undefined) config.ecoMode = true; // Default to true
                 if (config.brightness === undefined) config.brightness = 100;
+                if (config.voiceEngine === undefined) config.voiceEngine = 'google';
 
                 localStorage.setItem('fp_aurora_dark', config.darkMode);
                 localStorage.setItem('fp_aurora_muted', config.muted);
@@ -1244,6 +1260,7 @@ async function syncDataFromServer() {
                 localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
                 localStorage.setItem('fp_aurora_eco', config.ecoMode);
                 localStorage.setItem('fp_aurora_brightness', config.brightness);
+                localStorage.setItem('fp_aurora_voice_engine', config.voiceEngine);
                 
                 applyTheme();
                 updateMuteIcon();
@@ -1472,28 +1489,30 @@ function initAudio() {
         masterGain = audioCtx.createGain();
         masterGain.connect(audioCtx.destination);
     }
-    if(audioCtx.state === 'suspended') audioCtx.resume();
+    if(audioCtx.state === 'suspended') audioCtx.resume().catch(e => console.warn(e));
 }
 
 const SFX = { CORRECT: 'correct', WRONG: 'wrong', FLIP: 'flip', WIN: 'win', POP: 'pop' };
 
 function playTone(freq, type, duration, startTime, vol=0.1) {
     if(config.muted) return;
-    const osc = audioCtx.createOscillator();
-    const gain = audioCtx.createGain();
-    osc.type = type;
-    osc.frequency.setValueAtTime(freq, startTime);
-    gain.gain.setValueAtTime(vol, startTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
-    osc.connect(gain);
-    gain.connect(masterGain);
-    osc.start(startTime);
-    osc.stop(startTime + duration);
+    try {
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = type;
+        osc.frequency.setValueAtTime(freq, startTime);
+        gain.gain.setValueAtTime(vol, startTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, startTime + duration);
+        osc.connect(gain);
+        gain.connect(masterGain);
+        osc.start(startTime);
+        osc.stop(startTime + duration);
+    } catch(e) { console.warn("Audio Error", e); }
 }
 
 function playSound(sfx) {
     if(config.muted) return;
-    initAudio();
+    initAudio(); // Attempt resume
     const now = audioCtx.currentTime;
 
     switch(sfx) {
@@ -1535,8 +1554,9 @@ let config = {
     reviewLimit: parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20),
     darkMode: localStorage.getItem('fp_aurora_dark') === 'true',
     muted: localStorage.getItem('fp_aurora_muted') === 'true',
-    ecoMode: localStorage.getItem('fp_aurora_eco') === 'true',
-    brightness: parseInt(localStorage.getItem('fp_aurora_brightness') || '100')
+    ecoMode: localStorage.getItem('fp_aurora_eco') !== 'false', // Default true if not explicitly 'false'
+    brightness: parseInt(localStorage.getItem('fp_aurora_brightness') || '100'),
+    voiceEngine: localStorage.getItem('fp_aurora_voice_engine') || 'google'
 };
 
 let sessionQueue = []; 
@@ -1573,8 +1593,10 @@ function getImageUrl(word) {
     return `https://tse2.mm.bing.net/th?q=${encodeURIComponent(q)}+illustration&w=600&h=400&c=7&rs=1&p=0`;
 }
 
-// --- NEW FUNCTION: PEXELS API IMAGE FETCHER ---
+// --- NEW FUNCTION: PEXELS API IMAGE FETCHER WITH CACHE ---
 async function fetchPexelsImage(query) {
+    if(imageCache[query]) return imageCache[query];
+
     const locale = PEXELS_LOCALE_MAP[currentLang] || 'en-US';
     
     try {
@@ -1589,7 +1611,8 @@ async function fetchPexelsImage(query) {
             const data = await res.json();
             if (data.photos && data.photos.length > 0) {
                 // Return medium sized image
-                return data.photos[0].src.medium; 
+                imageCache[query] = data.photos[0].src.medium;
+                return imageCache[query];
             }
         }
     } catch (e) {
@@ -1597,22 +1620,46 @@ async function fetchPexelsImage(query) {
     }
     
     // Fallback to Bing if Pexels fails or returns no results
-    return getImageUrl(query);
+    imageCache[query] = getImageUrl(query);
+    return imageCache[query];
 }
 
 // --- HELPER: PRELOAD NEXT IMAGES ---
 function preloadImages() {
     if (!sessionQueue || sessionQueue.length === 0) return;
     const start = sessionIndex + 1;
-    const end = Math.min(start + 4, sessionQueue.length); // Load next 3-4 images
+    const end = Math.min(start + 3, sessionQueue.length); // Load next 2-3 images
     for (let i = start; i < end; i++) {
-        const img = new Image();
-        img.src = getImageUrl(sessionQueue[i].english);
+        const w = sessionQueue[i];
+        if(!w) continue;
+        // Call fetch to cache the URL and start browser network request
+        fetchPexelsImage(w.english).then(url => {
+            const img = new Image();
+            img.src = url;
+        });
     }
 }
 
 // --- INITIALIZATION ---
 window.initApp = function() {
+    // Add global click listener to unlock Audio Context reliably
+    // Also unlock Google TTS Audio element for iOS
+    document.addEventListener('click', () => {
+        if(audioCtx.state === 'suspended') audioCtx.resume().catch(e => {});
+        if(!ttsUnlocked) {
+            ttsPlayer.play().then(() => ttsPlayer.pause()).catch(e=>{});
+            ttsUnlocked = true;
+        }
+    }, { once: true, capture: true });
+    
+    document.addEventListener('touchstart', () => {
+        if(audioCtx.state === 'suspended') audioCtx.resume().catch(e => {});
+        if(!ttsUnlocked) {
+            ttsPlayer.play().then(() => ttsPlayer.pause()).catch(e=>{});
+            ttsUnlocked = true;
+        }
+    }, { once: true, capture: true });
+
     // TRIAL LOGIC: Increment trial count on page access (initApp)
     // Only increment if not yet strictly blocked, to account for "first 3 accesses".
     if (!currentUser && trialCount < 5) { // <5 just to be safe, logic handles <=3
@@ -2354,8 +2401,10 @@ function injectSilentWords(count) {
     
     // Preload images
     toAdd.forEach(w => {
-        const img = new Image();
-        img.src = getImageUrl(w.english);
+        fetchPexelsImage(w.english).then(url => {
+            const img = new Image();
+            img.src = url;
+        });
     });
     
     // Update progress bar to reflect new total
@@ -3283,37 +3332,63 @@ window.unmarkMastered = function(wordEn) {
 
 window.speakText = function(text, onEnd) {
     if(config.muted) {
-        if(onEnd) setTimeout(onEnd, 600); 
+        if(onEnd) setTimeout(onEnd, 500); 
         return;
     }
 
-    // Mapping for Google TTS
-    let tl = 'en'; // default fallback
+    // CHECK CONFIG: If user chose native, skip google
+    if (config.voiceEngine === 'native') {
+        window.speakFallback(text, onEnd);
+        return;
+    }
+
+    // Determine language code
+    let tl = 'en'; 
     if (currentLang === 'en') tl = 'en'; 
     else if (currentLang === 'id') tl = 'id';
     else if (currentLang === 'vi') tl = 'vi';
 
-    // Google TTS URL (client=gtx) - FIX: Use translate.googleapis.com
+    // Google TTS URL
+    // Use client=gtx for standard reliable access
     const url = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${tl}&q=${encodeURIComponent(text)}`;
     
-    const audio = new Audio(url);
+    // Use global unlocked player if possible
+    ttsPlayer.src = url;
+    ttsPlayer.playbackRate = 1.0;
     
-    if(onEnd) {
-        audio.onended = onEnd;
-    }
-    
-    // Error Handling: Fallback immediately if network failure (404/403)
-    audio.onerror = function(e) {
-        console.warn("Google TTS Network Error (gtx):", e);
-        window.speakFallback(text, onEnd);
+    // Clear previous handlers
+    ttsPlayer.onended = null;
+    ttsPlayer.onerror = null;
+
+    // Handle events
+    ttsPlayer.onended = () => {
+        if(onEnd) onEnd();
+        ttsPlayer.onended = null;
+        ttsPlayer.onerror = null;
     };
     
-    const playPromise = audio.play();
-    
+    ttsPlayer.onerror = (e) => {
+        console.warn("Google TTS Error, trying fallback", e);
+        // Fallback to Native if Google fails
+        if ('speechSynthesis' in window) {
+            window.speakFallback(text, onEnd);
+        } else {
+             if(onEnd) onEnd();
+        }
+        ttsPlayer.onended = null;
+        ttsPlayer.onerror = null;
+    };
+
+    const playPromise = ttsPlayer.play();
     if (playPromise !== undefined) {
         playPromise.catch(error => {
-            console.warn("Google TTS Playback Error:", error);
-            window.speakFallback(text, onEnd);
+            console.warn("Google TTS Playback prevented:", error);
+            // Try fallback immediately
+             if ('speechSynthesis' in window) {
+                window.speakFallback(text, onEnd);
+            } else {
+                 if(onEnd) onEnd();
+            }
         });
     }
 }
@@ -3507,11 +3582,13 @@ window.saveConfig = function() {
     config.reviewLimit = parseInt(document.getElementById('cfgReviewLimit').value);
     config.ecoMode = document.getElementById('cfgEco').checked;
     config.brightness = parseInt(document.getElementById('cfgBrightness').value);
+    config.voiceEngine = document.getElementById('cfgVoiceGoogle').checked ? 'google' : 'native';
     
     localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
     localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
     localStorage.setItem('fp_aurora_eco', config.ecoMode);
     localStorage.setItem('fp_aurora_brightness', config.brightness);
+    localStorage.setItem('fp_aurora_voice_engine', config.voiceEngine);
 
     saveProgressToCloud();
     updateConfigUI();
@@ -3525,6 +3602,7 @@ function updateConfigUI() {
     document.getElementById('cfgEco').checked = config.ecoMode;
     document.getElementById('cfgBrightness').value = config.brightness;
     document.getElementById('dispBrightness').innerText = config.brightness + '%';
+    document.getElementById('cfgVoiceGoogle').checked = (config.voiceEngine === 'google');
 }
 </script>
 <a href="https://ngxuanhai123.github.io/" class="floating-home-btn">

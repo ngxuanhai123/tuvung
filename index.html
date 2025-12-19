@@ -2,6 +2,7 @@
 <html lang="vi">
 <head>
 <meta charset="UTF-8">
+<meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>Hihi Vocabulary</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
@@ -3292,8 +3293,8 @@ window.speakText = function(text, onEnd) {
     else if (currentLang === 'id') tl = 'id';
     else if (currentLang === 'vi') tl = 'vi';
 
-    // Google TTS URL (client=gtx)
-    const url = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${tl}&client=gtx`;
+    // Google TTS URL (client=gtx) - FIX: Use translate.googleapis.com
+    const url = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${tl}&q=${encodeURIComponent(text)}`;
     
     const audio = new Audio(url);
     
@@ -3301,8 +3302,9 @@ window.speakText = function(text, onEnd) {
         audio.onended = onEnd;
     }
     
-    audio.onerror = function() {
-        console.warn("Google TTS Network Error (gtx)");
+    // Error Handling: Fallback immediately if network failure (404/403)
+    audio.onerror = function(e) {
+        console.warn("Google TTS Network Error (gtx):", e);
         window.speakFallback(text, onEnd);
     };
     

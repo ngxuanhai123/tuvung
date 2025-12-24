@@ -909,7 +909,7 @@
     <div class="glass-panel" style="padding: 20px; margin-bottom: 20px; display:flex; align-items:center; justify-content:space-between;">
         <div>
             <div style="font-size:0.75rem; text-transform:uppercase; font-weight:700; opacity:0.8;">Tổng quan kho từ</div>
-            <div style="font-size:1.4rem; font-weight:800; color:#fff;" id="repoTotalWords">0</div>
+            <div style="font-size:1.4rem; font-weight:800; color:#fff;" id="repoTotalWords">...</div>
         </div>
         <div style="text-align:right;">
              <div style="font-size:0.8rem; font-weight:600; color:#4ade80;">Đã học: <span id="repoLearned">0</span></div>
@@ -1617,7 +1617,8 @@ function playSound(sfx) {
 }
 
 // --- GLOBAL STATE ---
-let allTopics = {};
+let allTopics = {}; // Acts as Cache now: {filename: {name: '...', words: []}}
+let allTopicsMetadata = []; // New: Stores the file list [{name: 'Topic.json', download_url: '...'}, ...]
 // State is now dependent on currentLang
 let currentTopicKey = localStorage.getItem(getDataKey('fp_aurora_topic')) || '';
 let srsData = JSON.parse(localStorage.getItem(getDataKey('fp_aurora_srs')) || '{}'); 
@@ -1994,7 +1995,42 @@ window.toggleCalendarView = function() {
 }
 
 
-// --- DATA & SYNC ---
+// --- DATA & SYNC (LAZY LOADING) ---
+
+// Helper: Fetch a single topic's JSON and add to cache
+async function loadTopicData(filename) {
+    if (allTopics[filename]) return allTopics[filename]; // Return cached if exists
+
+    // Find the file in metadata to get the URL
+    const meta = allTopicsMetadata.find(f => f.name === filename);
+    if (!meta) {
+        console.warn(`Topic ${filename} not found in metadata`);
+        return null;
+    }
+
+    try {
+        const res = await fetch(meta.download_url);
+        const data = await res.json();
+        
+        // Process data format
+        const words = Array.isArray(data) ? data : (data.words || []);
+        if (words.length) {
+            const topicObj = {
+                name: (data.name || filename.replace('.json','')).replace(/_/g,' '),
+                words: words
+            };
+            allTopics[filename] = topicObj; // Store in global cache
+            return topicObj;
+        }
+        return null;
+    } catch (e) {
+        console.error(`Failed to load topic ${filename}`, e);
+        showToast("Lỗi tải chủ đề: " + filename, "error");
+        return null;
+    }
+}
+
+// Main fetch function: Get Manifest Only
 window.fetchTopics = async function(manual = false) {
     const status = document.getElementById('status-msg');
     
@@ -2024,49 +2060,35 @@ window.fetchTopics = async function(manual = false) {
         if(!res.ok) throw new Error("Kết nối thất bại");
         
         const files = await res.json();
-        const jsonFiles = files.filter(f => f.name.endsWith('.json'));
-        
-        allTopics = {};
-        
-        // --- OPTIMIZATION: CONCURRENT FETCHING ---
-        // Fetch all topic files in parallel instead of sequential await
-        const fetchPromises = jsonFiles.map(f => 
-            fetch(f.download_url)
-                .then(r => r.json())
-                .then(data => ({ name: f.name, data: data }))
-                .catch(err => {
-                    console.warn(`Failed to fetch topic ${f.name}`, err);
-                    return null;
-                })
-        );
+        let jsonFiles = files.filter(f => f.name.endsWith('.json'));
 
-        const results = await Promise.all(fetchPromises);
+        // --- NATURAL SORT ---
+        const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+        jsonFiles.sort((a, b) => collator.compare(a.name, b.name));
 
-        results.forEach(result => {
-            if (!result) return;
-            const { name, data } = result;
-            const words = Array.isArray(data) ? data : (data.words || []);
-            if(words.length) {
-                allTopics[name] = {
-                    name: (data.name || name.replace('.json','')).replace(/_/g,' '),
-                    words: words
-                };
-            }
-        });
-        // ------------------------------------------
+        // Store metadata globally
+        allTopicsMetadata = jsonFiles;
         
+        // Reset cache if repo changed (handled by setRepo, but good to be safe)
+        // Note: We don't wipe allTopics here to allow cache persistence within session if just refreshing list,
+        // unless it's a hard reload. For now, we keep cache.
+
         status.innerText = "Aurora Rank Master • Ready";
-        // Ensure topic logic respects the saved key, only fallback if invalid
-        if(!currentTopicKey || !allTopics[currentTopicKey]) {
-            if(allTopics[currentTopicKey]) {
-                // Key is valid, keep it
-            } else {
-                currentTopicKey = Object.keys(allTopics)[0] || '';
-                localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
-            }
+
+        // Determine current topic or default to first
+        if (!currentTopicKey || !allTopicsMetadata.find(f => f.name === currentTopicKey)) {
+             if (allTopicsMetadata.length > 0) {
+                 currentTopicKey = allTopicsMetadata[0].name;
+                 localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
+             }
         }
         
-        if(manual) showToast("Đồng bộ thành công!", "success");
+        // Lazy Load CURRENT topic
+        if (currentTopicKey) {
+            await loadTopicData(currentTopicKey);
+        }
+
+        if(manual) showToast("Đồng bộ danh sách thành công!", "success");
         renderDashboard();
     } catch(e) {
         console.error(e);
@@ -2080,7 +2102,8 @@ function getWordKey(w) {
 }
 
 // --- GAME LOGIC START ---
-window.startSmartSession = function(isExtra = false) {
+// Updated to handle Async Topic Loading
+window.startSmartSession = async function(isExtra = false) {
     // 1. Validation (Login/Trial)
     if(!currentUser) {
         if(trialCount > 3) {
@@ -2101,14 +2124,20 @@ window.startSmartSession = function(isExtra = false) {
     // Reset Global Flag
     window.isGlobalReviewSession = false;
 
-    // 2. Sort Topics Alphabetically
-    const topicKeys = Object.keys(allTopics).sort(); 
+    // Verify currentTopicKey exists in metadata
+    if (!allTopicsMetadata.find(f => f.name === currentTopicKey)) {
+         if (allTopicsMetadata.length > 0) {
+             currentTopicKey = allTopicsMetadata[0].name;
+             localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
+         } else {
+             return showToast("Không có dữ liệu chủ đề!", "error");
+         }
+    }
     
-    // Verify currentTopicKey exists, if not fallback to first
+    // Ensure data is loaded
     if (!allTopics[currentTopicKey]) {
-        currentTopicKey = topicKeys[0];
-        if (!currentTopicKey) return showToast("Không có dữ liệu chủ đề!", "error");
-        localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
+        showToast("Đang tải dữ liệu...", "info");
+        await loadTopicData(currentTopicKey);
     }
 
     // 3. Reset Session Streak
@@ -2136,6 +2165,8 @@ window.startSmartSession = function(isExtra = false) {
 
     // 5. Gather Words from Current Topic
     let currentTopicData = allTopics[currentTopicKey];
+    if (!currentTopicData) return showToast("Lỗi dữ liệu chủ đề", "error");
+
     let allWordsCurrent = currentTopicData.words;
 
     // Filter New Candidates from Current Topic
@@ -2156,33 +2187,45 @@ window.startSmartSession = function(isExtra = false) {
         const deficit = maxNewToAdd - batchNew.length;
 
         if (deficit > 0) {
-            // Find Next Topic
-            const currentIdx = topicKeys.indexOf(currentTopicKey);
-            if (currentIdx !== -1 && currentIdx < topicKeys.length - 1) {
-                const nextKey = topicKeys[currentIdx + 1];
+            // Find Next Topic based on Metadata Index
+            const currentIdx = allTopicsMetadata.findIndex(f => f.name === currentTopicKey);
+            
+            if (currentIdx !== -1 && currentIdx < allTopicsMetadata.length - 1) {
+                const nextMeta = allTopicsMetadata[currentIdx + 1];
+                const nextKey = nextMeta.name;
+                
+                // --- ASYNC LOAD NEXT TOPIC ---
+                // Check cache, if not present, fetch it
+                if (!allTopics[nextKey]) {
+                    showToast(`Đang tải chủ đề tiếp theo: ${nextMeta.name}...`, "info");
+                    await loadTopicData(nextKey);
+                }
+
                 const nextTopicData = allTopics[nextKey];
                 
-                // Get words from next topic
-                const allWordsNext = nextTopicData.words;
-                const candidatesNewNext = allWordsNext.filter(w => {
-                    const k = getWordKey(w);
-                    return !masteredWords[k] && !srsData[k];
-                });
+                if (nextTopicData) {
+                    // Get words from next topic
+                    const allWordsNext = nextTopicData.words;
+                    const candidatesNewNext = allWordsNext.filter(w => {
+                        const k = getWordKey(w);
+                        return !masteredWords[k] && !srsData[k];
+                    });
 
-                if (candidatesNewNext.length > 0) {
-                    // Take needed amount
-                    const nextTakeCount = Math.min(deficit, candidatesNewNext.length);
-                    const batchNext = candidatesNewNext.slice(0, nextTakeCount);
-                    
-                    batchNew = [...batchNew, ...batchNext];
+                    if (candidatesNewNext.length > 0) {
+                        // Take needed amount
+                        const nextTakeCount = Math.min(deficit, candidatesNewNext.length);
+                        const batchNext = candidatesNewNext.slice(0, nextTakeCount);
+                        
+                        batchNew = [...batchNew, ...batchNext];
 
-                    // UPDATE CURRENT TOPIC KEY
-                    currentTopicKey = nextKey;
-                    localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
-                    saveProgressToCloud();
-                    
-                    showToast(`Đã học hết chủ đề cũ, đang chuyển sang: ${nextTopicData.name}`, "success");
-                    renderDashboard(); // Update UI
+                        // UPDATE CURRENT TOPIC KEY
+                        currentTopicKey = nextKey;
+                        localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
+                        saveProgressToCloud();
+                        
+                        showToast(`Đã chuyển sang chủ đề: ${nextTopicData.name}`, "success");
+                        renderDashboard(); // Update UI
+                    }
                 }
             }
         }
@@ -2191,9 +2234,6 @@ window.startSmartSession = function(isExtra = false) {
     // 7. Get Review Words (From the original current topic logic usually, or globally)
     // Here we stick to filtering from `allWordsCurrent` to keep it simple for this session,
     // as SRS data is keyed globally anyway.
-    // If we switched topics, next session will pull reviews from new topic context if strictly scoped, 
-    // but usually SRS should be global. In this code structure, `allLearning` comes from `allWordsCurrent`.
-    // Let's keep it as is.
     let allLearningCurrent = allWordsCurrent.filter(w => {
         const k = getWordKey(w);
         return !masteredWords[k] && srsData[k];
@@ -2203,9 +2243,6 @@ window.startSmartSession = function(isExtra = false) {
     
     // 8. Check if Empty
     if(batchNew.length === 0 && batchReview.length === 0) {
-        // Edge case: if we are here, it means even after trying to switch, we found nothing.
-        // Or limits are hit and no reviews pending.
-        
         if(!isExtra && !config.ecoMode) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         playSound(SFX.WIN);
         showToast("Tuyệt vời! Bạn đã hoàn thành tất cả!", "success");
@@ -2237,12 +2274,13 @@ window.startSmartSession = function(isExtra = false) {
     decideSmartRender();
 }
 
-// --- NEW FEATURE: GLOBAL REVIEW ---
+// --- NEW FEATURE: GLOBAL REVIEW (OPTIMIZED FOR LAZY LOADING) ---
 window.startGlobalReview = function() {
-    // 1. Scan all topics for due words
+    // 1. Scan ONLY LOADED topics for due words to avoid crashing old devices
     let globalDueWords = [];
     const now = Date.now();
     
+    // Iterate keys of cache (allTopics), not metadata
     Object.keys(allTopics).forEach(topicKey => {
         const topic = allTopics[topicKey];
         topic.words.forEach(w => {
@@ -2259,7 +2297,7 @@ window.startGlobalReview = function() {
     if(globalDueWords.length === 0) {
         if(!config.ecoMode) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         playSound(SFX.WIN);
-        showToast('Bạn đã ôn sạch sẽ tất cả các chủ đề!', 'success');
+        showToast('Bạn đã ôn sạch sẽ các chủ đề đã tải!', 'success');
         return;
     }
 
@@ -3155,7 +3193,7 @@ window.handleQuiz = function(el, isCorrect) {
 }
 
 // --- UTILITIES ---
-window.startGame = function(mode) {
+window.startGame = async function(mode) {
     if(!currentUser) {
         if(trialCount > 3) {
              showToast("Hết phiên dùng thử. Đăng nhập để chơi!", "error");
@@ -3170,6 +3208,14 @@ window.startGame = function(mode) {
     if(audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
+
+    // Lazy load check
+    if (!allTopics[currentTopicKey]) {
+        showToast("Đang tải dữ liệu...", "info");
+        await loadTopicData(currentTopicKey);
+    }
+    
+    if (!allTopics[currentTopicKey]) return showToast("Không tải được dữ liệu chủ đề!", "error");
 
     playSound(SFX.POP);
     const allWords = allTopics[currentTopicKey].words;
@@ -3229,33 +3275,50 @@ function renderDashboard() {
 
     document.getElementById('dashTime').innerText = formatTime(accumulatedTime);
     updateUserPointsUI();
-    if(!currentTopicKey || !allTopics[currentTopicKey]) return;
+    
+    // Safety check for metadata/current topic
+    if(!currentTopicKey || !allTopicsMetadata.length) return;
+    
+    // Find name from metadata if content not loaded, else use content
+    let topicName = "(Đang tải...)";
+    const meta = allTopicsMetadata.find(f => f.name === currentTopicKey);
+    if(meta) {
+        topicName = meta.name.replace('.json','').replace(/_/g,' ');
+    }
+    if (allTopics[currentTopicKey]) {
+        topicName = allTopics[currentTopicKey].name;
+    }
+    document.getElementById('currentTopicName').innerText = topicName;
+    
+    // Stats calc: only works if data is loaded. If not loaded, stats are 0 or cached?
+    // For now, we only show stats for loaded topic or 0.
     const topic = allTopics[currentTopicKey];
-    document.getElementById('currentTopicName').innerText = topic.name;
     
     let cntNew=0, cntDue=0, cntMaster=0, cntLearned=0;
     const now = Date.now();
     
-    topic.words.forEach(w => {
-        const key = getWordKey(w);
-        if(masteredWords[key]) {
-            cntMaster++;
-            cntLearned++;
-        }
-        else if(srsData[key]) {
-            if(srsData[key].nextReview <= now) cntDue++;
-            cntLearned++;
-        } else {
-            cntNew++;
-        }
-    });
+    if (topic) {
+        topic.words.forEach(w => {
+            const key = getWordKey(w);
+            if(masteredWords[key]) {
+                cntMaster++;
+                cntLearned++;
+            }
+            else if(srsData[key]) {
+                if(srsData[key].nextReview <= now) cntDue++;
+                cntLearned++;
+            } else {
+                cntNew++;
+            }
+        });
+    }
     
     animateValue("statNew", parseInt(document.getElementById('statNew').innerText), cntNew, 1000);
     animateValue("statDue", parseInt(document.getElementById('statDue').innerText), cntDue, 1000);
     animateValue("statLearned", parseInt(document.getElementById('statLearned').innerText), cntLearned, 1000);
     animateValue("statMastered", parseInt(document.getElementById('statMastered').innerText), cntMaster, 1000);
 
-    // --- GLOBAL DUE CHECK ---
+    // --- GLOBAL DUE CHECK (Only check loaded topics) ---
     let globalDueCount = 0;
     Object.keys(allTopics).forEach(k => {
         allTopics[k].words.forEach(w => {
@@ -3301,9 +3364,17 @@ function renderDashboard() {
 }
 
 // --- NEW FUNCTION: WORD LIST POPUP ---
-window.openWordList = function(type) {
-    if(!currentTopicKey || !allTopics[currentTopicKey]) return;
+window.openWordList = async function(type) {
+    if(!currentTopicKey) return;
+    
+    // Ensure data loaded
+    if (!allTopics[currentTopicKey]) {
+        await loadTopicData(currentTopicKey);
+    }
+    
     const topic = allTopics[currentTopicKey];
+    if(!topic) return;
+
     const now = Date.now();
     
     let wordsToShow = [];
@@ -3458,7 +3529,7 @@ window.speakText = function(text, onEnd) {
                 window.speakFallback(text, onEnd);
             } else {
                  if(onEnd) onEnd();
-            }
+        }
         });
     }
 }
@@ -3502,6 +3573,7 @@ function animateValue(id, start, end, duration) {
     }, Math.max(stepTime, 50));
 }
 
+// Render Topic List based on Metadata
 function renderTopicList() {
     const list = document.getElementById('topicList');
     list.innerHTML = '';
@@ -3516,7 +3588,7 @@ function renderTopicList() {
         repoControls.style.display = 'none';
     }
 
-    // Calculate Global Repository Stats
+    // Calculate Global Repository Stats (Only for LOADED topics)
     let totalRepoWords = 0;
     let totalRepoLearned = 0;
 
@@ -3532,19 +3604,31 @@ function renderTopicList() {
     const repoPercent = totalRepoWords > 0 ? Math.floor((totalRepoLearned / totalRepoWords) * 100) : 0;
     
     // Update Stats UI
-    animateValue("repoTotalWords", parseInt(document.getElementById('repoTotalWords').innerText), totalRepoWords, 800);
-    animateValue("repoLearned", parseInt(document.getElementById('repoLearned').innerText), totalRepoLearned, 800);
-    animateValue("repoPercent", parseInt(document.getElementById('repoPercent').innerText), repoPercent, 800);
+    animateValue("repoTotalWords", parseInt(document.getElementById('repoTotalWords').innerText) || 0, totalRepoWords, 800);
+    animateValue("repoLearned", parseInt(document.getElementById('repoLearned').innerText) || 0, totalRepoLearned, 800);
+    animateValue("repoPercent", parseInt(document.getElementById('repoPercent').innerText) || 0, repoPercent, 800);
 
-    Object.keys(allTopics).forEach(key => {
-        const t = allTopics[key];
+    // Iterate Metadata to show full list
+    allTopicsMetadata.forEach(meta => {
+        const key = meta.name;
+        const isLoaded = !!allTopics[key];
+        const topicName = meta.name.replace('.json','').replace(/_/g,' ');
         
-        let learnedCount = 0;
-        t.words.forEach(w => {
-            const k = getWordKey(w);
-            if(masteredWords[k] || srsData[k]) learnedCount++;
-        });
-        const pct = t.words.length > 0 ? Math.floor((learnedCount / t.words.length) * 100) : 0;
+        let subText = "Chạm để tải về";
+        let pct = 0;
+        let progressWidth = 0;
+
+        if (isLoaded) {
+            const t = allTopics[key];
+            let learnedCount = 0;
+            t.words.forEach(w => {
+                const k = getWordKey(w);
+                if(masteredWords[k] || srsData[k]) learnedCount++;
+            });
+            pct = t.words.length > 0 ? Math.floor((learnedCount / t.words.length) * 100) : 0;
+            subText = `${t.words.length} thẻ &bull; Đã học ${pct}%`;
+            progressWidth = pct;
+        }
 
         const el = document.createElement('div');
         el.className = `glass-panel ${key===currentTopicKey ? 'animate__animated animate__pulse':''}`;
@@ -3555,23 +3639,33 @@ function renderTopicList() {
         el.innerHTML = `
             <div style="width:100%">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div style="font-weight:700; font-size:1.1rem;">${t.name}</div>
+                    <div style="font-weight:700; font-size:1.1rem;">
+                        ${topicName} 
+                        ${!isLoaded ? '<i class="fas fa-cloud-download-alt" style="opacity:0.5; font-size:0.9rem; margin-left:5px;"></i>' : ''}
+                    </div>
                     ${key===currentTopicKey ? '<i class="fas fa-check-circle" style="color:var(--success-color); font-size:1.2rem;"></i>' : ''}
                 </div>
                 <div style="display:flex; justify-content:space-between; font-size:0.75rem; opacity:0.7; margin-top:2px;">
-                    <span>${t.words.length} thẻ</span>
-                    <span>Đã học ${pct}%</span>
+                    <span>${subText}</span>
                 </div>
                 <div class="topic-progress-bg">
-                    <div class="topic-progress-fill" style="width:${pct}%"></div>
+                    <div class="topic-progress-fill" style="width:${progressWidth}%"></div>
                 </div>
             </div>
         `;
-        el.onclick = () => {
+        
+        // ASYNC Click Handler
+        el.onclick = async () => {
+            if (!isLoaded) {
+                showToast("Đang tải dữ liệu...", "info");
+                const loaded = await loadTopicData(key);
+                if (!loaded) return;
+            }
+            
             currentTopicKey = key;
             localStorage.setItem(getDataKey('fp_aurora_topic'), key);
             playSound(SFX.POP);
-            showToast("Đã chọn: " + t.name);
+            showToast("Đã chọn: " + topicName);
             saveProgressToCloud(); 
             window.navTo('view-home');
         };

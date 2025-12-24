@@ -2301,10 +2301,24 @@ window.startGlobalReview = function() {
         return;
     }
 
-    // 2. Shuffle
+    // --- REFACTORED LOGIC ---
+    // 2. Sort by Urgency (Most overdue first)
+    globalDueWords.sort((a, b) => {
+        const tA = srsData[getWordKey(a)].nextReview;
+        const tB = srsData[getWordKey(b)].nextReview;
+        return tA - tB;
+    });
+
+    // 3. Slice to Limit
+    const limit = config.reviewLimit || 20;
+    if (globalDueWords.length > limit) {
+        globalDueWords = globalDueWords.slice(0, limit);
+    }
+
+    // 4. Shuffle result
     globalDueWords.sort(() => Math.random() - 0.5);
 
-    // 3. Set Queue
+    // 5. Set Queue
     sessionQueue = globalDueWords;
     sessionIndex = 0;
     currentMode = 'smart';
@@ -2402,8 +2416,20 @@ window.processResult = function(isCorrect, skipNext = false) {
         window.sessionCorrectStreak = 0;
 
         playSound(SFX.WRONG);
-        data.level = 0;
-        data.interval = 0;
+        
+        // --- REFACTORED SOFT PUNISHMENT LOGIC ---
+        if (data.level > 1) {
+            // Decrease level by 2, keep interval at 40%
+            data.level = data.level - 2;
+            data.interval = Math.ceil(data.interval * 0.4);
+            if (data.interval < 1) data.interval = 1; // Minimum 1 day for next correct review
+        } else {
+            // Hard reset for low levels
+            data.level = 0;
+            data.interval = 0;
+        }
+
+        // Review immediately
         data.nextReview = Date.now(); 
         
         // --- LOGIC MỚI: Đếm số lần sai liên tiếp ---
@@ -2517,6 +2543,21 @@ function injectSilentWords(count) {
     
     // Update progress bar to reflect new total
     updateProgress();
+
+    // --- REFACTORED UX FEEDBACK ---
+    // 1. Visual Pulse
+    const bar = document.getElementById('gameProgressBar');
+    if(bar) {
+        bar.classList.add('animate__animated', 'animate__pulse');
+        // Clean up class after animation
+        setTimeout(() => {
+            bar.classList.remove('animate__animated', 'animate__pulse');
+        }, 1000);
+    }
+    
+    // 2. Toast
+    showToast(`Thưởng nóng: Thêm ${toAdd.length} từ mới vào bài!`, "success");
+    playSound(SFX.POP); 
 }
 
 function nextStep() {
@@ -2534,7 +2575,7 @@ function nextStep() {
                  if(window.sessionCorrectStreak >= 3) {
                      injectSilentWords(3); // Add 3 words
                      window.isReviewOnlySession = false; // Disable flag so it only happens once
-                     showToast("Bạn đang học rất tốt! Đã thêm 3 từ mới.", "success");
+                     // Toast moved inside injectSilentWords
                  }
             }
             // ------------------------------

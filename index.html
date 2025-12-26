@@ -975,7 +975,7 @@
         </button>
 
         <div style="margin-top:20px; font-size:0.8rem; opacity:0.6; text-align:center;">
-            Sound FX Engine v2.2 &bull; Realtime DB
+            Sound FX Engine v2.3 &bull; Realtime DB
         </div>
     </div>
   </div>
@@ -1078,6 +1078,10 @@ function stopGlobalAudio() {
         ttsPlayer.onerror = null;
     }
 }
+
+// --- GLOBAL VARIABLES (Session & Hints) ---
+window.isSessionActive = false; // Flag for offline-first sync optimization
+window.currentHintCount = 0;    // Counter for hint usage penalty
 
 // --- NEW GLOBALS ---
 // Language config is loaded before dailyTracking to ensure correct key
@@ -1320,8 +1324,14 @@ async function syncDataFromServer() {
     }
 }
 
-async function saveProgressToCloud() {
+async function saveProgressToCloud(force = false) {
     if(!currentUser) return;
+
+    // OFFLINE FIRST CHECK: If session is active and not forced, skip sync to reduce writes
+    if (window.isSessionActive && !force) {
+        console.log("Session active: Skipping cloud sync, saved to LS only.");
+        return;
+    }
     
     // Dynamic keys based on language
     const srsKey = `srsData_${currentLang}`;
@@ -1610,8 +1620,9 @@ function playSound(sfx) {
             playTone(783.99, 'sine', 0.6, now + 0.2, 0.2);
             break;
         case SFX.WRONG:
-            playTone(150, 'sawtooth', 0.4, now, 0.15);
-            playTone(140, 'sawtooth', 0.4, now + 0.1, 0.15);
+            // UPDATED: Softer wrong sound (triangle wave, sliding down, low freq)
+            playTone(140, 'triangle', 0.3, now, 0.2);
+            playTone(100, 'triangle', 0.4, now + 0.1, 0.2);
             break;
         case SFX.FLIP:
             playTone(800, 'triangle', 0.1, now, 0.05);
@@ -2162,6 +2173,9 @@ window.startSmartSession = async function(isExtra = false) {
         audioCtx.resume();
     }
 
+    // --- OFFLINE FIRST FLAG ---
+    window.isSessionActive = true;
+
     // Reset Global Flag
     window.isGlobalReviewSession = false;
 
@@ -2317,6 +2331,9 @@ window.startSmartSession = async function(isExtra = false) {
 
 // --- NEW FEATURE: GLOBAL REVIEW (OPTIMIZED FOR LAZY LOADING) ---
 window.startGlobalReview = function() {
+    // --- OFFLINE FIRST FLAG ---
+    window.isSessionActive = true;
+
     // 1. Scan ONLY LOADED topics for due words to avoid crashing old devices
     let globalDueWords = [];
     const now = Date.now();
@@ -2603,6 +2620,9 @@ function injectSilentWords(count) {
 }
 
 function nextStep() {
+    // RESET HINT COUNT ON NEW STEP
+    window.currentHintCount = 0;
+
     if(sessionIndex < sessionQueue.length - 1) {
         const content = document.getElementById('gameContent');
         content.classList.add('slide-out-left');
@@ -2651,6 +2671,10 @@ function nextStep() {
 }
 
 function renderSessionEnd() {
+    // OFFLINE FIRST SYNC: Session ended, reset flag and force sync
+    window.isSessionActive = false;
+    saveProgressToCloud(true);
+
     document.getElementById('gameContent').innerHTML = `
         <div class="glass-panel animate__animated animate__zoomIn" style="padding:30px; width:95%; max-width:400px; text-align:center;">
             <i class="fas fa-flag-checkered" style="font-size:3rem; color:#fbbf24; margin-bottom:15px;"></i>
@@ -2762,9 +2786,24 @@ window.flipCard = function() {
     playSound(SFX.FLIP);
 }
 
+// --- HELPER: PENALTY LOGIC ---
+function applyHintPenalty(key) {
+    let data = srsData[key];
+    if (data && data.level > 0) {
+        data.level = Math.max(0, data.level - 1);
+        data.interval = Math.ceil(data.interval / 2);
+        srsData[key] = data;
+        localStorage.setItem(getDataKey('fp_aurora_srs'), JSON.stringify(srsData));
+        showToast("Dùng 2 gợi ý: Đã bị trừ điểm quen thuộc!", "error");
+        // Note: No cloud save here because isSessionActive is likely true, so it hits LS only.
+    }
+}
+
 // --- SPELLING MODE ---
 function renderSpelling() {
     isProcessing = false;
+    window.currentHintCount = 0; // Explicit Reset
+
     const w = sessionQueue[sessionIndex];
     const target = w.english.trim();
     
@@ -2823,6 +2862,15 @@ function renderSpelling() {
 
 window.revealSpellingHint = function() {
     if(isProcessing) return;
+
+    // Hint Penalty Logic
+    window.currentHintCount++;
+    if(window.currentHintCount === 2) {
+        const w = sessionQueue[sessionIndex];
+        const key = getWordKey(w);
+        applyHintPenalty(key);
+    }
+
     const target = window.spellingTarget;
     let idx = window.spellingIdx;
     
@@ -3094,6 +3142,8 @@ window.checkSentence = function(correctSentence) {
 
 function renderFill() {
     isProcessing = false;
+    window.currentHintCount = 0; // Explicit Reset
+
     const w = sessionQueue[sessionIndex];
     const sentence = w.example || `The word is ${w.english}`;
     const hidden = sentence.replace(new RegExp(w.english, 'gi'), '_____');
@@ -3119,6 +3169,14 @@ function renderFill() {
 }
 
 window.showHint = function(ans) {
+    // Hint Penalty Logic
+    window.currentHintCount++;
+    if(window.currentHintCount === 2) {
+        const w = sessionQueue[sessionIndex];
+        const key = getWordKey(w);
+        applyHintPenalty(key);
+    }
+
     const inp = document.getElementById('fillInp');
     const currentVal = inp.value;
     if (currentVal.length < ans.length) {
@@ -3291,6 +3349,9 @@ window.startGame = async function(mode) {
     if(audioCtx.state === 'suspended') {
         audioCtx.resume();
     }
+
+    // --- OFFLINE FIRST FLAG ---
+    window.isSessionActive = true;
 
     // Lazy load check
     if (!allTopics[currentTopicKey]) {
@@ -3903,6 +3964,5 @@ function updateConfigUI() {
         .floating-home-btn { padding: 12px; border-radius: 50%; }
     }
 </style>
-<script type="module" src="/index.tsx"></script>
 </body>
 </html>

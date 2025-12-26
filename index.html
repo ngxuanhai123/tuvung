@@ -231,10 +231,11 @@
   /* --- FLASHCARD 3D --- */
   .scene { 
       width: 100%; 
-      /* Flexible height: minimum 300px, preferred 55% of viewport, max 550px */
-      height: clamp(300px, 55dvh, 550px); 
+      /* Updated height and margin as requested */
+      height: clamp(380px, 65dvh, 700px); 
       perspective: 1500px; 
       margin: 2dvh 0; 
+      margin-bottom: 40px; /* Added margin-bottom */
   }
   .card { width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); transform-style: preserve-3d; cursor: pointer; }
   .card.is-flipped { transform: rotateY(180deg); }
@@ -1070,6 +1071,23 @@ const imageCache = {}; // Cache for images to prevent reload
 const ttsPlayer = new Audio();
 let ttsUnlocked = false;
 
+// --- NEW HELPER: STOP GLOBAL AUDIO ---
+function stopGlobalAudio() {
+    // Stop Browser Native TTS
+    if (window.speechSynthesis) window.speechSynthesis.cancel();
+    
+    // Stop Google TTS Audio Object
+    if (ttsPlayer) {
+        ttsPlayer.pause();
+        ttsPlayer.currentTime = 0;
+        // Reset src to stop background loading
+        ttsPlayer.removeAttribute('src'); 
+        ttsPlayer.load(); 
+        ttsPlayer.onended = null;
+        ttsPlayer.onerror = null;
+    }
+}
+
 // --- NEW GLOBALS ---
 // Language config is loaded before dailyTracking to ensure correct key
 let currentLang = localStorage.getItem('fp_aurora_lang') || 'en';
@@ -1721,6 +1739,34 @@ function preloadImages() {
     }
 }
 
+// --- NEW HELPER: PRELOAD UPCOMING TOPICS ---
+async function preloadUpcomingTopics() {
+    if(!allTopicsMetadata || allTopicsMetadata.length === 0) return;
+    
+    const currentIdx = allTopicsMetadata.findIndex(f => f.name === currentTopicKey);
+    
+    // Load Next 3
+    for(let i=1; i<=3; i++) {
+        if(currentIdx + i < allTopicsMetadata.length) {
+            const meta = allTopicsMetadata[currentIdx + i];
+            if(!allTopics[meta.name]) {
+                console.log("Preloading next:", meta.name);
+                loadTopicData(meta.name);
+            }
+        }
+    }
+    
+    // Load 2 Random
+    for(let i=0; i<2; i++) {
+        const rnd = Math.floor(Math.random() * allTopicsMetadata.length);
+        const meta = allTopicsMetadata[rnd];
+        if(meta && !allTopics[meta.name]) {
+            console.log("Preloading random:", meta.name);
+            loadTopicData(meta.name);
+        }
+    }
+}
+
 // --- INITIALIZATION ---
 window.initApp = function() {
     // 3. Removed old event listeners for click/touchstart with {once:true} 
@@ -2090,6 +2136,10 @@ window.fetchTopics = async function(manual = false) {
 
         if(manual) showToast("Đồng bộ danh sách thành công!", "success");
         renderDashboard();
+
+        // --- TRIGGER PRELOAD (2S DELAY) ---
+        setTimeout(preloadUpcomingTopics, 2000);
+
     } catch(e) {
         console.error(e);
         status.innerText = "Offline Mode / Error";
@@ -2509,6 +2559,7 @@ function updateProgress() {
 }
 
 window.nextStep = function() {
+    stopGlobalAudio(); // STOP PREVIOUS AUDIO
     nextStep();
 }
 
@@ -3513,6 +3564,8 @@ window.unmarkMastered = function(wordEn) {
 }
 
 window.speakText = function(text, onEnd) {
+    stopGlobalAudio(); // Stop any previous sound immediately
+
     if(config.muted) {
         if(onEnd) setTimeout(onEnd, 500); 
         return;

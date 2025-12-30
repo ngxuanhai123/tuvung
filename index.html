@@ -2280,6 +2280,12 @@ window.saveGameConfig = function() {
 // --- GAME LOGIC START ---
 // Updated to handle Async Topic Loading
 window.startSmartSession = async function(isExtra = false) {
+    // --- Data Guard Check ---
+    if (!allTopicsMetadata || allTopicsMetadata.length === 0) {
+        showToast("Dữ liệu danh sách chưa tải xong. Vui lòng thử lại!", "error");
+        return;
+    }
+
     // 1. Validation (Login/Trial)
     if(!currentUser) {
         if(trialCount > 3) {
@@ -2313,10 +2319,16 @@ window.startSmartSession = async function(isExtra = false) {
              return showToast("Không có dữ liệu chủ đề!", "error");
          }
     }
+
+    // --- Fix: Load ALL data for comprehensive review ---
+    const missingTopics = allTopicsMetadata.filter(meta => !allTopics[meta.name]);
+    if(missingTopics.length > 0) {
+         showToast("Đang đồng bộ dữ liệu bài cũ...", "info");
+         await Promise.all(missingTopics.map(meta => loadTopicData(meta.name)));
+    }
     
     // Ensure data is loaded
     if (!allTopics[currentTopicKey]) {
-        showToast("Đang tải dữ liệu...", "info");
         await loadTopicData(currentTopicKey);
     }
 
@@ -2412,20 +2424,20 @@ window.startSmartSession = async function(isExtra = false) {
     }
 
     // 7. SỬA: Lấy từ cần ôn từ TẤT CẢ chủ đề (Global Review)
-let allLearningCurrent = [];
-const now = Date.now();
+    let allLearningCurrent = [];
+    const now = Date.now();
 
-// Duyệt qua tất cả chủ đề đã tải
-Object.keys(allTopics).forEach(topicKey => {
-    const topic = allTopics[topicKey];
-    topic.words.forEach(w => {
-        const k = getWordKey(w);
-        // Kiểm tra: Đã học (có srsData), Chưa thuộc lòng, và ĐÃ ĐẾN HẠN (nextReview <= now)
-        if (srsData[k] && !masteredWords[k] && srsData[k].nextReview <= now) {
-            allLearningCurrent.push(w);
-        }
+    // Duyệt qua tất cả chủ đề đã tải
+    Object.keys(allTopics).forEach(topicKey => {
+        const topic = allTopics[topicKey];
+        topic.words.forEach(w => {
+            const k = getWordKey(w);
+            // Kiểm tra: Đã học (có srsData), Chưa thuộc lòng, và ĐÃ ĐẾN HẠN (nextReview <= now)
+            if (srsData[k] && !masteredWords[k] && srsData[k].nextReview <= now) {
+                allLearningCurrent.push(w);
+            }
+        });
     });
-  }
   
     allLearningCurrent.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
     const batchReview = allLearningCurrent.slice(0, config.reviewLimit);
@@ -2468,13 +2480,6 @@ window.startGlobalReview = async function() {
     // --- OFFLINE FIRST FLAG ---
     window.isSessionActive = true;
     sessionPoints = 0; // Reset session points
-    // ---  ---
-    const missingTopics = allTopicsMetadata.filter(meta => !allTopics[meta.name]);
-    if(missingTopics.length > 0) {
-        showToast("Đang tải dữ liệu các bài cũ...", "info");
-        // Tải ngầm tất cả các bài chưa có trong bộ nhớ
-        await Promise.all(missingTopics.map(meta => loadTopicData(meta.name)));
-    }
     // ------------------------------------------------------------------
     // 1. UPDATED: Ensure ALL topics are loaded
     showToast("Đang tải toàn bộ dữ liệu...", "info");
@@ -2737,60 +2742,10 @@ function updateProgress() {
     document.getElementById('gameProgressBar').style.width = `${pct}%`;
 }
 
+// FIXED: Infinite Loop Logic in NextStep
 window.nextStep = function() {
     stopGlobalAudio(); // STOP PREVIOUS AUDIO
-    nextStep();
-}
-
-function injectSilentWords(count) {
-    if(!currentTopicKey || !allTopics[currentTopicKey]) return;
-    const allWords = allTopics[currentTopicKey].words;
     
-    // Get set of words already in queue to avoid duplicates
-    const inQueue = new Set(sessionQueue.map(w => getWordKey(w)));
-    
-    // Filter potential new words
-    let candidates = allWords.filter(w => {
-        const k = getWordKey(w);
-        return !masteredWords[k] && !srsData[k] && !inQueue.has(k);
-    });
-    
-    if(candidates.length === 0) return;
-    
-    // Take top N candidates
-    const toAdd = candidates.slice(0, count);
-    
-    // Add to sessionQueue
-    toAdd.forEach(w => sessionQueue.push(w));
-    
-    // Preload images
-    toAdd.forEach(w => {
-        fetchPexelsImage(w.english).then(url => {
-            const img = new Image();
-            img.src = url;
-        });
-    });
-    
-    // Update progress bar to reflect new total
-    updateProgress();
-
-    // --- REFACTORED UX FEEDBACK ---
-    // 1. Visual Pulse
-    const bar = document.getElementById('gameProgressBar');
-    if(bar && !config.ecoMode) {
-        bar.classList.add('animate__animated', 'animate__pulse');
-        // Clean up class after animation
-        setTimeout(() => {
-            bar.classList.remove('animate__animated', 'animate__pulse');
-        }, 1000);
-    }
-    
-    // 2. Toast
-    showToast(`Thưởng nóng: Thêm ${toAdd.length} từ mới vào bài!`, "success");
-    playSound(SFX.POP); 
-}
-
-function nextStep() {
     // RESET HINT COUNT ON NEW STEP
     window.currentHintCount = 0;
 
@@ -2842,6 +2797,54 @@ function nextStep() {
         if(!config.ecoMode) confetti({ particleCount: 300, spread: 100, origin: { y: 0.6 } });
         renderSessionEnd();
     }
+}
+
+function injectSilentWords(count) {
+    if(!currentTopicKey || !allTopics[currentTopicKey]) return;
+    const allWords = allTopics[currentTopicKey].words;
+    
+    // Get set of words already in queue to avoid duplicates
+    const inQueue = new Set(sessionQueue.map(w => getWordKey(w)));
+    
+    // Filter potential new words
+    let candidates = allWords.filter(w => {
+        const k = getWordKey(w);
+        return !masteredWords[k] && !srsData[k] && !inQueue.has(k);
+    });
+    
+    if(candidates.length === 0) return;
+    
+    // Take top N candidates
+    const toAdd = candidates.slice(0, count);
+    
+    // Add to sessionQueue
+    toAdd.forEach(w => sessionQueue.push(w));
+    
+    // Preload images
+    toAdd.forEach(w => {
+        fetchPexelsImage(w.english).then(url => {
+            const img = new Image();
+            img.src = url;
+        });
+    });
+    
+    // Update progress bar to reflect new total
+    updateProgress();
+
+    // --- REFACTORED UX FEEDBACK ---
+    // 1. Visual Pulse
+    const bar = document.getElementById('gameProgressBar');
+    if(bar && !config.ecoMode) {
+        bar.classList.add('animate__animated', 'animate__pulse');
+        // Clean up class after animation
+        setTimeout(() => {
+            bar.classList.remove('animate__animated', 'animate__pulse');
+        }, 1000);
+    }
+    
+    // 2. Toast
+    showToast(`Thưởng nóng: Thêm ${toAdd.length} từ mới vào bài!`, "success");
+    playSound(SFX.POP); 
 }
 
 // UPDATED: Enhanced Session End UI with Buttons

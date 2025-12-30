@@ -2425,6 +2425,8 @@ Object.keys(allTopics).forEach(topicKey => {
             allLearningCurrent.push(w);
         }
     });
+  }
+  
     allLearningCurrent.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
     const batchReview = allLearningCurrent.slice(0, config.reviewLimit);
     

@@ -2411,12 +2411,19 @@ window.startSmartSession = async function(isExtra = false) {
         }
     }
 
-    // 7. Get Review Words (From the original current topic logic usually, or globally)
-    // Here we stick to filtering from `allWordsCurrent` to keep it simple for this session,
-    // as SRS data is keyed globally anyway.
-    let allLearningCurrent = allWordsCurrent.filter(w => {
+    // 7. SỬA: Lấy từ cần ôn từ TẤT CẢ chủ đề (Global Review)
+let allLearningCurrent = [];
+const now = Date.now();
+
+// Duyệt qua tất cả chủ đề đã tải
+Object.keys(allTopics).forEach(topicKey => {
+    const topic = allTopics[topicKey];
+    topic.words.forEach(w => {
         const k = getWordKey(w);
-        return !masteredWords[k] && srsData[k];
+        // Kiểm tra: Đã học (có srsData), Chưa thuộc lòng, và ĐÃ ĐẾN HẠN (nextReview <= now)
+        if (srsData[k] && !masteredWords[k] && srsData[k].nextReview <= now) {
+            allLearningCurrent.push(w);
+        }
     });
     allLearningCurrent.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
     const batchReview = allLearningCurrent.slice(0, config.reviewLimit);

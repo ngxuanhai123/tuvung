@@ -3436,12 +3436,23 @@ window.checkFill = function(ans) {
 }
 
 function setupMatching() {
-    const subset = sessionQueue.slice(0, 4);
-    if(subset.length < 2) { showToast("Cần tối thiểu 2 từ!", "error"); window.closeGame(); return; }
-    sessionQueue = subset;
+    // 1. Tính số từ còn lại trong hàng đợi tính từ vị trí hiện tại
+    const remaining = sessionQueue.length - sessionIndex;
+    
+    // Nếu còn ít hơn 2 từ thì không ghép thẻ được -> Chuyển về Flashcard
+    if (remaining < 2) {
+        renderFlashcard();
+        return;
+    }
+
+    // 2. Lấy tối đa 4 từ tiếp theo (KHÔNG CẮT sessionQueue)
+    const count = Math.min(remaining, 4);
+    // Slice chỉ lấy bản sao, không ảnh hưởng mảng gốc
+    const subset = sessionQueue.slice(sessionIndex, sessionIndex + count);
     
     let items = [];
     subset.forEach((w, i) => {
+        // i là index cục bộ (0, 1, 2, 3), dùng để định danh cặp trong game
         items.push({ txt: w.english, id: i, type: 'en' });
         items.push({ txt: w.vietnamese, id: i, type: 'vn' });
     });
@@ -3452,8 +3463,16 @@ function setupMatching() {
         html += `<div class="match-card" id="m-${idx}" onclick="window.matchClick(${idx}, ${item.id})">${item.txt}</div>`;
     });
     html += `</div>`;
+    
     document.getElementById('gameContent').innerHTML = html;
-    window.matchState = { selected: null, solved: 0, total: subset.length };
+    
+    // 3. Lưu thêm 'wordsInGame' vào state để tí nữa update điểm
+    window.matchState = { 
+        selected: null, 
+        solved: 0, 
+        total: subset.length,
+        wordsInGame: subset // <--- Quan trọng: Lưu danh sách từ đang chơi
+    };
 }
 
 window.matchClick = function(idx, id) {
@@ -3474,6 +3493,7 @@ window.matchClick = function(idx, id) {
         }
         
         if(state.selected.id === id) { 
+            // --- ĐÚNG ---
             playSound(SFX.CORRECT);
             el.classList.add('correct');
             state.selected.el.classList.add('correct');
@@ -3481,10 +3501,40 @@ window.matchClick = function(idx, id) {
             state.selected = null;
             addPoints(5); 
             
+            // --- KIỂM TRA THẮNG GAME ---
             if(state.solved === state.total) {
-                setTimeout(() => { showToast("Hoàn thành xuất sắc!", "success"); window.closeGame(); }, 1000);
+                
+                // LOGIC PHỐI HỢP VỚI SMART MODE
+                if (currentMode === 'smart') {
+                    showToast("Hoàn thành xuất sắc!", "success");
+                    
+                    // 1. Cập nhật SRS cho tất cả các từ trong lô này
+                    state.wordsInGame.forEach(w => {
+                        // Gọi hàm cập nhật ngầm
+                        window.silentUpdateSRS(w);
+                    });
+                    
+                    // 2. Nhảy cóc Index
+                    // Ví dụ: Chơi 4 từ. Ta cần nhảy qua 3 từ tiếp theo 
+                    // (vì hàm nextStep sẽ tự cộng thêm 1)
+                    sessionIndex += (state.total - 1);
+                    
+                    // 3. Chuyển sang bài tiếp theo sau 1s
+                    setTimeout(() => {
+                        isProcessing = false;
+                        nextStep(); // Tự động sang từ mới tiếp theo
+                    }, 1000);
+
+                } else {
+                    // Chế độ chơi Game thường (từ Menu) -> Đóng game
+                    setTimeout(() => { 
+                        showToast("Hoàn thành xuất sắc!", "success"); 
+                        window.closeGame(); 
+                    }, 1000);
+                }
             }
         } else {
+            // --- SAI ---
             playSound(SFX.WRONG);
             el.classList.add('wrong');
             state.selected.el.classList.add('wrong');
@@ -4170,6 +4220,35 @@ function updateConfigUI() {
     document.getElementById('dispBrightness').innerText = config.brightness + '%';
     document.getElementById('cfgVoiceGoogle').checked = (config.voiceEngine === 'google');
     document.getElementById('cfgSfx').checked = config.sfxEnabled;
+}
+
+// Hàm cập nhật SRS ngầm (cho chế độ Matching/Batch processing)
+window.silentUpdateSRS = function(w) {
+    const key = getWordKey(w);
+    let data = srsData[key] || { interval: 0, level: 0, nextReview: 0, consecutiveWrongs: 0 };
+    
+    // Logic tăng cấp (Giống processResult true)
+    data.consecutiveWrongs = 0;
+    let multiplier = data.isHard ? 1.5 : 2.5;
+    if(data.level === 0) data.interval = 1; 
+    else if(data.level === 1) data.interval = 3; 
+    else data.interval = Math.ceil(data.interval * multiplier);
+    
+    data.isHard = false;
+    data.level++;
+    data.nextReview = Date.now() + (data.interval * 24 * 3600 * 1000);
+    
+    srsData[key] = data;
+    
+    // Lưu tạm thời (chưa cần save cloud ngay để đỡ lag)
+    localStorage.setItem(getDataKey('fp_aurora_srs'), JSON.stringify(srsData));
+    
+    // Tracking điểm & daily
+    addPoints(10);
+    // Nếu là từ mới thì tăng daily count
+    if (!masteredWords[key] && !srsData[key]) { // Logic check hơi khó vì srsData vừa update
+        // (Optional daily limit logic can be added here if needed)
+    }
 }
 </script>
 <a href="https://ngxuanhai123.github.io/" class="floating-home-btn">

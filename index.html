@@ -2432,13 +2432,22 @@ window.startSmartSession = async function(isExtra = false) {
         const topic = allTopics[topicKey];
         topic.words.forEach(w => {
             const k = getWordKey(w);
-            // Kiểm tra: Đã học (có srsData), Chưa thuộc lòng, và ĐÃ ĐẾN HẠN (nextReview <= now)
-            if (srsData[k] && !masteredWords[k] && srsData[k].nextReview <= now) {
-                allLearningCurrent.push(w);
+            // Kiểm tra: Đã học (có srsData) và Chưa thuộc lòng
+            if (srsData[k] && !masteredWords[k]) {
+                const data = srsData[k];
+                // YÊU CẦU 1: nextReview <= now HOẶC level <= 3
+                if (data.nextReview <= now || data.level <= 3) {
+                    allLearningCurrent.push(w);
+                }
             }
         });
     });
   
+    // YÊU CẦU 2: Nếu có bài ôn, ưu tiên ôn tập hoàn toàn (batchNew = [])
+    if (allLearningCurrent.length > 0) {
+        batchNew = [];
+    }
+
     allLearningCurrent.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
     const batchReview = allLearningCurrent.slice(0, config.reviewLimit);
     

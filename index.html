@@ -2466,7 +2466,14 @@ window.startGlobalReview = async function() {
     // --- OFFLINE FIRST FLAG ---
     window.isSessionActive = true;
     sessionPoints = 0; // Reset session points
-
+    // ---  ---
+    const missingTopics = allTopicsMetadata.filter(meta => !allTopics[meta.name]);
+    if(missingTopics.length > 0) {
+        showToast("Đang tải dữ liệu các bài cũ...", "info");
+        // Tải ngầm tất cả các bài chưa có trong bộ nhớ
+        await Promise.all(missingTopics.map(meta => loadTopicData(meta.name)));
+    }
+    // ------------------------------------------------------------------
     // 1. UPDATED: Ensure ALL topics are loaded
     showToast("Đang tải toàn bộ dữ liệu...", "info");
     

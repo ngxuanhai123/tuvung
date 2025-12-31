@@ -4309,13 +4309,16 @@ function updateConfigUI() {
     document.getElementById('cfgVoiceGoogle').checked = (config.voiceEngine === 'google');
     document.getElementById('cfgSfx').checked = config.sfxEnabled;
 }
-
 // Hàm cập nhật SRS ngầm (cho chế độ Matching/Batch processing)
 window.silentUpdateSRS = function(w) {
     const key = getWordKey(w);
+    
+    // --- KHẮC PHỤC: Kiểm tra xem có phải từ mới không TRƯỚC KHI gán data ---
+    const wasNew = !masteredWords[key] && !srsData[key];
+
     let data = srsData[key] || { interval: 0, level: 0, nextReview: 0, consecutiveWrongs: 0 };
     
-    // Logic tăng cấp (Giống processResult true)
+    // Logic tăng cấp
     data.consecutiveWrongs = 0;
     let multiplier = data.isHard ? 1.5 : 2.5;
     if(data.level === 0) data.interval = 1; 
@@ -4328,14 +4331,17 @@ window.silentUpdateSRS = function(w) {
     
     srsData[key] = data;
     
-    // Lưu tạm thời (chưa cần save cloud ngay để đỡ lag)
+    // Lưu tạm thời
     localStorage.setItem(getDataKey('fp_aurora_srs'), JSON.stringify(srsData));
     
-    // Tracking điểm & daily
+    // Tracking điểm
     addPoints(10);
-    // Nếu là từ mới thì tăng daily count
-    if (!masteredWords[key] && !srsData[key]) { // Logic check hơi khó vì srsData vừa update
-        // (Optional daily limit logic can be added here if needed)
+
+    // --- KHẮC PHỤC: Tăng biến đếm ngày nếu đây là từ mới ---
+    if (wasNew) { 
+        checkDailyLimit(); 
+        dailyTracking.count++;
+        localStorage.setItem(`fp_aurora_daily_${currentLang}`, JSON.stringify(dailyTracking));
     }
 }
 </script>

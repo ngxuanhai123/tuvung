@@ -2354,22 +2354,10 @@ window.startSmartSession = async function(isExtra = false) {
     config.newLimit = parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5);
     config.reviewLimit = parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20);
 
-    // 4. Daily Limit Logic
+    // 4. Daily Limit Logic (Keep for tracking/stats, but override logic later)
     checkDailyLimit();
     let limitNew = config.newLimit;
     let learnedToday = dailyTracking.count;
-    let maxNewToAdd = 0;
-
-    if (learnedToday >= limitNew) {
-        // If limit reached, only allow more if user explicitly clicked 'Learn More' (override)
-        if(isExtra) maxNewToAdd = Math.ceil(limitNew * 0.5);
-        else maxNewToAdd = 0;
-    } else {
-        // If limit not reached, allow remaining.
-        maxNewToAdd = limitNew - learnedToday;
-        // If user explicitly clicked 'Learn More', add extra buffer
-        if(isExtra) maxNewToAdd += Math.ceil(limitNew * 0.5);
-    }
 
     // 5. Gather Words from Current Topic
     let currentTopicData = allTopics[currentTopicKey];
@@ -2383,7 +2371,45 @@ window.startSmartSession = async function(isExtra = false) {
         return !masteredWords[k] && !srsData[k];
     });
 
-    // 6. Logic for Fetching New Words (Auto-Advance)
+    // --- LOGIC REORDER: Calculate Reviews FIRST to determine Drip Feeding ---
+    
+    // 6. Gather Reviews from ALL topics (Global Review)
+    let allLearningCurrent = [];
+    const now = Date.now();
+
+    Object.keys(allTopics).forEach(topicKey => {
+        const topic = allTopics[topicKey];
+        topic.words.forEach(w => {
+            const k = getWordKey(w);
+            // Check: Learned (has srsData) and Not Mastered
+            if (srsData[k] && !masteredWords[k]) {
+                const data = srsData[k];
+                // CONDITION: nextReview <= now OR level <= 3
+                if (data.nextReview <= now || data.level <= 3) {
+                    allLearningCurrent.push(w);
+                }
+            }
+        });
+    });
+
+    // Sort by review time
+    allLearningCurrent.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
+    const batchReview = allLearningCurrent.slice(0, config.reviewLimit);
+
+    // 7. DRIP FEED LOGIC: Determine New Words
+    let maxNewToAdd = 0;
+
+    // Only fetch new words upfront if NO REVIEWS are pending (to avoid empty session)
+    if (batchReview.length === 0) {
+        maxNewToAdd = 5; // Starter pack
+    } else {
+        maxNewToAdd = 0; // Prioritize Reviews
+    }
+
+    // Override if user clicked "Learn More"
+    if(isExtra) maxNewToAdd = 3;
+
+    // 8. Fetch New Words based on calculated maxNewToAdd
     let batchNew = [];
     
     if (candidatesNewCurrent.length >= maxNewToAdd) {
@@ -2403,7 +2429,6 @@ window.startSmartSession = async function(isExtra = false) {
                 const nextKey = nextMeta.name;
                 
                 // --- ASYNC LOAD NEXT TOPIC ---
-                // Check cache, if not present, fetch it
                 if (!allTopics[nextKey]) {
                     showToast(`Đang tải chủ đề tiếp theo: ${nextMeta.name}...`, "info");
                     await loadTopicData(nextKey);
@@ -2429,7 +2454,6 @@ window.startSmartSession = async function(isExtra = false) {
                         // UPDATE CURRENT TOPIC KEY
                         currentTopicKey = nextKey;
                         localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
-                        // Save to cloud is deferred to end of session
                         
                         showToast(`Đã chuyển sang chủ đề: ${nextTopicData.name}`, "success");
                         renderDashboard(); // Update UI
@@ -2438,36 +2462,8 @@ window.startSmartSession = async function(isExtra = false) {
             }
         }
     }
-
-    // 7. SỬA: Lấy từ cần ôn từ TẤT CẢ chủ đề (Global Review)
-    let allLearningCurrent = [];
-    const now = Date.now();
-
-    // Duyệt qua tất cả chủ đề đã tải
-    Object.keys(allTopics).forEach(topicKey => {
-        const topic = allTopics[topicKey];
-        topic.words.forEach(w => {
-            const k = getWordKey(w);
-            // Kiểm tra: Đã học (có srsData) và Chưa thuộc lòng
-            if (srsData[k] && !masteredWords[k]) {
-                const data = srsData[k];
-                // YÊU CẦU 1: nextReview <= now HOẶC level <= 3
-                if (data.nextReview <= now || data.level <= 3) {
-                    allLearningCurrent.push(w);
-                }
-            }
-        });
-    });
-  
-    // YÊU CẦU 2: Nếu có bài ôn, ưu tiên ôn tập hoàn toàn (batchNew = [])
-    if (allLearningCurrent.length > 0) {
-        batchNew = [];
-    }
-
-    allLearningCurrent.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
-    const batchReview = allLearningCurrent.slice(0, config.reviewLimit);
     
-    // 8. Check if Empty
+    // 9. Check if Empty
     if(batchNew.length === 0 && batchReview.length === 0) {
         if(!config.ecoMode) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         playSound(SFX.WIN);
@@ -2475,7 +2471,7 @@ window.startSmartSession = async function(isExtra = false) {
         return;
     }
 
-    // 9. Construct Queue
+    // 10. Construct Queue
     window.isReviewOnlySession = (batchNew.length === 0 && batchReview.length > 0);
 
     showToast(`Bắt đầu: ${batchNew.length} từ mới + ${batchReview.length} ôn tập`, "info");
@@ -2797,20 +2793,20 @@ window.nextStep = function() {
         setTimeout(() => {
             if (document.getElementById('gameOverlay').style.display === 'none') return;
 
-            sessionIndex++;
-            
-            // --- SILENT INJECTION LOGIC ---
-            // New Condition: Inject if streak of 3 correct answers in a review-only session
-            // Prevent injection if global review session
-            if(currentMode === 'smart' && window.isReviewOnlySession && !window.isGlobalReviewSession && sessionIndex === 3) {
-                 if(window.sessionCorrectStreak >= 3) {
-                     injectSilentWords(3); // Add 3 words
-                     window.isReviewOnlySession = false; // Disable flag so it only happens once
-                     // Toast moved inside injectSilentWords
-                 }
+            // --- DRIP FEED INJECTION START (Logic mới) ---
+            if (window.sessionCorrectStreak > 0 && window.sessionCorrectStreak % 3 === 0) {
+                let currentDailyCount = dailyTracking.count; // Số từ đã học hôm nay
+                let dailyGoal = config.newLimit;
+                
+                // Chỉ thêm nếu chưa đạt mục tiêu (hoặc nới lỏng nếu muốn)
+                if (currentDailyCount < dailyGoal) {
+                    injectSilentWords(1); 
+                    // Toast thông báo đã có trong injectSilentWords
+                }
             }
-            // ------------------------------
-            
+            // --- DRIP FEED INJECTION END ---
+
+            sessionIndex++;
             updateProgress();
             preloadImages(); // Preload next images
             

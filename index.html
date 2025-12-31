@@ -4344,6 +4344,18 @@ window.silentUpdateSRS = function(w) {
         localStorage.setItem(`fp_aurora_daily_${currentLang}`, JSON.stringify(dailyTracking));
     }
 }
+  // --- KHỞI ĐỘNG ỨNG DỤNG AN TOÀN (BẮT BUỘC THÊM) ---
+// Đợi trình duyệt tải xong hết module rồi mới chạy initApp
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(window.initApp, 100));
+} else {
+    setTimeout(window.initApp, 100);
+}
+
+// Bắt lỗi toàn cục
+window.onerror = function(msg, url, line) {
+    console.error("Lỗi hệ thống: " + msg);
+};
 </script>
 <a href="https://ngxuanhai123.github.io/" class="floating-home-btn">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

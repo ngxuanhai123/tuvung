@@ -3473,23 +3473,40 @@ window.checkFill = function(ans) {
 
 function setupMatching() {
     isProcessing = false;
-    // 1. Tính số từ còn lại trong hàng đợi tính từ vị trí hiện tại
+    
+    // Logic look-ahead (Fix 1: Avoid Duplicates)
     const remaining = sessionQueue.length - sessionIndex;
     
-    // Nếu còn ít hơn 2 từ thì không ghép thẻ được -> Chuyển về Flashcard
+    // Fallback standard
     if (remaining < 2) {
         renderFlashcard();
         return;
     }
 
-    // 2. Lấy tối đa 4 từ tiếp theo (KHÔNG CẮT sessionQueue)
-    const count = Math.min(remaining, 4);
-    // Slice chỉ lấy bản sao, không ảnh hưởng mảng gốc
-    const subset = sessionQueue.slice(sessionIndex, sessionIndex + count);
+    // Look ahead to find unique words
+    const lookAhead = Math.min(remaining, 8);
+    const subsetRaw = sessionQueue.slice(sessionIndex, sessionIndex + lookAhead);
+    
+    const subset = [];
+    const seen = new Set();
+    
+    for (const w of subsetRaw) {
+        const k = getWordKey(w);
+        if (!seen.has(k) && subset.length < 4) {
+            seen.add(k);
+            subset.push(w);
+        }
+    }
+
+    // Check if we have enough unique words
+    if (subset.length < 2) {
+        renderFlashcard();
+        return;
+    }
     
     let items = [];
     subset.forEach((w, i) => {
-        // i là index cục bộ (0, 1, 2, 3), dùng để định danh cặp trong game
+        // i represents the index in the subset (0..3), used as ID to match
         items.push({ txt: w.english, id: i, type: 'en' });
         items.push({ txt: w.vietnamese, id: i, type: 'vn' });
     });
@@ -3503,12 +3520,11 @@ function setupMatching() {
     
     document.getElementById('gameContent').innerHTML = html;
     
-    // 3. Lưu thêm 'wordsInGame' vào state để tí nữa update điểm
     window.matchState = { 
         selected: null, 
         solved: 0, 
         total: subset.length,
-        wordsInGame: subset // <--- Quan trọng: Lưu danh sách từ đang chơi
+        wordsInGame: subset 
     };
 }
 
@@ -3691,6 +3707,13 @@ window.startGame = async function(mode) {
             showToast("Trò chơi chỉ dành cho từ đã học! Hãy học Flashcard trước.", "error");
             return;
         }
+
+        // --- FIX 2: Check specifically for matching mode ---
+        if (mode === 'matching' && candidates.length < 2) {
+             showToast("Cần ít nhất 2 từ đã học để chơi Ghép thẻ!", "error");
+             return;
+        }
+        // --------------------------------------------------
     }
     // -----------------------------------------------------------------------------------
     

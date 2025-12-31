@@ -3656,6 +3656,7 @@ window.handleQuiz = function(el, isCorrect) {
 window.startGame = async function(mode) {
     cleanupGameResources();
 
+    // 1. Kiểm tra đăng nhập và dùng thử
     if(!currentUser) {
         if(trialCount > 3) {
              showToast("Hết phiên dùng thử. Đăng nhập để chơi!", "error");
@@ -3664,77 +3665,104 @@ window.startGame = async function(mode) {
              return;
         }
     }
-    if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
     
-    // FIX: Ensure AudioContext is running immediately on button click
+    // 2. Kích hoạt AudioContext (Fix lỗi mất tiếng trên iOS/Chrome)
     if(audioCtx.state === 'suspended') {
         try { await audioCtx.resume(); } catch(e) {}
     }
 
-    // --- OFFLINE FIRST FLAG ---
+    // --- CỜ OFFLINE FIRST ---
     window.isSessionActive = true;
-    sessionPoints = 0; // Reset session points
+    sessionPoints = 0; 
 
-    // Lazy load check
-    if (!allTopics[currentTopicKey]) {
-        showToast("Đang tải dữ liệu...", "info");
-        await loadTopicData(currentTopicKey);
+    // 3. Tải dữ liệu chủ đề
+    // Nếu là Flashcard: Chỉ cần tải chủ đề hiện tại
+    if (mode === 'flashcard_all') {
+        if (currentTopicKey && !allTopics[currentTopicKey]) {
+            showToast("Đang tải dữ liệu...", "info");
+            await loadTopicData(currentTopicKey);
+        }
+        if (currentTopicKey && !allTopics[currentTopicKey]) return showToast("Không tải được dữ liệu chủ đề!", "error");
+    } 
+    // Nếu là Game (Matching, Quiz...): Tự động tải bù tất cả chủ đề cũ để có vốn từ
+    else {
+        // Tìm các chủ đề chưa được tải
+        const missingTopics = allTopicsMetadata.filter(meta => !allTopics[meta.name]);
+        if(missingTopics.length > 0) {
+            showToast(`Đang tải dữ liệu từ ${missingTopics.length} chủ đề cũ...`, "info");
+            // Tải song song tất cả
+            await Promise.all(missingTopics.map(meta => loadTopicData(meta.name)));
+        }
     }
-    
-    if (!allTopics[currentTopicKey]) return showToast("Không tải được dữ liệu chủ đề!", "error");
 
     playSound(SFX.POP);
-    const allWords = allTopics[currentTopicKey].words;
-    
+
     config.newLimit = parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5);
     config.reviewLimit = parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20);
     const totalLimit = config.newLimit + config.reviewLimit;
     
-    let candidates = [...allWords];
+    // Khởi tạo hàng đợi
+    let localQueue = [];
 
-    // --- GAME RESTRICTION: Only 'learned' words allowed for games (except flashcards) ---
-    if (mode !== 'flashcard_all') {
-        candidates = candidates.filter(w => {
-            const k = getWordKey(w);
-            return srsData[k] || masteredWords[k];
+    // --- LOGIC PHÂN LOẠI CHẾ ĐỘ ---
+    
+    // TRƯỜNG HỢP 1: Flashcard (Học bài mới) -> Lấy từ chủ đề hiện tại
+    if(mode === 'flashcard_all') {
+        if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
+        localQueue = [...allTopics[currentTopicKey].words]; 
+    } 
+    // TRƯỜNG HỢP 2: Game (Ôn tập Global) -> Lấy từ đã học từ TẤT CẢ chủ đề
+    else {
+        let allLearnedCandidates = [];
+        const seenKeys = new Set(); // Set giúp lọc trùng lặp cực nhanh
+
+        // Duyệt qua tất cả chủ đề đã tải trong bộ nhớ
+        Object.values(allTopics).forEach(topic => {
+            topic.words.forEach(w => {
+                const k = getWordKey(w);
+                // Điều kiện: Đã học (có trong SRS hoặc Mastered) VÀ chưa thêm vào list
+                if ((srsData[k] || masteredWords[k]) && !seenKeys.has(k)) {
+                    allLearnedCandidates.push(w);
+                    seenKeys.add(k);
+                }
+            });
         });
-        
-        if (candidates.length === 0) {
-            showToast("Trò chơi chỉ dành cho từ đã học! Hãy học Flashcard trước.", "error");
+
+        if (allLearnedCandidates.length === 0) {
+            showToast("Bạn chưa học từ nào để chơi game này! Hãy học Flashcard trước.", "error");
             return;
         }
 
-        // --- FIX 2: Check specifically for matching mode ---
-        if (mode === 'matching' && candidates.length < 2) {
+        // Validate riêng cho Matching
+        if (mode === 'matching' && allLearnedCandidates.length < 2) {
              showToast("Cần ít nhất 2 từ đã học để chơi Ghép thẻ!", "error");
              return;
         }
-        // --------------------------------------------------
-    }
-    // -----------------------------------------------------------------------------------
-    
-    if(mode === 'flashcard_all') {
-        sessionQueue = [...candidates]; 
-    } else {
-        // Shuffle and take only the limit amount
-        candidates.sort(() => Math.random() - 0.5);
-        if(candidates.length > totalLimit) {
-            sessionQueue = candidates.slice(0, totalLimit);
+
+        // Xáo trộn ngẫu nhiên
+        allLearnedCandidates.sort(() => Math.random() - 0.5);
+        
+        // Giới hạn số lượng thẻ để game không quá dài
+        if(allLearnedCandidates.length > totalLimit) {
+            localQueue = allLearnedCandidates.slice(0, totalLimit);
         } else {
-            sessionQueue = candidates;
+            localQueue = allLearnedCandidates;
         }
     }
     
-    if(sessionQueue.length === 0) return showToast("Không có từ nào để học", "error");
+    if(localQueue.length === 0) return showToast("Không có từ nào khả dụng", "error");
 
-    showToast(`Bắt đầu: ${sessionQueue.length} thẻ`, "info");
+    showToast(`Bắt đầu: ${localQueue.length} thẻ`, "info");
     
+    // GÁN VÀO BIẾN GLOBAL (Quan trọng!)
+    window.sessionQueue = localQueue; 
     sessionIndex = 0;
     currentMode = mode;
-    openGameOverlay();
     
-    preloadImages(); // Preload for start
+    openGameOverlay();
+    preloadImages(); 
 
+    // Điều hướng render game
     if(mode === 'fill') renderFill();
     else if(mode === 'matching') setupMatching();
     else if(mode === 'quiz') setupQuiz();

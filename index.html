@@ -1599,7 +1599,7 @@ const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 let masterGain = null;
 let audioUnlocked = false; // Flag to track status
 
-// UPDATED: Robust Mobile Audio Unlock Function (Async)
+// UPDATED: Async playSound to ensure context is awake
 async function unlockAudio() {
     if (audioCtx.state === 'suspended') {
         try {
@@ -1657,7 +1657,6 @@ function playTone(freq, type, duration, startTime, vol=0.1) {
     } catch(e) { console.warn("Audio Error", e); }
 }
 
-// UPDATED: Async playSound to ensure context is awake
 async function playSound(sfx) {
     if(config.muted) return;
     if(!config.sfxEnabled) return; 
@@ -1727,6 +1726,21 @@ let isProcessing = false;
 let isFlipped = false;
 let selectedVoice = null;
 const translationCache = JSON.parse(localStorage.getItem('fp_aurora_trans_cache') || '{}');
+
+// --- RESOURCE CLEANUP HELPER ---
+window.spellingFocusHandler = function(e) {
+    const inp = document.getElementById('spellingInput');
+    if(inp && e.target.id !== 'spellingInput' && !e.target.classList.contains('btn-hint') && !e.target.classList.contains('btn-speak-round')) {
+        inp.focus();
+    }
+}
+
+function cleanupGameResources() {
+    // Remove spelling specific listeners
+    document.removeEventListener('click', window.spellingFocusHandler);
+    isProcessing = false;
+    window.matchState = null;
+}
 
 async function getTranslation(text) {
     if (!text) return "";
@@ -2280,6 +2294,8 @@ window.saveGameConfig = function() {
 // --- GAME LOGIC START ---
 // Updated to handle Async Topic Loading
 window.startSmartSession = async function(isExtra = false) {
+    cleanupGameResources(); // Clean up potential leftovers
+
     // --- Data Guard Check ---
     if (!allTopicsMetadata || allTopicsMetadata.length === 0) {
         showToast("Dữ liệu danh sách chưa tải xong. Vui lòng thử lại!", "error");
@@ -2486,6 +2502,8 @@ window.startSmartSession = async function(isExtra = false) {
 
 // --- NEW FEATURE: GLOBAL REVIEW (OPTIMIZED FOR LAZY LOADING) ---
 window.startGlobalReview = async function() {
+    cleanupGameResources();
+
     // --- OFFLINE FIRST FLAG ---
     window.isSessionActive = true;
     sessionPoints = 0; // Reset session points
@@ -2558,6 +2576,7 @@ window.startGlobalReview = async function() {
 }
 
 function decideSmartRender() {
+    isProcessing = false; // Reset lock
     const w = sessionQueue[sessionIndex];
     const key = getWordKey(w);
     const isNew = !srsData[key] && !masteredWords[key];
@@ -2595,6 +2614,10 @@ function decideSmartRender() {
 
 window.processResult = function(isCorrect, skipNext = false) {
     if(isProcessing) return;
+    
+    // SAFETY CHECK: Ensure game is still active
+    if (document.getElementById('gameOverlay').style.display === 'none') return;
+    
     isProcessing = true;
     
     const w = sessionQueue[sessionIndex];
@@ -2649,7 +2672,12 @@ window.processResult = function(isCorrect, skipNext = false) {
         // Save cloud removed here, only at end of session
 
         if(!skipNext) {
-            setTimeout(() => { isProcessing = false; nextStep(); }, 600);
+            setTimeout(() => { 
+                 // Extra check inside timeout
+                 if(document.getElementById('gameOverlay').style.display === 'none') return;
+                 isProcessing = false; 
+                 nextStep(); 
+            }, 600);
         }
         
     } else {
@@ -2705,8 +2733,9 @@ window.processResult = function(isCorrect, skipNext = false) {
         }
         
         setTimeout(() => { 
-            isProcessing = false; 
-            nextStep();
+             if(document.getElementById('gameOverlay').style.display === 'none') return;
+             isProcessing = false; 
+             nextStep();
         }, 2500);
     }
 }
@@ -2722,6 +2751,7 @@ function openGameOverlay() {
 }
 
 window.closeGame = function() {
+    cleanupGameResources(); // Important cleanup
     document.getElementById('gameOverlay').style.display = 'none';
     window.speechSynthesis.cancel();
     stopTimer(); 
@@ -2753,6 +2783,7 @@ function updateProgress() {
 
 // FIXED: Infinite Loop Logic in NextStep
 window.nextStep = function() {
+    cleanupGameResources(); // Ensure clean slate for listeners
     stopGlobalAudio(); // STOP PREVIOUS AUDIO
     
     // RESET HINT COUNT ON NEW STEP
@@ -2764,6 +2795,8 @@ window.nextStep = function() {
         else content.style.opacity = 0; // Simple fade for eco
         
         setTimeout(() => {
+            if (document.getElementById('gameOverlay').style.display === 'none') return;
+
             sessionIndex++;
             
             // --- SILENT INJECTION LOGIC ---
@@ -2788,11 +2821,13 @@ window.nextStep = function() {
             if(currentMode === 'smart') {
                 decideSmartRender();
             } else {
+                // Ensure specific mode renderers are called
                 if(currentMode === 'flashcard_all') renderFlashcard(); 
                 else if(currentMode === 'fill') renderFill();
                 else if(currentMode === 'quiz') setupQuiz();
                 else if(currentMode === 'spelling') renderSpelling();
                 else if(currentMode === 'sentence') renderSentence();
+                else if(currentMode === 'matching') setupMatching();
             }
             
             if(!config.ecoMode) {
@@ -2896,9 +2931,9 @@ function renderSessionEnd() {
 
 // --- CARD RENDERER (UPDATED ASYNC PEXELS) ---
 function renderFlashcard() {
+    isProcessing = false;
     const w = sessionQueue[sessionIndex];
     isFlipped = false;
-    isProcessing = false;
     
     const isRelearn = sessionQueue.filter(x => x === w).length > 1;
     const badge = isRelearn ? '<div style="position:absolute; top:-10px; right:-10px; background:#f59e0b; color:white; padding:5px 10px; border-radius:10px; font-size:0.7rem; font-weight:bold; box-shadow:0 5px 10px rgba(0,0,0,0.2);">HỌC LẠI</div>' : '';
@@ -3050,7 +3085,8 @@ function renderSpelling() {
     
     const inp = document.getElementById('spellingInput');
     
-    document.addEventListener('click', () => { if(document.getElementById('spellingInput')) document.getElementById('spellingInput').focus(); });
+    // Add specific listener for this mode
+    document.addEventListener('click', window.spellingFocusHandler);
     inp.focus();
 
     checkSpellingChar(''); 
@@ -3436,6 +3472,7 @@ window.checkFill = function(ans) {
 }
 
 function setupMatching() {
+    isProcessing = false;
     // 1. Tính số từ còn lại trong hàng đợi tính từ vị trí hiện tại
     const remaining = sessionQueue.length - sessionIndex;
     
@@ -3480,6 +3517,8 @@ window.matchClick = function(idx, id) {
     if(el.classList.contains('correct')) return;
     
     const state = window.matchState;
+    if(!state) return;
+
     playSound(SFX.POP);
     
     if(state.selected === null) {
@@ -3603,6 +3642,8 @@ window.handleQuiz = function(el, isCorrect) {
 
 // --- UTILITIES ---
 window.startGame = async function(mode) {
+    cleanupGameResources();
+
     if(!currentUser) {
         if(trialCount > 3) {
              showToast("Hết phiên dùng thử. Đăng nhập để chơi!", "error");

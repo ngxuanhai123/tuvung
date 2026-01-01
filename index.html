@@ -2397,27 +2397,177 @@ window.saveGameConfig = function() {
 
 // --- GAME LOGIC START ---
 // Updated to handle Async Topic Loading
+// LOGIC MỚI: PHA TRỘN 2 TỪ MỚI (NẾU CÒN QUOTA) + ÔN TẬP CŨ
 window.startSmartSession = async function(isExtra = false) {
-    cleanupGameResources(); // Clean up potential leftovers
+    cleanupGameResources();
 
-    // --- Data Guard Check ---
+    // --- 1. Kiểm tra dữ liệu & Đăng nhập ---
     if (!allTopicsMetadata || allTopicsMetadata.length === 0) {
         showToast("Dữ liệu danh sách chưa tải xong. Vui lòng thử lại!", "error");
         return;
     }
 
-    // 1. Validation (Login/Trial)
-    if(!currentUser) {
-        if(trialCount > 3) {
-             showToast("Hết phiên dùng thử (3/3). Vui lòng đăng nhập!", "error");
-             document.getElementById('requireLoginMsg').style.display = 'block';
-             document.getElementById('dashboardContent').style.display = 'none';
-             return;
-        }
+    if(!currentUser && trialCount > 3) {
+         showToast("Hết phiên dùng thử (3/3). Vui lòng đăng nhập!", "error");
+         document.getElementById('requireLoginMsg').style.display = 'block';
+         document.getElementById('dashboardContent').style.display = 'none';
+         return;
     }
 
     if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
 
+    // FIX: Ensure AudioContext is running
+    if(audioCtx.state === 'suspended') { try { await audioCtx.resume(); } catch(e) {} }
+
+    window.isSessionActive = true;
+    sessionPoints = 0;
+    window.isGlobalReviewSession = false;
+
+    // Load topic if missing
+    if (!allTopicsMetadata.find(f => f.name === currentTopicKey)) {
+         if (allTopicsMetadata.length > 0) {
+             currentTopicKey = allTopicsMetadata[0].name;
+             localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
+         } else { return showToast("Không có dữ liệu chủ đề!", "error"); }
+    }
+
+    // Sync missing topics
+    const missingTopics = allTopicsMetadata.filter(meta => !allTopics[meta.name]);
+    if(missingTopics.length > 0) {
+         showToast("Đang đồng bộ dữ liệu...", "info");
+         await Promise.all(missingTopics.map(meta => loadTopicData(meta.name)));
+    }
+    if (!allTopics[currentTopicKey]) await loadTopicData(currentTopicKey);
+
+    window.sessionCorrectStreak = 0;
+    config.newLimit = parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5);
+    config.reviewLimit = parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20);
+
+    // --- 2. TÍNH TOÁN QUOTA (Định mức từ mới còn lại trong ngày) ---
+    checkDailyLimit();
+    let learnedToday = dailyTracking.count;
+    let dailyGoal = config.newLimit;
+    
+    // Số từ mới ĐƯỢC PHÉP học thêm trong hôm nay
+    let remainingQuota = Math.max(0, dailyGoal - learnedToday);
+
+    // --- 3. PHÂN LOẠI TỪ VỰNG ---
+    const now = Date.now();
+    let dueWords = [];      // Cần ôn gấp (Đến hạn)
+    let earlyReviewWords = []; // Chưa đến hạn nhưng lấy ra ôn sớm
+
+    Object.keys(allTopics).forEach(topicKey => {
+        const topic = allTopics[topicKey];
+        topic.words.forEach(w => {
+            const k = getWordKey(w);
+            if (srsData[k] && !masteredWords[k]) {
+                const data = srsData[k];
+                // Đến hạn hoặc level thấp (vừa mới học) thì ưu tiên ôn
+                if (data.nextReview <= now || data.level <= 1) {
+                    dueWords.push(w);
+                } else {
+                    earlyReviewWords.push(w);
+                }
+            }
+        });
+    });
+
+    // Sắp xếp ưu tiên
+    dueWords.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
+    // Trộn ngẫu nhiên từ cũ
+    earlyReviewWords.sort(() => Math.random() - 0.5);
+
+    // --- 4. QUYẾT ĐỊNH SỐ LƯỢNG TỪ ---
+    let batchReview = [];
+    let maxNewToAdd = 0;
+    let modeMsg = "";
+
+    // TRƯỜNG HỢP A: Có bài cần ôn gấp (Due)
+    if (dueWords.length > 0) {
+        batchReview = dueWords.slice(0, config.reviewLimit);
+        
+        // LUẬT: Lấy tối đa 2 từ mới, NHƯNG không vượt quá quota còn lại
+        maxNewToAdd = Math.min(2, remainingQuota);
+        
+        if (maxNewToAdd > 0) modeMsg = `Ôn tập + ${maxNewToAdd} từ mới`;
+        else modeMsg = `Ôn tập (Đã đạt mục tiêu hôm nay)`;
+    } 
+    // TRƯỜNG HỢP B: Hết bài gấp, lấy bài cũ ra ôn (Early Review)
+    else if (earlyReviewWords.length > 0) {
+        batchReview = earlyReviewWords.slice(0, config.reviewLimit);
+        
+        // LUẬT: Vẫn lấy tối đa 2 từ mới nếu còn Quota
+        maxNewToAdd = Math.min(2, remainingQuota);
+        
+        if (maxNewToAdd > 0) modeMsg = `Ôn sớm + ${maxNewToAdd} từ mới`;
+        else modeMsg = `Ôn luyện bài cũ (Đã đạt mục tiêu)`;
+    }
+    // TRƯỜNG HỢP C: Sạch bách bài cũ lẫn bài mới -> Học mới hoàn toàn
+    else {
+        // Lấy 5 từ, nhưng không vượt quá quota
+        maxNewToAdd = Math.min(5, remainingQuota);
+        
+        // Nếu quota = 0 mà cũng không còn bài ôn
+        if (maxNewToAdd === 0 && !isExtra) {
+            if(!config.ecoMode) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+            playSound(SFX.WIN);
+            showToast("Xuất sắc! Bạn đã hoàn thành mọi mục tiêu!", "success");
+            return;
+        }
+        // Du di cho chế độ "Học thêm" nếu muốn
+        if (maxNewToAdd === 0 && isExtra) {
+             maxNewToAdd = 2; 
+        }
+        modeMsg = `Học từ mới: ${maxNewToAdd} từ`;
+    }
+
+    // --- 5. LẤY TỪ MỚI TỪ DATABASE ---
+    let batchNew = [];
+    if (maxNewToAdd > 0) {
+        let currentTopicData = allTopics[currentTopicKey];
+        let candidates = currentTopicData.words.filter(w => {
+            const k = getWordKey(w);
+            return !masteredWords[k] && !srsData[k];
+        });
+
+        if (candidates.length >= maxNewToAdd) {
+            batchNew = candidates.slice(0, maxNewToAdd);
+        } else {
+            batchNew = [...candidates];
+        }
+    }
+
+    // Kiểm tra lần cuối
+    if(batchNew.length === 0 && batchReview.length === 0) {
+        playSound(SFX.WIN);
+        showToast("Không còn từ nào để học/ôn trong chủ đề này.", "info");
+        return;
+    }
+
+    window.isReviewOnlySession = (batchNew.length === 0);
+    showToast(modeMsg, "info");
+    playSound(SFX.POP);
+    
+    // --- 6. TRỘN BÀI (Interleave) ---
+    // Xen kẽ: 1 Mới - 2 Cũ để dễ nhớ
+    let interleaved = [];
+    let r = [...batchReview];
+    let n = [...batchNew];
+    
+    while(n.length > 0 || r.length > 0) {
+        if(n.length > 0) interleaved.push(n.shift()); 
+        if(r.length > 0) interleaved.push(r.shift()); 
+        if(r.length > 0) interleaved.push(r.shift()); 
+    }
+    
+    sessionQueue = interleaved;
+    sessionIndex = 0;
+    currentMode = 'smart';
+    
+    openGameOverlay();
+    preloadImages(); 
+    decideSmartRender();
+}
     // FIX: Ensure AudioContext is running when user clicks "Start"
     if(audioCtx.state === 'suspended') {
         try { await audioCtx.resume(); } catch(e) {}

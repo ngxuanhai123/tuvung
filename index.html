@@ -1097,6 +1097,7 @@ let weekTime = parseInt(localStorage.getItem('fp_aurora_time_week') || 0);   // 
 let monthTime = parseInt(localStorage.getItem('fp_aurora_time_month') || 0); // Thời gian tháng
 let unsubscribeLeaderboard = null; 
 let currentLbTab = 'week';
+let calendarCursor = new Date();
 const imageCache = {}; // Cache for images to prevent reload
 
 // --- GLOBAL AUDIO FOR GOOGLE TTS UNLOCKING & IOS SILENT BYPASS ---
@@ -1164,7 +1165,74 @@ function getMonthKey() {
     const d = new Date();
     return `${d.getFullYear()}-${d.getMonth()+1}`;
 }
+// --- [MỚI] HELPER TÍNH TOÁN NGÀY THÁNG ---
 
+// 1. Lấy ngày hôm nay dạng "YYYY-MM-DD" (theo giờ máy tính người dùng)
+function getTodayDateString() {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+// 2. Lấy danh sách tất cả các ngày trong Tuần hiện tại (Thứ 2 -> Chủ nhật)
+function getDaysInCurrentWeek() {
+    const d = new Date();
+    const currentDay = d.getDay(); // 0 là CN, 1 là T2...
+    
+    // Tính khoảng cách về ngày Thứ 2 gần nhất
+    // Nếu là CN (0) thì lùi 6 ngày. Nếu là thứ khác thì lùi (currentDay - 1) ngày.
+    const distanceToMonday = currentDay === 0 ? 6 : currentDay - 1;
+    
+    const monday = new Date(d);
+    monday.setDate(d.getDate() - distanceToMonday);
+    
+    const days = [];
+    for (let i = 0; i < 7; i++) {
+        const temp = new Date(monday);
+        temp.setDate(monday.getDate() + i);
+        
+        const y = temp.getFullYear();
+        const m = String(temp.getMonth() + 1).padStart(2, '0');
+        const dayStr = String(temp.getDate()).padStart(2, '0');
+        days.push(`${y}-${m}-${dayStr}`);
+    }
+    return days; // Trả về mảng: ['2024-06-10', '2024-06-11', ...]
+}
+
+// 3. Hàm tính tổng điểm dựa trên lịch sử
+function calculateAggregatedStats(historyData) {
+    const todayStr = getTodayDateString();
+    const currentMonthPrefix = todayStr.substring(0, 7); // Ví dụ: "2024-06"
+    const weekDays = getDaysInCurrentWeek(); // Lấy danh sách ngày tuần này
+
+    let totalAllTime = 0;
+    let totalWeek = 0;
+    let totalMonth = 0;
+
+    // Duyệt qua từng ngày đã lưu trong lịch sử
+    if (historyData) {
+        Object.keys(historyData).forEach(dateStr => {
+            const val = parseInt(historyData[dateStr] || 0);
+            
+            // Cộng tổng toàn thời gian
+            totalAllTime += val;
+
+            // Nếu ngày này nằm trong danh sách tuần hiện tại -> Cộng điểm tuần
+            if (weekDays.includes(dateStr)) {
+                totalWeek += val;
+            }
+
+            // Nếu ngày này có tháng trùng tháng hiện tại -> Cộng điểm tháng
+            if (dateStr.startsWith(currentMonthPrefix)) {
+                totalMonth += val;
+            }
+        });
+    }
+
+    return { totalAllTime, totalWeek, totalMonth };
+}
 // --- HELPER: FORMAT TIME ---
 function formatTime(seconds) {
     if(seconds < 60) return seconds + 's';
@@ -1290,55 +1358,68 @@ async function syncDataFromServer() {
         if (docSnap.exists()) {
             const data = docSnap.data();
             
-            // Score handling: Load language specific score
-            const scoreKey = `score_${currentLang}`;
-            if (data[scoreKey]) {
-                accumulatedPoints = data[scoreKey];
-                localStorage.setItem(`fp_aurora_points_${currentLang}`, accumulatedPoints);
+            // -----------------------------------------------------------
+            // 1. XỬ LÝ ĐIỂM SỐ (DÙNG LOGIC LỊCH SỬ MỚI)
+            // -----------------------------------------------------------
+            const historyKey = `history_score_${currentLang}`;
+            
+            // Load lịch sử chi tiết từ server về
+            if (data[historyKey]) {
+                scoreHistory = JSON.parse(data[historyKey]);
+                localStorage.setItem(`fp_aurora_score_history_${currentLang}`, data[historyKey]);
             } else {
-                accumulatedPoints = 0;
+                // Nếu server chưa có history (người dùng cũ), thử fallback về điểm tổng hiện có
+                // Hoặc khởi tạo rỗng để bắt đầu ghi từ hôm nay
+                scoreHistory = {}; 
+                // (Mẹo: Có thể gán điểm hiện tại vào ngày hôm nay để không mất điểm cũ, 
+                // nhưng để chuẩn chỉnh thì nên bắt đầu lại history từ 0 hoặc giữ score cũ làm base)
             }
 
-            // --- ĐOẠN CODE CẦN SỬA ---
-            // Sync Week/Month Scores & Time
+            // TÍNH TOÁN LẠI (Re-calculate)
+            // Code sẽ tự cộng tổng các ngày trong tuần/tháng này. 
+            // Nếu tuần cũ đã qua, hàm này sẽ trả về 0 -> Tự động Reset.
+            const stats = calculateAggregatedStats(scoreHistory);
+
+            accumulatedPoints = stats.totalAllTime;
+            weekPoints = stats.totalWeek;
+            monthPoints = stats.totalMonth;
+
+            // Nếu điểm tổng trên server lớn hơn (do đồng bộ thiết bị khác), ưu tiên server
+            const scoreKey = `score_${currentLang}`;
+            if (data[scoreKey] && data[scoreKey] > accumulatedPoints) {
+                accumulatedPoints = data[scoreKey];
+            }
+            
+            localStorage.setItem(`fp_aurora_points_${currentLang}`, accumulatedPoints);
+
+            // -----------------------------------------------------------
+            // 2. XỬ LÝ THỜI GIAN (TIME) - GIỮ NGUYÊN LOGIC CŨ CỦA BẠN
+            // -----------------------------------------------------------
             const curWKey = getWeekKey();
             const curMKey = getMonthKey();
-            const scoreWKey = `score_week_${currentLang}`;
-            const scoreMKey = `score_month_${currentLang}`;
             
-            // 1. Xử lý TUẦN (Reset nếu key tuần khác nhau)
+            // Logic cũ: Reset thời gian nếu key khác nhau
             if(data.weekKey === curWKey) {
-                weekPoints = data[scoreWKey] || 0;
-                weekTime = data.time_week || 0; // Load giờ tuần
+                weekTime = data.time_week || 0;
             } else {
-                weekPoints = 0;
-                weekTime = 0; // Sang tuần mới -> Reset
+                weekTime = 0; 
             }
 
-            // 2. Xử lý THÁNG (Reset nếu key tháng khác nhau)
             if(data.monthKey === curMKey) {
-                monthPoints = data[scoreMKey] || 0;
-                monthTime = data.time_month || 0; // Load giờ tháng
+                monthTime = data.time_month || 0;
             } else {
-                monthPoints = 0;
-                monthTime = 0; // Sang tháng mới -> Reset
+                monthTime = 0; 
             }
 
-            // 3. Xử lý TOÀN THỜI GIAN
             if (data.studyTime > accumulatedTime) accumulatedTime = data.studyTime;
             
-            // Lưu lại vào LocalStorage để dùng offline
             localStorage.setItem('fp_aurora_time_week', weekTime);
             localStorage.setItem('fp_aurora_time_month', monthTime);
+            localStorage.setItem('fp_aurora_time', accumulatedTime);
 
-            // Reset if keys don't match stored keys, otherwise load
-            if(data.weekKey === curWKey && data[scoreWKey]) weekPoints = data[scoreWKey];
-            else weekPoints = 0;
-
-            if(data.monthKey === curMKey && data[scoreMKey]) monthPoints = data[scoreMKey];
-            else monthPoints = 0;
-
-            if (data.studyTime > accumulatedTime) accumulatedTime = data.studyTime;
+            // -----------------------------------------------------------
+            // 3. CÁC DỮ LIỆU KHÁC (STREAK, SRS, CONFIG...) - GIỮ NGUYÊN
+            // -----------------------------------------------------------
             
             // Sync Streak History
             if (data.streakHistory) {
@@ -1366,10 +1447,11 @@ async function syncDataFromServer() {
                 localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
             }
 
+            // Sync Config
             if(data.config) {
                 config = data.config;
-                // Merge fallback defaults for new keys
-                if (config.ecoMode === undefined) config.ecoMode = true; // Default to true
+                // Merge fallback defaults
+                if (config.ecoMode === undefined) config.ecoMode = true;
                 if (config.brightness === undefined) config.brightness = 100;
                 if (config.voiceEngine === undefined) config.voiceEngine = 'google';
                 if (config.sfxEnabled === undefined) config.sfxEnabled = true;
@@ -1392,7 +1474,6 @@ async function syncDataFromServer() {
                 updateConfigUI();
             }
 
-            localStorage.setItem('fp_aurora_time', accumulatedTime);
             updateUserPointsUI();
             renderDashboard();
         }
@@ -1400,60 +1481,78 @@ async function syncDataFromServer() {
         console.error("Error syncing from server:", e);
     }
 }
-
 async function saveProgressToCloud(force = false) {
     if(!currentUser) return;
 
-    // OFFLINE FIRST CHECK
+    // Nếu đang học dở và chưa kết thúc (chưa bấm nút Finish hoặc force save) thì chưa lưu lên Cloud vội để tiết kiệm
     if (window.isSessionActive && !force) {
-        console.log("Session active: Skipping cloud sync, saved to LS only.");
         return;
     }
     
-    // Dynamic keys
+    // 1. CẬP NHẬT LỊCH SỬ ĐIỂM SỐ
+    const todayStr = getTodayDateString();
+    
+    // Lấy điểm cũ của ngày hôm nay + điểm vừa đạt được trong session
+    const currentScoreToday = scoreHistory[todayStr] || 0;
+    scoreHistory[todayStr] = currentScoreToday + sessionPoints;
+    
+    // Reset điểm session tạm thời về 0 vì đã cộng vào lịch sử rồi
+    sessionPoints = 0;
+
+    // 2. TÍNH TOÁN LẠI TỔNG (TUẦN/THÁNG/ALL) TỪ LỊCH SỬ
+    // Hàm này sẽ tự động loại bỏ điểm của tuần trước/tháng trước ra khỏi tổng tuần/tháng hiện tại
+    const stats = calculateAggregatedStats(scoreHistory);
+    
+    accumulatedPoints = stats.totalAllTime;
+    weekPoints = stats.totalWeek;
+    monthPoints = stats.totalMonth;
+
+    // 3. LƯU LOCALSTORAGE (Để dùng offline)
+    localStorage.setItem(`fp_aurora_score_history_${currentLang}`, JSON.stringify(scoreHistory));
+    localStorage.setItem(`fp_aurora_points_${currentLang}`, accumulatedPoints);
+    
+    // Lưu thêm Time vào LS
+    localStorage.setItem('fp_aurora_time_week', weekTime);
+    localStorage.setItem('fp_aurora_time_month', monthTime);
+
+    // Chuẩn bị Key để lưu lên Firebase
     const srsKey = `srsData_${currentLang}`;
     const masterKey = `masteredWords_${currentLang}`;
     const topicKey = `currentTopicKey_${currentLang}`;
-    const scoreKey = `score_${currentLang}`;
+    
+    const scoreKey = `score_${currentLang}`;       // Tổng All Time
+    const scoreWKey = `score_week_${currentLang}`; // Tổng Tuần
+    const scoreMKey = `score_month_${currentLang}`; // Tổng Tháng
+    const historyKey = `history_score_${currentLang}`; // [MỚI] Lưu cục lịch sử chi tiết
     
     const curWKey = getWeekKey();
     const curMKey = getMonthKey();
-    const scoreWKey = `score_week_${currentLang}`;
-    const scoreMKey = `score_month_${currentLang}`;
     const learnedCountKey = `learnedCount_${currentLang}`;
-
-    // Calculate learned count
     const learnedCount = Object.keys(masteredWords).length + Object.keys(srsData).length;
-
-    // COMMIT SESSION POINTS TO TOTALS
-    accumulatedPoints += sessionPoints;
-    weekPoints += sessionPoints;
-    monthPoints += sessionPoints;
-    sessionPoints = 0; // Reset session points
-
-    // Update LocalStorage
-    localStorage.setItem(`fp_aurora_points_${currentLang}`, accumulatedPoints);
-    
-    // --- LƯU THÊM GIỜ VÀO LOCALSTORAGE ---
-    localStorage.setItem('fp_aurora_time_week', weekTime);
-    localStorage.setItem('fp_aurora_time_month', monthTime);
 
     try {
         await setDoc(doc(db, "leaderboard", currentUser.uid), {
             displayName: currentUser.displayName,
             photoURL: currentUser.photoURL,
+            
+            // --- CÁC GIÁ TRỊ TỔNG HỢP (đã được tính chính xác từ history) ---
             [scoreKey]: accumulatedPoints,
             [scoreWKey]: weekPoints,
             [scoreMKey]: monthPoints,
-            [learnedCountKey]: learnedCount,
+            
+            // --- CỤC LỊCH SỬ CHI TIẾT (Quan trọng để đồng bộ thiết bị khác) ---
+            [historyKey]: JSON.stringify(scoreHistory),
+            
+            // Key thời gian (để client khác biết lọc hiển thị)
             weekKey: curWKey,
             monthKey: curMKey,
-            score: accumulatedPoints, // Global fallback
-            
-            // --- LƯU THÊM 3 LOẠI THỜI GIAN LÊN SERVER ---
-            studyTime: accumulatedTime, // Tổng
-            time_week: weekTime,        // Tuần
-            time_month: monthTime,      // Tháng
+
+            // Các chỉ số phụ
+            [learnedCountKey]: learnedCount,
+            score: accumulatedPoints, // Fallback
+            studyTime: accumulatedTime,
+            time_week: weekTime,
+            time_month: monthTime,
             
             streakHistory: JSON.stringify(streakHistory),
             lastUpdated: Date.now(),
@@ -1945,20 +2044,27 @@ window.switchLanguage = function(lang) {
     localStorage.setItem('fp_aurora_lang', lang);
     updateLangUI();
     
-    // Switch Points Context
-    accumulatedPoints = parseInt(localStorage.getItem(`fp_aurora_points_${currentLang}`) || 0);
+    // --- [SỬA] Load lại Lịch sử điểm của ngôn ngữ mới ---
+    scoreHistory = JSON.parse(localStorage.getItem(`fp_aurora_score_history_${currentLang}`) || '{}');
+    
+    // Tính lại điểm hiển thị ngay lập tức
+    const stats = calculateAggregatedStats(scoreHistory);
+    accumulatedPoints = stats.totalAllTime;
+    weekPoints = stats.totalWeek;
+    monthPoints = stats.totalMonth;
+    
     sessionPoints = 0;
     updateUserPointsUI();
     
-    // RELOAD DAILY TRACKING FOR NEW LANG (ISOLATION FIX)
+    // RELOAD DAILY TRACKING (Giữ nguyên tính năng giới hạn từ mới)
     dailyTracking = JSON.parse(localStorage.getItem(`fp_aurora_daily_${currentLang}`) || '{"date":"", "count":0}');
     checkDailyLimit();
 
-    // Reload TTS
+    // Reload TTS & Data
     if(window.speechSynthesis) window.speechSynthesis.cancel();
     setTimeout(setupVoice, 500);
 
-    // Reload Data for new language
+    // Reload Data
     currentTopicKey = localStorage.getItem(getDataKey('fp_aurora_topic')) || '';
     srsData = JSON.parse(localStorage.getItem(getDataKey('fp_aurora_srs')) || '{}'); 
     masteredWords = JSON.parse(localStorage.getItem(getDataKey('fp_aurora_mastered')) || '{}');
@@ -1966,7 +2072,6 @@ window.switchLanguage = function(lang) {
     playSound(SFX.POP);
     window.fetchTopics(); 
     
-    // Try to sync to ensure we have latest data for this language
     syncDataFromServer();
 }
 
@@ -2054,46 +2159,94 @@ window.navTo = function(viewId) {
 }
 
 // --- CALENDAR RENDERER ---
-function renderStreakCalendar() {
-    const now = new Date();
-    // Use ISO string for today comparison to match save logic
-    const todayStr = now.toISOString().split('T')[0];
+
+// 1. Khai báo biến con trỏ thời gian (Để biết đang xem tháng nào)
+let calendarCursor = new Date(); 
+
+// 2. Hàm điều hướng (Lùi/Tiến)
+window.moveCalendar = function(step) {
+    if (calendarViewMode === 'week') {
+        // Chế độ Tuần: Nhảy +/- 7 ngày
+        calendarCursor.setDate(calendarCursor.getDate() + (step * 7));
+    } else {
+        // Chế độ Tháng: Nhảy +/- 1 tháng
+        // Mẹo: Set về ngày 1 để tránh lỗi khi nhảy từ ngày 31 sang tháng chỉ có 30 ngày
+        calendarCursor.setDate(1);
+        calendarCursor.setMonth(calendarCursor.getMonth() + step);
+    }
     
-    // Header
+    playSound(SFX.POP);
+    renderStreakCalendar();
+}
+
+// 3. Hàm Vẽ Lịch (Render)
+function renderStreakCalendar() {
+    // Ngày thực tế (để tô viền ô "Hôm nay")
+    const realToday = new Date();
+    const realTodayStr = realToday.toISOString().split('T')[0];
+    
+    // Ngày đang xem (Cursor)
+    const viewDate = new Date(calendarCursor);
+    const viewYear = viewDate.getFullYear();
+    const viewMonth = viewDate.getMonth(); // 0-11
+    
+    const monthNames = ["Tháng 1", "Tháng 2", "Tháng 3", "Tháng 4", "Tháng 5", "Tháng 6", "Tháng 7", "Tháng 8", "Tháng 9", "Tháng 10", "Tháng 11", "Tháng 12"];
+    
+    // Tiêu đề hiển thị
+    let timeLabel = "";
+    if (calendarViewMode === 'week') {
+        const start = new Date(viewYear, 0, 1);
+        const diff = (viewDate - start + (start.getTimezoneOffset() - viewDate.getTimezoneOffset()) * 60000) / 86400000;
+        const weekNo = Math.ceil((diff + start.getDay() + 1) / 7);
+        timeLabel = `Tuần ${weekNo} - ${viewYear}`;
+    } else {
+        timeLabel = `${monthNames[viewMonth]} / ${viewYear}`;
+    }
+
+    // HTML HEADER (Có thêm 2 nút mũi tên < >)
     let html = `
         <div class="streak-header">
-             <div style="font-size:0.9rem; font-weight:700; display:flex; align-items:center; gap:8px;">
-                <i class="fas fa-fire" style="color:#fbbf24"></i> 
-                ${calendarViewMode === 'week' ? 'Tuần này' : 'Lịch sử tháng'}
+             <div style="display:flex; align-items:center; gap:5px;">
+                <button onclick="window.moveCalendar(-1)" style="background:rgba(255,255,255,0.1); border:none; color:white; width:28px; height:28px; border-radius:50%; cursor:pointer;"><i class="fas fa-chevron-left"></i></button>
+                
+                <div style="font-size:0.9rem; font-weight:700; display:flex; align-items:center; gap:6px; min-width:120px; justify-content:center;">
+                    <i class="fas fa-calendar-day" style="color:#fbbf24"></i> 
+                    ${timeLabel}
+                </div>
+                
+                <button onclick="window.moveCalendar(1)" style="background:rgba(255,255,255,0.1); border:none; color:white; width:28px; height:28px; border-radius:50%; cursor:pointer;"><i class="fas fa-chevron-right"></i></button>
              </div>
+
              <div style="display:flex; align-items:center; gap:10px;">
-                 <span class="streak-count" id="streakDisplay" style="font-size:1rem;">0 ngày</span>
-                 <button onclick="window.toggleCalendarView()" style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.2); color:white; width:30px; height:30px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;">
-                    ${calendarViewMode === 'week' ? '<i class="fas fa-calendar-alt"></i>' : '<i class="fas fa-minus"></i>'}
+                 <span class="streak-count" id="streakDisplay" style="font-size:0.9rem;">...</span>
+                 <button onclick="window.toggleCalendarView()" style="background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.2); color:white; width:30px; height:30px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:0.2s;" title="Đổi chế độ">
+                    ${calendarViewMode === 'week' ? '<i class="fas fa-expand"></i>' : '<i class="fas fa-compress"></i>'}
                  </button>
              </div>
         </div>
         <div class="calendar-grid">
-            <div class="cal-day-name">T2</div><div class="cal-day-name">T3</div><div class="cal-day-name">T4</div><div class="cal-day-name">T5</div><div class="cal-day-name">T6</div><div class="cal-day-name">T7</div><div class="cal-day-name">CN</div>
+            <div class="cal-day-name">T2</div><div class="cal-day-name">T3</div><div class="cal-day-name">T4</div><div class="cal-day-name">T5</div><div class="cal-day-name">T6</div><div class="cal-day-name">T7</div><div class="cal-day-name" style="color:#ef4444">CN</div>
     `;
 
+    // LOGIC VẼ LƯỚI NGÀY
     if (calendarViewMode === 'month') {
-        const year = now.getFullYear();
-        const month = now.getMonth();
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        const firstDayIndex = new Date(year, month, 1).getDay(); 
+        const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+        let firstDayIndex = new Date(viewYear, viewMonth, 1).getDay(); 
+        // Chuyển đổi: CN(0) thành 6, T2(1) thành 0 để khớp giao diện T2 đầu tuần
+        firstDayIndex = (firstDayIndex === 0) ? 6 : firstDayIndex - 1;
         
-        let startSlot = (firstDayIndex + 6) % 7; 
-        for(let i=0; i<startSlot; i++) html += `<div></div>`;
+        // Vẽ ô trống đầu tháng
+        for(let i=0; i<firstDayIndex; i++) html += `<div></div>`;
         
-        const currentMonthPrefix = `${year}-${String(month+1).padStart(2,'0')}`;
+        const currentMonthPrefix = `${viewYear}-${String(viewMonth+1).padStart(2,'0')}`;
         
         for(let d=1; d<=daysInMonth; d++) {
-            // Replicating original logic exactly for month view string construction
             const dateStr = `${currentMonthPrefix}-${String(d).padStart(2,'0')}`;
+            // Kiểm tra Active từ lịch sử
             const isActive = streakHistory.includes(dateStr);
-            const isToday = (dateStr === todayStr); 
+            const isToday = (dateStr === realTodayStr);
             
+            // Giữ nguyên class để CSS cũ vẫn hoạt động
             let classes = 'cal-day';
             if(isActive) classes += ' active';
             if(isToday) classes += ' today';
@@ -2101,72 +2254,49 @@ function renderStreakCalendar() {
             html += `<div class="${classes}">${d}</div>`;
         }
     } else {
-        // Week View
-        // Let's try to find the "Monday" of the current week in Local time.
-        const currentDay = now.getDay(); // 0-6 (Sun-Sat)
-        const distanceToMon = (currentDay + 6) % 7;
-        const mondayDate = new Date(now);
-        mondayDate.setDate(now.getDate() - distanceToMon);
+        // CHẾ ĐỘ TUẦN (WEEK VIEW)
+        const currentDay = viewDate.getDay(); 
+        const distanceToMon = (currentDay === 0) ? 6 : currentDay - 1;
+        
+        const mondayDate = new Date(viewDate);
+        mondayDate.setDate(viewDate.getDate() - distanceToMon);
         
         for(let i=0; i<7; i++) {
             const d = new Date(mondayDate);
             d.setDate(mondayDate.getDate() + i);
             
-            // Generate display number (Local)
-            const dayNum = d.getDate();
-            // Generate comparison string (ISO UTC cut) - This matches how data is saved: new Date().toISOString().split('T')[0]
-            const dateStr = d.toISOString().split('T')[0];
+            const y = d.getFullYear();
+            const m = String(d.getMonth() + 1).padStart(2, '0');
+            const dayNum = String(d.getDate()).padStart(2, '0');
+            const dateStr = `${y}-${m}-${dayNum}`; // Định dạng YYYY-MM-DD
             
             const isActive = streakHistory.includes(dateStr);
-            const isToday = (dateStr === todayStr);
+            const isToday = (dateStr === realTodayStr);
 
             let classes = 'cal-day';
             if(isActive) classes += ' active';
             if(isToday) classes += ' today';
             
-            html += `<div class="${classes}">${dayNum}</div>`;
+            html += `<div class="${classes}">${d.getDate()}</div>`;
         }
     }
     
     html += `</div>`;
     document.getElementById('calendarContainer').innerHTML = html;
     
-    // Streak Calculation
-    const sorted = [...new Set(streakHistory)].sort();
-    let streak = 0;
-    const todayISO = new Date().toISOString().split('T')[0];
-    const yesterdayISO = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    
-    if (sorted.includes(todayISO)) {
-        streak = 1;
-        let d = new Date();
-        while(true) {
-            d.setDate(d.getDate() - 1);
-            const s = d.toISOString().split('T')[0];
-            if(sorted.includes(s)) streak++;
-            else break;
-        }
-    } else if (sorted.includes(yesterdayISO)) {
-        streak = 1;
-        let d = new Date(Date.now() - 86400000);
-        while(true) {
-            d.setDate(d.getDate() - 1);
-            const s = d.toISOString().split('T')[0];
-            if(sorted.includes(s)) streak++;
-            else break;
-        }
-    }
-    
-    document.getElementById('streakDisplay').innerText = `${streak} ngày`;
+    // Cập nhật số ngày Streak tổng cộng
+    const totalDays = [...new Set(streakHistory)].length;
+    document.getElementById('streakDisplay').innerText = `${totalDays} ngày`;
 }
 
-// And add toggle function
+// 4. Hàm Chuyển đổi chế độ (Cập nhật Reset Cursor)
 window.toggleCalendarView = function() {
     calendarViewMode = calendarViewMode === 'week' ? 'month' : 'week';
-    playSound(SFX.POP); // Add sound effect for polish
+    // Reset về hôm nay để người dùng không bị lạc khi đổi chế độ
+    calendarCursor = new Date(); 
+    playSound(SFX.POP); 
     renderStreakCalendar();
 }
-
 
 // --- DATA & SYNC (LAZY LOADING) ---
 

@@ -1299,11 +1299,37 @@ async function syncDataFromServer() {
                 accumulatedPoints = 0;
             }
 
-            // Sync Week/Month Scores
+            // --- ĐOẠN CODE CẦN SỬA ---
+            // Sync Week/Month Scores & Time
             const curWKey = getWeekKey();
             const curMKey = getMonthKey();
             const scoreWKey = `score_week_${currentLang}`;
             const scoreMKey = `score_month_${currentLang}`;
+            
+            // 1. Xử lý TUẦN (Reset nếu key tuần khác nhau)
+            if(data.weekKey === curWKey) {
+                weekPoints = data[scoreWKey] || 0;
+                weekTime = data.time_week || 0; // Load giờ tuần
+            } else {
+                weekPoints = 0;
+                weekTime = 0; // Sang tuần mới -> Reset
+            }
+
+            // 2. Xử lý THÁNG (Reset nếu key tháng khác nhau)
+            if(data.monthKey === curMKey) {
+                monthPoints = data[scoreMKey] || 0;
+                monthTime = data.time_month || 0; // Load giờ tháng
+            } else {
+                monthPoints = 0;
+                monthTime = 0; // Sang tháng mới -> Reset
+            }
+
+            // 3. Xử lý TOÀN THỜI GIAN
+            if (data.studyTime > accumulatedTime) accumulatedTime = data.studyTime;
+            
+            // Lưu lại vào LocalStorage để dùng offline
+            localStorage.setItem('fp_aurora_time_week', weekTime);
+            localStorage.setItem('fp_aurora_time_month', monthTime);
 
             // Reset if keys don't match stored keys, otherwise load
             if(data.weekKey === curWKey && data[scoreWKey]) weekPoints = data[scoreWKey];

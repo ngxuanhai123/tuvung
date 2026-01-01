@@ -2399,16 +2399,20 @@ window.startSmartSession = async function(isExtra = false) {
     // 7. DRIP FEED LOGIC: Determine New Words
     let maxNewToAdd = 0;
 
-    // Only fetch new words upfront if NO REVIEWS are pending (to avoid empty session)
-    if (batchReview.length === 0) {
-        maxNewToAdd = 5; // Starter pack
+    // --- ĐOẠN CODE MỚI (ĐÃ FIX) ---
+    // Logic: Ưu tiên ôn tập hoàn toàn.
+    if (batchReview.length > 0) {
+        // Nếu có bài cần ôn, KHÔNG nạp từ mới ngay từ đầu.
+        // Từ mới sẽ được thêm vào thông qua cơ chế "injectSilentWords" (Thưởng nóng) khi bạn trả lời đúng.
+        maxNewToAdd = 0; 
     } else {
-        maxNewToAdd = 0; // Prioritize Reviews
+        // Chỉ khi nào sạch bách bài ôn thì mới nạp nhẹ 2 từ để bắt đầu game
+        maxNewToAdd = 2; 
     }
 
-    // Override if user clicked "Learn More"
-    if(isExtra) maxNewToAdd = 3;
-
+    // XÓA hoặc COMMENT dòng bên dưới đi. 
+    // Dòng này chính là thủ phạm khiến nút "Học thêm" nhồi ngay 3 từ mới vào họng bất kể bạn đang muốn ôn bài.
+    // if(isExtra) maxNewToAdd = 3;
     // 8. Fetch New Words based on calculated maxNewToAdd
     let batchNew = [];
     

@@ -1404,19 +1404,18 @@ async function syncDataFromServer() {
 async function saveProgressToCloud(force = false) {
     if(!currentUser) return;
 
-    // OFFLINE FIRST CHECK: If session is active and not forced, skip sync to reduce writes
+    // OFFLINE FIRST CHECK
     if (window.isSessionActive && !force) {
         console.log("Session active: Skipping cloud sync, saved to LS only.");
         return;
     }
     
-    // Dynamic keys based on language
+    // Dynamic keys
     const srsKey = `srsData_${currentLang}`;
     const masterKey = `masteredWords_${currentLang}`;
     const topicKey = `currentTopicKey_${currentLang}`;
     const scoreKey = `score_${currentLang}`;
     
-    // Week/Month Keys
     const curWKey = getWeekKey();
     const curMKey = getMonthKey();
     const scoreWKey = `score_week_${currentLang}`;
@@ -1432,8 +1431,12 @@ async function saveProgressToCloud(force = false) {
     monthPoints += sessionPoints;
     sessionPoints = 0; // Reset session points
 
-    // Update LocalStorage for persistence
+    // Update LocalStorage
     localStorage.setItem(`fp_aurora_points_${currentLang}`, accumulatedPoints);
+    
+    // --- LƯU THÊM GIỜ VÀO LOCALSTORAGE ---
+    localStorage.setItem('fp_aurora_time_week', weekTime);
+    localStorage.setItem('fp_aurora_time_month', monthTime);
 
     try {
         await setDoc(doc(db, "leaderboard", currentUser.uid), {
@@ -1446,21 +1449,25 @@ async function saveProgressToCloud(force = false) {
             weekKey: curWKey,
             monthKey: curMKey,
             score: accumulatedPoints, // Global fallback
-            studyTime: accumulatedTime,
+            
+            // --- LƯU THÊM 3 LOẠI THỜI GIAN LÊN SERVER ---
+            studyTime: accumulatedTime, // Tổng
+            time_week: weekTime,        // Tuần
+            time_month: monthTime,      // Tháng
+            
             streakHistory: JSON.stringify(streakHistory),
             lastUpdated: Date.now(),
-            [srsData ? srsKey : 'ignore']: JSON.stringify(srsData), // simple check to avoid undefined
+            [srsData ? srsKey : 'ignore']: JSON.stringify(srsData), 
             [masteredWords ? masterKey : 'ignore']: JSON.stringify(masteredWords),
             config: config,
             [topicKey]: currentTopicKey
         }, { merge: true });
         
-        updateUserPointsUI(); // Refresh UI to ensure display is correct
+        updateUserPointsUI(); 
     } catch(e) {
         console.error("Error saving progress to cloud", e);
     }
 }
-
 // --- NEW LEADERBOARD LOGIC (REAL-TIME SNAPSHOT) ---
 window.switchLbTab = (tab) => {
     currentLbTab = tab;
@@ -1478,9 +1485,18 @@ window.initLeaderboardListener = () => {
     
     document.getElementById('lb-lang-label').innerText = LANG_CONFIG[currentLang].label;
 
-    let sortField = `score_${currentLang}`; // Default 'all'
-    if(currentLbTab === 'week') sortField = `score_week_${currentLang}`;
-    if(currentLbTab === 'month') sortField = `score_month_${currentLang}`;
+    // --- [SỬA] LOGIC CHỌN TRƯỜNG DỮ LIỆU ĐỂ HIỂN THỊ ---
+    let sortField = `score_${currentLang}`; // Mặc định Toàn thời gian
+    let timeField = 'studyTime';            // Mặc định lấy tổng giờ
+    
+    if(currentLbTab === 'week') {
+        sortField = `score_week_${currentLang}`;
+        timeField = 'time_week'; // Lấy giờ tuần
+    }
+    if(currentLbTab === 'month') {
+        sortField = `score_month_${currentLang}`;
+        timeField = 'time_month'; // Lấy giờ tháng
+    }
     
     const q = query(collection(db, "leaderboard"), orderBy(sortField, "desc"), limit(20));
 
@@ -1489,13 +1505,16 @@ window.initLeaderboardListener = () => {
         querySnapshot.forEach(doc => {
             const d = doc.data();
             const langScore = d[sortField] || 0;
+            // --- [SỬA] LẤY GIỜ THEO TIMEFIELD ---
+            const langTime = d[timeField] || 0;
+
             // Only include if score > 0 or it's the current user
             if(langScore > 0 || (currentUser && doc.id === currentUser.uid)) {
-                users.push({ id: doc.id, ...d, displayScore: langScore });
+                // Đẩy displayTime vào object user
+                users.push({ id: doc.id, ...d, displayScore: langScore, displayTime: langTime });
             }
         });
         
-        // Sort manually just in case firestore index issues cause weirdness
         users.sort((a,b) => b.displayScore - a.displayScore);
 
         if (users.length === 0) {
@@ -1504,7 +1523,7 @@ window.initLeaderboardListener = () => {
              return;
         }
 
-        // Render Podium
+        // Render Podium (Giữ nguyên phần này)
         let podiumHTML = '';
         if(users.length > 0) {
             podiumDiv.style.display = 'flex';
@@ -1532,23 +1551,19 @@ window.initLeaderboardListener = () => {
         let listHTML = '';
         let currentUserFound = false;
         
-        // Show Top 20
         users.forEach((u, index) => {
             const rank = index + 1;
             if(currentUser && u.id === currentUser.uid) currentUserFound = true;
             
-            // SHOW ALL RANKS (Including Top 3) in the detailed list as requested
             let extraStyle = '';
             if(currentUser && u.id === currentUser.uid) {
                 extraStyle = 'background:rgba(59, 130, 246, 0.15); border-left: 3px solid #60a5fa;';
             }
-            
-            // Highlight Top 3 in list as well for details
             if(rank === 1) extraStyle += ' border-right: 3px solid #ffd700;';
             if(rank === 2) extraStyle += ' border-right: 3px solid #c0c0c0;';
             if(rank === 3) extraStyle += ' border-right: 3px solid #cd7f32;';
 
-            const rankObj = getRankInfo(u[`score_${currentLang}`] || 0); // Always base title on total score
+            const rankObj = getRankInfo(u[`score_${currentLang}`] || 0); 
             const learnedCount = u[`learnedCount_${currentLang}`] || 0;
 
             listHTML += `
@@ -1566,23 +1581,32 @@ window.initLeaderboardListener = () => {
                     </div>
                     <div class="lb-stats">
                         <div class="lb-score">${u.displayScore.toLocaleString()}</div>
-                        <div class="lb-time">${formatTime(u.studyTime || 0)}</div>
+                        <div class="lb-time">${formatTime(u.displayTime || 0)}</div>
                     </div>
                 </div>
             `;
         });
 
-        // If current user not in top 20, fetch and append them? 
-        // Real-time listener on query limit(20) won't return them.
-        // We can just append a row manually if we have their data and they weren't found.
+        // Nếu bạn không nằm trong Top 20, hiển thị dòng riêng của bạn ở dưới cùng
         if(currentUser && !currentUserFound) {
-            // We know our own score from local variables (including session points for display)
             let myScore = 0;
-            if(currentLbTab === 'week') myScore = weekPoints + sessionPoints;
-            else if(currentLbTab === 'month') myScore = monthPoints + sessionPoints;
-            else myScore = accumulatedPoints + sessionPoints;
+            let myTime = 0;
 
-            if(myScore > 0) { // Only show if we have score
+            // --- [SỬA] LẤY GIỜ CÁ NHÂN THEO TAB ---
+            if(currentLbTab === 'week') {
+                myScore = weekPoints + sessionPoints;
+                myTime = weekTime; // Biến toàn cục weekTime
+            }
+            else if(currentLbTab === 'month') {
+                myScore = monthPoints + sessionPoints;
+                myTime = monthTime; // Biến toàn cục monthTime
+            }
+            else {
+                myScore = accumulatedPoints + sessionPoints;
+                myTime = accumulatedTime; // Biến toàn cục tổng
+            }
+
+            if(myScore > 0) {
                 const rankObj = getRankInfo(accumulatedPoints + sessionPoints);
                 const learnedCount = Object.keys(masteredWords).length + Object.keys(srsData).length;
                 listHTML += `
@@ -1601,7 +1625,7 @@ window.initLeaderboardListener = () => {
                         </div>
                         <div class="lb-stats">
                             <div class="lb-score">${myScore.toLocaleString()}</div>
-                            <div class="lb-time">${formatTime(accumulatedTime)}</div>
+                            <div class="lb-time">${formatTime(myTime)}</div>
                         </div>
                     </div>
                 `;
@@ -1613,8 +1637,7 @@ window.initLeaderboardListener = () => {
     }, (error) => {
         console.error("Realtime Error:", error);
         listDiv.innerHTML = `<div style="text-align:center; color:#ff5252; font-size:0.8rem; padding:10px;">
-            Lỗi tải BXH. Vui lòng thử tab khác hoặc báo cáo Admin.<br>
-            (Missing Index: ${sortField})
+            Lỗi tải BXH. (Index: ${sortField})
         </div>`;
     });
 };
@@ -2790,18 +2813,20 @@ window.closeGame = function() {
 function startTimer() {
     if(studyTimer) clearInterval(studyTimer);
     studyTimer = setInterval(() => {
+        // Tăng cả 3 biến đếm
         accumulatedTime++;
+        weekTime++;
+        monthTime++;
+
+        // Lưu vào LocalStorage liên tục để không mất khi F5
         localStorage.setItem('fp_aurora_time', accumulatedTime);
+        localStorage.setItem('fp_aurora_time_week', weekTime);
+        localStorage.setItem('fp_aurora_time_month', monthTime);
+
         if(accumulatedTime % 60 === 0) {
             addPoints(5); 
         }
     }, 1000);
-}
-
-function stopTimer() {
-    if(studyTimer) clearInterval(studyTimer);
-    studyTimer = null;
-    localStorage.setItem('fp_aurora_time', accumulatedTime);
 }
 
 function updateProgress() {

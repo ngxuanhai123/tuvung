@@ -2547,13 +2547,11 @@ window.startSmartSession = async function(isExtra = false) {
     window.isGlobalReviewSession = false;
 
     // --- 2. Kiểm tra Chủ đề hiện tại ---
-    // Nếu chưa có topic, chọn cái đầu tiên
     if (!currentTopicKey && allTopicsMetadata.length > 0) {
          currentTopicKey = allTopicsMetadata[0].name;
          localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
     }
     
-    // Tải dữ liệu nếu thiếu
     if (!allTopics[currentTopicKey]) {
         showToast("Đang tải dữ liệu...", "info");
         await loadTopicData(currentTopicKey);
@@ -2568,11 +2566,9 @@ window.startSmartSession = async function(isExtra = false) {
     checkDailyLimit();
     let limitNew = config.newLimit;
     let learnedToday = dailyTracking.count;
-    
-    // Số từ mới còn được phép học (Quota)
     let remainingQuota = Math.max(0, limitNew - learnedToday);
 
-    // --- 5. Gom từ vựng từ chủ đề hiện tại ---
+    // --- 5. Gom từ vựng từ chủ đề hiện tại (TỪ MỚI) ---
     let currentTopicData = allTopics[currentTopicKey];
     if (!currentTopicData) return showToast("Lỗi dữ liệu chủ đề", "error");
 
@@ -2581,54 +2577,57 @@ window.startSmartSession = async function(isExtra = false) {
         return !masteredWords[k] && !srsData[k];
     });
 
-    // --- 6. Gom bài ôn tập (Reviews) ---
-    // Logic: Ưu tiên ôn bài cũ trước
-    let allLearningCurrent = [];
+    // --- 6. Gom bài ôn tập (Reviews) - [ĐÃ SỬA ĐỂ LẤY CẢ TỪ CHƯA ĐẾN HẠN] ---
+    let allLearnedWords = [];
     const now = Date.now();
 
+    // Duyệt qua tất cả chủ đề để tìm từ đã học
     Object.keys(allTopics).forEach(topicKey => {
         const topic = allTopics[topicKey];
         topic.words.forEach(w => {
             const k = getWordKey(w);
+            // Chỉ cần có data SRS và chưa Mastered là lấy hết
             if (srsData[k] && !masteredWords[k]) {
-                const data = srsData[k];
-                // Đến hạn hoặc level thấp thì lôi ra ôn
-                if (data.nextReview <= now || data.level <= 3) {
-                    allLearningCurrent.push(w);
-                }
+                allLearnedWords.push(w);
             }
         });
     });
 
-    // Sắp xếp theo thời gian review
-    allLearningCurrent.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
-    const batchReview = allLearningCurrent.slice(0, config.reviewLimit);
+    // Sắp xếp: Ưu tiên từ quá hạn (nextReview nhỏ) trước, sau đó đến từ sắp đến hạn
+    allLearnedWords.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
+    
+    // Cắt lấy đúng số lượng Review Limit (VD: 20 từ)
+    // Kể cả chưa đến hạn cũng lấy cho đủ danh sách
+    const batchReview = allLearnedWords.slice(0, config.reviewLimit);
 
     // --- 7. DRIP FEED LOGIC (Quyết định số từ mới) ---
     let maxNewToAdd = 0;
     
     if (batchReview.length > 0) {
-        // Nếu có bài ôn -> Chỉ học thêm tối đa 2 từ mới (nếu còn quota)
+        // Nếu danh sách ôn tập đã đầy (do mình ép lấy đủ limit),
+        // Ta vẫn cho học thêm tối đa 2 từ mới nếu còn quota (để không bị ngợp)
         maxNewToAdd = Math.min(2, remainingQuota);
+        
+        // Tuy nhiên, nếu batchReview toàn là từ "chưa đến hạn" (tức là người dùng rảnh),
+        // và người dùng muốn học thêm (isExtra) hoặc quota còn nhiều, ta có thể tăng từ mới lên.
+        // Nhưng logic đơn giản nhất: Giữ nguyên logic cũ.
     } else {
-        // Nếu sạch bài ôn -> Học 5 từ mới (hoặc theo cấu hình)
+        // Nếu hoàn toàn không có từ nào để ôn (người mới chơi), học full từ mới
         maxNewToAdd = Math.min(config.newLimit, remainingQuota);
-        // Nếu quota hết nhưng người dùng bấm "Học thêm" (isExtra) -> Du di cho 2 từ
-        if (maxNewToAdd === 0 && isExtra) maxNewToAdd = 2;
     }
+    
+    // Nếu quota hết nhưng người dùng bấm "Học thêm" (isExtra) -> Du di cho 2 từ
+    if (maxNewToAdd === 0 && isExtra) maxNewToAdd = 2;
 
     // --- 8. Lấy từ mới (Có tự động sang Topic tiếp theo) ---
     let batchNew = [];
     
     if (candidatesNewCurrent.length >= maxNewToAdd) {
-        // Chủ đề hiện tại đủ từ
         batchNew = candidatesNewCurrent.slice(0, maxNewToAdd);
     } else {
-        // Chủ đề hiện tại thiếu từ -> Lấy hết phần còn lại
         batchNew = [...candidatesNewCurrent]; 
         const deficit = maxNewToAdd - batchNew.length;
 
-        // Nếu vẫn thiếu -> Sang chủ đề kế tiếp
         if (deficit > 0) {
             const currentIdx = allTopicsMetadata.findIndex(f => f.name === currentTopicKey);
             
@@ -2636,7 +2635,6 @@ window.startSmartSession = async function(isExtra = false) {
                 const nextMeta = allTopicsMetadata[currentIdx + 1];
                 const nextKey = nextMeta.name;
                 
-                // Tải chủ đề mới
                 if (!allTopics[nextKey]) {
                     showToast(`Đang mở rộng sang chủ đề: ${nextMeta.name}...`, "info");
                     await loadTopicData(nextKey);
@@ -2653,7 +2651,6 @@ window.startSmartSession = async function(isExtra = false) {
                         const nextTakeCount = Math.min(deficit, candidatesNewNext.length);
                         batchNew = [...batchNew, ...candidatesNewNext.slice(0, nextTakeCount)];
 
-                        // Tự động cập nhật chủ đề hiện tại sang cái mới
                         currentTopicKey = nextKey;
                         localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
                         showToast(`Đã chuyển sang: ${nextTopicData.name}`, "success");
@@ -2674,7 +2671,19 @@ window.startSmartSession = async function(isExtra = false) {
 
     // --- 10. Tạo hàng đợi bài học (Trộn bài) ---
     window.isReviewOnlySession = (batchNew.length === 0);
-    showToast(`Bắt đầu: ${batchNew.length} từ mới + ${batchReview.length} ôn tập`, "info");
+    
+    // Tính số lượng thực tế để thông báo
+    // (Đếm số từ review thực sự đến hạn để hiển thị cho vui, còn thực tế học là batchReview.length)
+    const realDueCount = batchReview.filter(w => srsData[getWordKey(w)].nextReview <= now).length;
+    const earlyReviewCount = batchReview.length - realDueCount;
+    
+    let msg = `Bắt đầu: ${batchNew.length} từ mới`;
+    if(batchReview.length > 0) {
+        msg += ` + ${batchReview.length} ôn tập`;
+        if(earlyReviewCount > 0) msg += ` (gồm ${earlyReviewCount} ôn sớm)`;
+    }
+    
+    showToast(msg, "info");
     playSound(SFX.POP);
     
     let interleaved = [];

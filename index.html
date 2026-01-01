@@ -2159,10 +2159,6 @@ window.navTo = function(viewId) {
 }
 
 // --- CALENDAR RENDERER ---
-
-// 1. Khai báo biến con trỏ thời gian (Để biết đang xem tháng nào)
-let calendarCursor = new Date(); 
-
 // 2. Hàm điều hướng (Lùi/Tiến)
 window.moveCalendar = function(step) {
     if (calendarViewMode === 'week') {

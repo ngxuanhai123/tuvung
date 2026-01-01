@@ -2170,36 +2170,89 @@ window.toggleCalendarView = function() {
 
 // --- DATA & SYNC (LAZY LOADING) ---
 
-// Helper: Fetch a single topic's JSON and add to cache
+// Helper: Fetch a single topic's JSON and add to cache (Optimized with LocalStorage)
 async function loadTopicData(filename) {
-    if (allTopics[filename]) return allTopics[filename]; // Return cached if exists
+    // 1. Kiểm tra biến toàn cục (RAM) trước
+    if (allTopics[filename]) return allTopics[filename];
 
-    // Find the file in metadata to get the URL
+    // Tìm metadata để lấy URL và mã SHA (phiên bản file)
     const meta = allTopicsMetadata.find(f => f.name === filename);
     if (!meta) {
         console.warn(`Topic ${filename} not found in metadata`);
         return null;
     }
 
+    // Key để lưu vào LocalStorage (phân biệt theo ngôn ngữ và tên file)
+    const cacheKey = `fp_aurora_topic_content_${currentLang}_${filename}`;
+
+    // 2. Kiểm tra LocalStorage (Ổ cứng)
+    const cachedRaw = localStorage.getItem(cacheKey);
+    if (cachedRaw) {
+        try {
+            const cachedObj = JSON.parse(cachedRaw);
+            // SO SÁNH SHA: Nếu SHA trên GitHub khớp với SHA đã lưu -> Dùng cache
+            if (cachedObj.sha === meta.sha) {
+                console.log(`[Cache Hit] Loaded ${filename} from storage.`);
+                allTopics[filename] = cachedObj.data; // Đưa vào RAM để dùng nhanh lần sau
+                return cachedObj.data;
+            } else {
+                console.log(`[Cache Outdated] New version detected for ${filename}. Re-fetching...`);
+            }
+        } catch (e) {
+            console.error("Cache parse error", e);
+            // Nếu lỗi parse JSON thì coi như không có cache
+        }
+    }
+
+    // 3. Nếu không có cache hoặc cache cũ -> Tải mới từ GitHub
     try {
-        // UPDATED: Add Cache Busting Timestamp
-        const url = `${meta.download_url}?t=${Date.now()}`;
+        console.log(`[Network] Downloading ${filename}...`);
+        // Bỏ tham số ?t=Date.now() để tận dụng cache của trình duyệt/CDN nếu có
+        const url = meta.download_url; 
         const res = await fetch(url);
+        if (!res.ok) throw new Error("HTTP Error");
+        
         const data = await res.json();
         
-        // Process data format
+        // Chuẩn hóa dữ liệu
         const words = Array.isArray(data) ? data : (data.words || []);
         if (words.length) {
             const topicObj = {
                 name: (data.name || filename.replace('.json','')).replace(/_/g,' '),
                 words: words
             };
-            allTopics[filename] = topicObj; // Store in global cache
+
+            // 4. Lưu dữ liệu mới + SHA vào LocalStorage
+            try {
+                const cacheEntry = {
+                    sha: meta.sha, // Lưu phiên bản hiện tại
+                    timestamp: Date.now(),
+                    data: topicObj
+                };
+                localStorage.setItem(cacheKey, JSON.stringify(cacheEntry));
+            } catch (storageErr) {
+                console.warn("LocalStorage Full? Could not cache topic.", storageErr);
+                // Nếu bộ nhớ đầy, có thể xóa bớt cache cũ ở đây (nâng cao)
+            }
+
+            allTopics[filename] = topicObj; // Lưu vào RAM
             return topicObj;
         }
         return null;
     } catch (e) {
         console.error(`Failed to load topic ${filename}`, e);
+        
+        // Fallback: Nếu mất mạng và tải thất bại, cố gắng dùng cache cũ (nếu có) dù lệch version
+        if (cachedRaw) {
+            try {
+                console.log("Network failed. Using outdated cache fallback.");
+                const cachedObj = JSON.parse(cachedRaw);
+                allTopics[filename] = cachedObj.data;
+                showToast(`Đang dùng bản lưu cũ của ${filename}`, "info");
+                return cachedObj.data;
+            } catch(ex) {}
+        }
+
         showToast("Lỗi tải chủ đề: " + filename, "error");
         return null;
     }

@@ -4446,7 +4446,58 @@ if (document.readyState === 'loading') {
 } else {
     setTimeout(window.initApp, 100);
 }
+// --- BỔ SUNG CÁC HÀM BỊ THIẾU ---
 
+// Hàm quyết định hiển thị game gì (Flashcard/Quiz/Spelling...) dựa trên config
+window.decideSmartRender = function() {
+    const w = sessionQueue[sessionIndex];
+    if (!w) return;
+
+    const key = getWordKey(w);
+    const data = srsData[key];
+    
+    // Nếu là từ mới (level 0 hoặc chưa có data) -> Luôn hiện Flashcard trước
+    const isNew = !data || data.level === 0;
+
+    // Lấy danh sách các chế độ game đang BẬT trong cài đặt
+    const modes = config.activeGameModes || { flashcard: true, quiz: true, fill: true, sentence: true, spelling: true, matching: true };
+    
+    if (isNew) {
+        renderFlashcard();
+        return;
+    }
+
+    // Nếu là từ ôn tập, random các game đang bật
+    let available = [];
+    if (modes.flashcard) available.push('flashcard');
+    if (modes.quiz) available.push('quiz');
+    if (modes.fill) available.push('fill');
+    if (modes.sentence) available.push('sentence');
+    if (modes.spelling) available.push('spelling');
+    // Matching chỉ khả dụng nếu còn đủ từ trong hàng đợi
+    if (modes.matching && (sessionQueue.length - sessionIndex) >= 4) available.push('matching');
+
+    if (available.length === 0) {
+        renderFlashcard();
+        return;
+    }
+
+    const nextMode = available[Math.floor(Math.random() * available.length)];
+
+    if (nextMode === 'flashcard') renderFlashcard();
+    else if (nextMode === 'quiz') setupQuiz();
+    else if (nextMode === 'fill') renderFill();
+    else if (nextMode === 'sentence') renderSentence();
+    else if (nextMode === 'spelling') renderSpelling();
+    else if (nextMode === 'matching') setupMatching();
+    else renderFlashcard();
+}
+
+// Hàm bắt đầu ôn tập toàn bộ (Global Review)
+window.startGlobalReview = function() {
+    // Tận dụng logic của Smart Session, nó sẽ tự ưu tiên các từ đến hạn (Due)
+    window.startSmartSession(false);
+}
 // Bắt lỗi toàn cục
 window.onerror = function(msg, url, line) {
     console.error("Lỗi hệ thống: " + msg);

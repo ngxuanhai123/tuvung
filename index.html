@@ -1136,6 +1136,7 @@ let currentLang = localStorage.getItem('fp_aurora_lang') || 'en';
 
 // DAILY TRACKING NOW LANGUAGE SPECIFIC
 let dailyTracking = JSON.parse(localStorage.getItem(`fp_aurora_daily_${currentLang}`) || '{"date":"", "count":0}');
+  let scoreHistory = {}; // 
 // STREAK HISTORY TRACKING (Shared or language specific? Let's make it shared for simplicity, showing general activity)
 let streakHistory = JSON.parse(localStorage.getItem('fp_aurora_streak_history') || '[]');
 

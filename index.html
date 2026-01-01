@@ -2443,7 +2443,7 @@ window.startSmartSession = async function(isExtra = false) {
     // --- Fix: Load ALL data for comprehensive review ---
     const missingTopics = allTopicsMetadata.filter(meta => !allTopics[meta.name]);
     if(missingTopics.length > 0) {
-         showToast("Đang đồng bộ dữ liệu bài cũ...", "info");
+         showToast("Đang đồng bộ dữ liệu...", "info");
          await Promise.all(missingTopics.map(meta => loadTopicData(meta.name)));
     }
     

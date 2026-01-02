@@ -3307,7 +3307,7 @@ window.askAI = async function() {
     `;
 
     // Tạo nội dung câu hỏi (Prompt)
-    const systemPrompt = `Đóng vai một từ điển tiếng Anh chuyên sâu, hài hước và dễ hiểu cho người Việt. 
+    const systemPrompt = `Đóng vai một từ điển ${langLabel} chuyên sâu, hài hước và dễ hiểu cho người Việt. 
     Yêu cầu định dạng output: Chỉ sử dụng thẻ HTML cơ bản (<b>, <br>, <ul>, <li>). Không dùng Markdown.`;
     
     const userPrompt = `Giải thích từ: "${w.english}" (nghĩa Việt chính: "${w.vietnamese}").

@@ -732,7 +732,131 @@
       .word-vn { font-size: 1.5rem; margin-bottom: 5px; }
       .example-box { font-size: 0.9rem; padding: 5px; }
   }
+/* --- 🤖 AI ASSISTANT STYLES (MỚI) --- */
+.ai-section {
+    width: 100%;
+    margin: 0px auto 20px auto; /* Cách thẻ card 20px */
+    padding: 0 10px;
+    max-width: 500px; /* Giới hạn chiều rộng cho đẹp */
+}
 
+/* Nút bấm gọi AI */
+.btn-ask-ai {
+    background: linear-gradient(135deg, #6366f1 0%, #a855f7 100%); /* Màu tím galaxy */
+    border: 1px solid rgba(255,255,255,0.3);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 25px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    cursor: pointer;
+    width: 100%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 10px;
+    box-shadow: 0 4px 15px rgba(168, 85, 247, 0.4);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+/* Hiệu ứng loé sáng khi bấm */
+.btn-ask-ai::after {
+    content: '';
+    position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+    transition: 0.5s;
+}
+.btn-ask-ai:active::after { left: 100%; }
+.btn-ask-ai:active { transform: scale(0.96); box-shadow: 0 2px 5px rgba(168, 85, 247, 0.4); }
+
+/* Khung chat hiển thị câu trả lời */
+
+/* 1. Màn hình nền mờ (Backdrop) */
+.ai-overlay-backdrop {
+    position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+    background: rgba(0, 0, 0, 0.75); /* Nền tối làm nổi bật popup */
+    z-index: 9998; /* Nằm dưới popup nhưng trên mọi thứ khác */
+    backdrop-filter: blur(4px); /* Làm mờ hậu cảnh */
+    display: none; /* Mặc định ẩn */
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.ai-overlay-backdrop.show {
+    display: block;
+    opacity: 1;
+}
+
+/* 2. Khung chat AI (Giờ là Popup nổi) */
+.ai-chat-bubble {
+    position: fixed; 
+    top: 50%; left: 50%; 
+    transform: translate(-50%, -50%) scale(0.9); /* Căn giữa màn hình */
+    width: 90%; max-width: 420px;
+    max-height: 70vh; /* Giới hạn chiều cao */
+    
+    background: rgba(15, 23, 42, 0.98); /* Nền xanh đậm đặc hơn */
+    border: 1px solid rgba(168, 85, 247, 0.5); /* Viền tím */
+    box-shadow: 0 0 50px rgba(139, 92, 246, 0.3); /* Hiệu ứng toả sáng tím */
+    border-radius: 20px;
+    padding: 25px;
+    
+    color: #e2e8f0;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    overflow-y: auto; /* Cho phép cuộn nội dung nếu dài */
+    z-index: 9999; /* Lớp cao nhất */
+    
+    display: none;
+    transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+/* Class kích hoạt hiển thị */
+.ai-chat-bubble.active {
+    display: block;
+    transform: translate(-50%, -50%) scale(1);
+    animation: bounceIn 0.4s;
+}
+
+/* 3. Nút đóng (Dấu X) */
+.btn-close-ai {
+    position: absolute; top: 10px; right: 10px;
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.1);
+    border: none; color: white;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: 0.2s;
+}
+.btn-close-ai:hover { background: rgba(239, 68, 68, 0.8); }
+
+/* Xoá mũi tên tam giác cũ */
+.ai-chat-bubble::before { display: none; }
+
+/* Mũi tên chỉ lên trên của bong bóng chat */
+.ai-chat-bubble::before {
+    content: '';
+    position: absolute; top: -10px; left: 0;
+    border-width: 0 10px 10px 0;
+    border-style: solid;
+    border-color: transparent rgba(168, 85, 247, 0.5) transparent transparent;
+}
+
+/* Tiêu đề nhỏ "AI Teacher" */
+.ai-badge {
+    display: inline-block;
+    background: #a855f7;
+    color: white;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
 </style>
 </head>
 <body>
@@ -1099,6 +1223,7 @@ let unsubscribeLeaderboard = null;
 let currentLbTab = 'week';
 let calendarCursor = new Date();
 const imageCache = {}; // Cache for images to prevent reload
+const aiCache = JSON.parse(localStorage.getItem('fp_aurora_ai_cache') || '{}');
 
 // --- GLOBAL AUDIO FOR GOOGLE TTS UNLOCKING & IOS SILENT BYPASS ---
 const ttsPlayer = new Audio();
@@ -1875,6 +2000,26 @@ let sessionIndex = 0;
 let currentMode = '';
 let isProcessing = false;
 let isFlipped = false;
+  // --- BỔ SUNG HÀM LẬT THẺ ---
+window.flipCard = function() {
+    // Nếu đang xử lý kết quả (đúng/sai) thì chặn không cho lật để tránh lỗi
+    if (typeof isProcessing !== 'undefined' && isProcessing) return;
+    
+    const card = document.getElementById('flashcardObj');
+    if (card) {
+        card.classList.toggle('is-flipped');
+        
+        // Cập nhật trạng thái lật
+        if (typeof isFlipped !== 'undefined') {
+            isFlipped = !isFlipped;
+        } else {
+            window.isFlipped = !window.isFlipped;
+        }
+        
+        // Phát âm thanh lật thẻ
+        playSound(SFX.FLIP);
+    }
+};
 let selectedVoice = null;
 const translationCache = JSON.parse(localStorage.getItem('fp_aurora_trans_cache') || '{}');
 
@@ -3071,6 +3216,20 @@ function renderFlashcard() {
             </div>
         </div>
         
+        <div class="ai-section animate__animated animate__fadeInUp">
+            <div id="btn-ask-ai" class="btn-ask-ai" onclick="window.askAI()">
+                <i class="fas fa-robot"></i> Giải thích & Mẹo nhớ (AI)
+            </div>
+        </div>
+
+        <div id="ai-backdrop" class="ai-overlay-backdrop" onclick="window.closeAI()"></div>
+        
+        <div id="ai-box" class="ai-chat-bubble">
+            <button class="btn-close-ai" onclick="window.closeAI()"><i class="fas fa-times"></i></button>
+            <div class="ai-badge"><i class="fas fa-graduation-cap"></i> AI Teacher</div>
+            <div id="ai-content"></div>
+        </div>
+        
         <div class="control-row">
             <button class="action-btn btn-wrong" onclick="window.processResult(false)">
                 <i class="fas fa-times"></i> &nbsp;Chưa thuộc
@@ -3108,22 +3267,127 @@ function renderFlashcard() {
 
     setTimeout(window.speakWord, 500);
 }
+// --- 🟢 HÀM GỌI TRỢ LÝ AI ---
+window.askAI = async function() {
+    // 1. Cấu hình từ lệnh CURL
+    const API_KEY = "AIzaSyAuRIXN7rg1BAbEpjiJywHcVJ5dGj3URP0"; 
 
-window.flipCard = function() {
-    if(isProcessing && currentMode === 'smart') return;
-    
-    // FIX: Ensure context is resumed on card click interaction
-    if(audioCtx.state === 'suspended') {
-        try { audioCtx.resume(); } catch(e) {}
+    // Kiểm tra dữ liệu đầu vào
+    if (!sessionQueue || !sessionQueue[sessionIndex]) return;
+    const w = sessionQueue[sessionIndex];
+    const cacheKey = w.english.trim().toLowerCase();
+
+    // Hiển thị giao diện Popup
+    const backdrop = document.getElementById('ai-backdrop');
+    const box = document.getElementById('ai-box');
+    const content = document.getElementById('ai-content');
+    const btn = document.getElementById('btn-ask-ai');
+
+    if(btn) btn.style.display = 'none';
+    if(backdrop) backdrop.classList.add('show');
+    if(box) box.classList.add('active');
+
+    // Kiểm tra Cache (Nếu có rồi thì hiện luôn)
+    if (typeof aiCache !== 'undefined' && aiCache[cacheKey]) {
+        content.innerHTML = aiCache[cacheKey] + `
+            <div style="text-align:right; margin-top:10px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:5px;">
+                <span style="font-size:0.6rem; opacity:0.5;"><i class="fas fa-hdd"></i> Từ bộ nhớ</span>
+            </div>`;
+        return;
     }
 
-    const card = document.getElementById('flashcardObj');
-    if(!card) return;
-    isFlipped = !isFlipped;
-    card.classList.toggle('is-flipped');
-    playSound(SFX.FLIP);
-}
+    // Hiển thị trạng thái Loading
+    content.innerHTML = `
+        <div style="text-align:center; padding:30px; color:#a855f7;">
+            <i class="fas fa-bolt fa-spin fa-2x"></i>
+            <div style="margin-top:15px; font-weight:600;"> AI HiHi đang chạy...</div>
+        </div>
+    `;
 
+    // Tạo nội dung câu hỏi (Prompt)
+    const langName = LANG_CONFIG[currentLang] ? LANG_CONFIG[currentLang].label : 'Ngoại ngữ';
+    const promptText = `Giải thích từ: "${w.english}" (nghĩa Việt: "${w.vietnamese}") cho người Việt.
+    Yêu cầu: Ngắn gọn (<100 từ) hài hước, kèm 1 ví dụ, mẹo nhớ, sau mỗi cái đều xuống dòng và -đầu dòng. 
+    Dùng thẻ <b> cho từ khóa, xuống dòng bằng <br>. Không dùng Markdown.`;
+
+    try {
+        // --- GỌI API GEMINI (Chuyển đổi từ CURL sang FETCH) ---
+        // Lưu ý: Dùng key trên URL để chạy ổn định trên trình duyệt (tránh lỗi CORS header)
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+        
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json' 
+            },
+            body: JSON.stringify({
+                "contents": [
+                    {
+                        "parts": [
+                            { "text": promptText }
+                        ]
+                    }
+                ]
+            })
+        });
+
+        // Xử lý lỗi trả về
+        if (!response.ok) {
+            const errData = await response.json();
+            // Nếu lỗi 429 (Hết lượt) hoặc 404 (Sai model)
+            if (response.status === 429) throw new Error("Server đang bận (Quota Exceeded). Hãy thử lại sau 1 phút.");
+            if (response.status === 404) throw new Error("Model không tìm thấy (Kiểm tra lại tên Model).");
+            throw new Error(errData.error?.message || `Lỗi ${response.status}`);
+        }
+        
+        const data = await response.json();
+        
+        // Lấy nội dung trả lời an toàn
+        let text = "AI không trả lời được, hãy thử lại.";
+        if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
+             text = data.candidates[0].content.parts[0].text;
+        }
+
+        // Lưu Cache
+        if (typeof aiCache !== 'undefined') {
+            aiCache[cacheKey] = text;
+            localStorage.setItem('fp_aurora_ai_cache', JSON.stringify(aiCache));
+        }
+
+        content.innerHTML = text;
+        playSound(SFX.POP);
+
+    } catch (e) {
+        console.error("Gemini Error:", e);
+        // Fallback giao diện lỗi
+        let errorMsg = "Kết nối thất bại!";
+        let hint = "Kiểm tra lại mạng hoặc API Key.";
+        
+        if (e.message.includes("Quota")) {
+            errorMsg = "Hết lượt dùng thử (429)";
+            hint = "Model giới hạn số lần gọi. Hãy chờ một chút.";
+        }
+
+        content.innerHTML = `
+            <div style="text-align:center; color:#ef4444; padding:20px;">
+                <i class="fas fa-exclamation-triangle" style="font-size:2rem; margin-bottom:10px;"></i><br>
+                <b>${errorMsg}</b><br>
+                <div style="font-size:0.8rem; opacity:0.8; margin-top:5px;">${hint}</div>
+                <div style="font-size:0.7rem; margin-top:5px; opacity:0.5;">${e.message}</div>
+                <button onclick="window.askAI()" class="btn-primary" style="margin-top:15px; font-size:0.8rem; padding:8px 15px; width:auto;">Thử lại</button>
+            </div>`;
+    }
+}
+// --- HÀM MỚI: ĐÓNG CỬA SỔ AI ---
+window.closeAI = function() {
+    const backdrop = document.getElementById('ai-backdrop');
+    const box = document.getElementById('ai-box');
+    const btn = document.getElementById('btn-ask-ai');
+    
+    if(backdrop) backdrop.classList.remove('show');
+    if(box) box.classList.remove('active');
+    if(btn) btn.style.display = 'flex';
+}
 // --- HELPER: PENALTY LOGIC ---
 function applyHintPenalty(key) {
     let data = srsData[key];

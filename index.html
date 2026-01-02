@@ -1098,7 +1098,12 @@
         <input type="range" id="cfgBrightness" min="20" max="100" value="100" oninput="window.saveConfig()">
         
         <hr style="border:0; border-top:1px solid var(--glass-border); margin: 25px 0;">
-
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+    <span><i class="fas fa-robot" style="color:#a855f7;"></i> Dữ liệu AI Offline</span>
+    <button class="btn-primary" style="width: auto; padding: 8px 16px; font-size: 0.8rem; background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.5);" onclick="window.clearAICache()">
+        <i class="fas fa-broom"></i> Xoá Cache
+    </button>
+</div>
         <button class="action-btn" style="width:100%; height:55px; background:rgba(239, 68, 68, 0.2); border:1px solid rgba(239, 68, 68, 0.5); color:#ef4444; font-size:0.9rem;" onclick="window.resetProgress()">
             <i class="fas fa-trash-alt"></i> &nbsp; Xoá toàn bộ dữ liệu học
         </button>
@@ -3267,12 +3272,9 @@ function renderFlashcard() {
 
     setTimeout(window.speakWord, 500);
 }
-// --- 🟢 HÀM GỌI TRỢ LÝ AI ---
+// --- 🟢 HÀM GỌI TRỢ LÝ AI (ĐÃ SỬA CHO GROQ) ---
 window.askAI = async function() {
-    // 1. Cấu hình từ lệnh CURL
-    const API_KEY = "AIzaSyAuRIXN7rg1BAbEpjiJywHcVJ5dGj3URP0"; 
-
-    // Kiểm tra dữ liệu đầu vào
+    // 1. Kiểm tra dữ liệu đầu vào
     if (!sessionQueue || !sessionQueue[sessionIndex]) return;
     const w = sessionQueue[sessionIndex];
     const cacheKey = w.english.trim().toLowerCase();
@@ -3300,53 +3302,63 @@ window.askAI = async function() {
     content.innerHTML = `
         <div style="text-align:center; padding:30px; color:#a855f7;">
             <i class="fas fa-bolt fa-spin fa-2x"></i>
-            <div style="margin-top:15px; font-weight:600;"> AI HiHi đang chạy...</div>
+            <div style="margin-top:15px; font-weight:600;"> HiHi AI đang chạy...</div>
         </div>
     `;
 
     // Tạo nội dung câu hỏi (Prompt)
-    const langName = LANG_CONFIG[currentLang] ? LANG_CONFIG[currentLang].label : 'Ngoại ngữ';
-    const promptText = `Giải thích từ: "${w.english}" (nghĩa Việt: "${w.vietnamese}") cho người Việt.
-    Yêu cầu: Ngắn gọn (<100 từ) hài hước, kèm 1 ví dụ, mẹo nhớ, sau mỗi cái đều xuống dòng và -đầu dòng. 
-    Dùng thẻ <b> cho từ khóa, xuống dòng bằng <br>. Không dùng Markdown.`;
+    const systemPrompt = `Đóng vai một từ điển tiếng Anh chuyên sâu, hài hước và dễ hiểu cho người Việt. 
+    Yêu cầu định dạng output: Chỉ sử dụng thẻ HTML cơ bản (<b>, <br>, <ul>, <li>). Không dùng Markdown.`;
+    
+    const userPrompt = `Giải thích từ: "${w.english}" (nghĩa Việt chính: "${w.vietnamese}").
+    Cấu trúc:
+    1. Phiên âm & Loại từ.
+    2. Nghĩa chuyên sâu.
+    3. Cách dùng & Sắc thái.
+    4. Collocations.
+    5. Ví dụ song ngữ.
+    6. Mẹo nhớ hài hước.
+    Bắt đầu bằng: "Hihi AI xin giải thích như sau:<br>"`;
 
     try {
-        // --- GỌI API GEMINI (Chuyển đổi từ CURL sang FETCH) ---
-        // Lưu ý: Dùng key trên URL để chạy ổn định trên trình duyệt (tránh lỗi CORS header)
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${API_KEY}`;
+        // --- CẤU HÌNH GỌI WORKER GROQ ---
+        // ⚠️ Thay URL này bằng link Worker Groq bạn vừa tạo ở bước trước
+        // Ví dụ: https://groq-proxy.ten-ban.workers.dev
+        const workerUrl = "https://hihi.ngxuanhai123.workers.dev/"; 
         
-        const response = await fetch(url, {
+        const response = await fetch(workerUrl, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json' 
             },
             body: JSON.stringify({
-                "contents": [
-                    {
-                        "parts": [
-                            { "text": promptText }
-                        ]
-                    }
-                ]
+                // Model bạn muốn dùng (giống code Python của bạn)
+                model: "llama-3.3-70b-versatile", 
+                messages: [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: userPrompt }
+                ],
+                temperature: 0.7
             })
         });
 
-        // Xử lý lỗi trả về
         if (!response.ok) {
-            const errData = await response.json();
-            // Nếu lỗi 429 (Hết lượt) hoặc 404 (Sai model)
-            if (response.status === 429) throw new Error("Server đang bận (Quota Exceeded). Hãy thử lại sau 1 phút.");
-            if (response.status === 404) throw new Error("Model không tìm thấy (Kiểm tra lại tên Model).");
-            throw new Error(errData.error?.message || `Lỗi ${response.status}`);
+            const errData = await response.text();
+            throw new Error(`Lỗi Server: ${response.status} - ${errData}`);
         }
         
         const data = await response.json();
         
-        // Lấy nội dung trả lời an toàn
+        // --- XỬ LÝ KẾT QUẢ TRẢ VỀ (Cấu trúc OpenAI/Groq) ---
         let text = "AI không trả lời được, hãy thử lại.";
-        if (data.candidates && data.candidates.length > 0 && data.candidates[0].content) {
-             text = data.candidates[0].content.parts[0].text;
+        
+        // Groq trả về trong data.choices[0].message.content
+        if (data.choices && data.choices.length > 0) {
+             text = data.choices[0].message.content;
         }
+
+        // Xử lý xuống dòng nếu AI trả về \n thay vì <br>
+        text = text.replace(/\n/g, "<br>");
 
         // Lưu Cache
         if (typeof aiCache !== 'undefined') {
@@ -3358,22 +3370,12 @@ window.askAI = async function() {
         playSound(SFX.POP);
 
     } catch (e) {
-        console.error("Gemini Error:", e);
-        // Fallback giao diện lỗi
-        let errorMsg = "Kết nối thất bại!";
-        let hint = "Kiểm tra lại mạng hoặc API Key.";
-        
-        if (e.message.includes("Quota")) {
-            errorMsg = "Hết lượt dùng thử (429)";
-            hint = "Model giới hạn số lần gọi. Hãy chờ một chút.";
-        }
-
+        console.error("AI Error:", e);
         content.innerHTML = `
             <div style="text-align:center; color:#ef4444; padding:20px;">
                 <i class="fas fa-exclamation-triangle" style="font-size:2rem; margin-bottom:10px;"></i><br>
-                <b>${errorMsg}</b><br>
-                <div style="font-size:0.8rem; opacity:0.8; margin-top:5px;">${hint}</div>
-                <div style="font-size:0.7rem; margin-top:5px; opacity:0.5;">${e.message}</div>
+                <b>Kết nối thất bại!</b><br>
+                <div style="font-size:0.7rem; margin-top:5px; opacity:0.8;">${e.message}</div>
                 <button onclick="window.askAI()" class="btn-primary" style="margin-top:15px; font-size:0.8rem; padding:8px 15px; width:auto;">Thử lại</button>
             </div>`;
     }
@@ -4709,6 +4711,31 @@ window.silentUpdateSRS = function(w) {
         localStorage.setItem(`fp_aurora_daily_${currentLang}`, JSON.stringify(dailyTracking));
     }
 }
+  // --- HÀM XOÁ CACHE AI ---
+window.clearAICache = function() {
+    // 1. Hỏi xác nhận
+    if(!confirm("Bạn có chắc muốn xoá lịch sử trả lời của AI?\n(Các câu hỏi cũ sẽ cần tải lại từ đầu)")) return;
+
+    try {
+        // 2. Xoá khỏi LocalStorage
+        localStorage.removeItem('fp_aurora_ai_cache');
+
+        // 3. Xoá biến tạm trong RAM (vì aiCache là const nên ta xoá từng key bên trong)
+        if (typeof aiCache !== 'undefined') {
+            for (const key in aiCache) {
+                delete aiCache[key];
+            }
+        }
+
+        // 4. Thông báo
+        showToast("Đã dọn dẹp bộ nhớ đệm AI!", "success");
+        playSound(SFX.POP);
+        
+    } catch (e) {
+        console.error(e);
+        showToast("Lỗi khi xoá cache", "error");
+    }
+}
   // --- KHỞI ĐỘNG ỨNG DỤNG AN TOÀN (BẮT BUỘC THÊM) ---
 // Đợi trình duyệt tải xong hết module rồi mới chạy initApp
 if (document.readyState === 'loading') {
@@ -4772,6 +4799,14 @@ window.startGlobalReview = function() {
 window.onerror = function(msg, url, line) {
     console.error("Lỗi hệ thống: " + msg);
 };
+  // --- BẮT BUỘC THÊM HÀM NÀY ĐỂ KHÔNG BỊ LỖI ---
+function stopTimer() {
+    if(typeof studyTimer !== 'undefined' && studyTimer) {
+        clearInterval(studyTimer);
+        studyTimer = null;
+    }
+}
+// ---------------------------------------------
 </script>
 <a href="https://ngxuanhai123.github.io/" class="floating-home-btn">
     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">

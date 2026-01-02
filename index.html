@@ -4039,9 +4039,36 @@ window.handleQuiz = function(el, isCorrect) {
     window.processResult(isCorrect);
 }
 
-// --- UTILITIES ---
 window.startGame = async function(mode) {
     cleanupGameResources();
+
+    // --- [FIX] BƯỚC 1: KIỂM TRA DỮ LIỆU ĐẦU VÀO ---
+    // Nếu danh sách file chưa tải xong (do mạng chậm hoặc mới vào), thử lấy từ Cache LocalStorage
+    if (!allTopicsMetadata || allTopicsMetadata.length === 0) {
+        const cached = localStorage.getItem(`fp_aurora_topics_cache_${currentLang}`);
+        if (cached) {
+            try {
+                const files = JSON.parse(cached);
+                // Sắp xếp lại giống logic gốc
+                const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
+                allTopicsMetadata = files.filter(f => f.name.endsWith('.json')).sort((a, b) => collator.compare(a.name, b.name));
+            } catch (e) { console.error("Cache error", e); }
+        }
+        
+        // Nếu vẫn không có dữ liệu thì báo người dùng đợi và gọi tải lại
+        if (!allTopicsMetadata || allTopicsMetadata.length === 0) {
+            showToast("Đang đồng bộ dữ liệu... Vui lòng thử lại sau 2 giây!", "info");
+            window.fetchTopics(); // Gọi tải ngầm
+            return;
+        }
+    }
+
+    // --- [FIX] BƯỚC 2: ĐẢM BẢO CHỦ ĐỀ HIỆN TẠI KHÔNG BỊ NULL ---
+    if (!currentTopicKey && allTopicsMetadata.length > 0) {
+         currentTopicKey = allTopicsMetadata[0].name;
+         localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
+    }
+    // ----------------------------------------------------
 
     // 1. Kiểm tra đăng nhập và dùng thử
     if(!currentUser) {
@@ -4065,6 +4092,7 @@ window.startGame = async function(mode) {
     // 3. Tải dữ liệu chủ đề
     // Nếu là Flashcard: Chỉ cần tải chủ đề hiện tại
     if (mode === 'flashcard_all') {
+        // [FIX] Luôn đảm bảo tải chủ đề hiện tại nếu chưa có trong RAM
         if (currentTopicKey && !allTopics[currentTopicKey]) {
             showToast("Đang tải dữ liệu...", "info");
             await loadTopicData(currentTopicKey);
@@ -4073,12 +4101,19 @@ window.startGame = async function(mode) {
     } 
     // Nếu là Game (Matching, Quiz...): Tự động tải bù tất cả chủ đề cũ để có vốn từ
     else {
-        // Tìm các chủ đề chưa được tải
+        // [FIX] Ưu tiên tải chủ đề hiện tại TRƯỚC để chắc chắn có dữ liệu
+        if (currentTopicKey && !allTopics[currentTopicKey]) {
+            await loadTopicData(currentTopicKey);
+        }
+
+        // Sau đó mới tìm các chủ đề còn thiếu khác
         const missingTopics = allTopicsMetadata.filter(meta => !allTopics[meta.name]);
+        // [Tối ưu] Chỉ tải nếu thực sự cần thiết, hoặc tải ngầm dần dần. 
+        // Ở đây ta tải tối đa 5 chủ đề thiếu để tránh treo máy nếu mạng chậm
         if(missingTopics.length > 0) {
-            showToast(`Đang tải dữ liệu từ ${missingTopics.length} chủ đề cũ...`, "info");
-            // Tải song song tất cả
-            await Promise.all(missingTopics.map(meta => loadTopicData(meta.name)));
+            const limitLoad = missingTopics.slice(0, 5); 
+            showToast(`Đang chuẩn bị dữ liệu (${limitLoad.length} gói)...`, "info");
+            await Promise.all(limitLoad.map(meta => loadTopicData(meta.name)));
         }
     }
 
@@ -4116,7 +4151,9 @@ window.startGame = async function(mode) {
         });
 
         if (allLearnedCandidates.length === 0) {
-            showToast("Bạn chưa học từ nào để chơi game này! Hãy học Flashcard trước.", "error");
+            // [FIX] Nếu chưa học từ nào mà vào game -> Chuyển hướng sang Flashcard để học
+            showToast("Bạn chưa có từ vựng đã học! Đang chuyển sang Flashcard...", "info");
+            setTimeout(() => window.startGame('flashcard_all'), 1500);
             return;
         }
 

@@ -3305,21 +3305,8 @@ window.askAI = async function() {
             <div style="margin-top:15px; font-weight:600;"> HiHi AI đang chạy...</div>
         </div>
     `;
-// --- HÀM TẠO PROMPT THEO NGÔN NGỮ (MỚI) ---
-window.getAIPrompt = function(w) {
-    // 1. Lấy tên ngôn ngữ hiện tại từ biến global currentLang
-    let langLabel = "Tiếng Anh"; // Mặc định
-    if (typeof LANG_CONFIG !== 'undefined' && LANG_CONFIG[currentLang]) {
-        langLabel = LANG_CONFIG[currentLang].label;
-        
-        // Chỉnh lại câu văn cho tự nhiên (Ví dụ: "Indonesia" -> "Tiếng Indonesia")
-        // Nếu tên ngôn ngữ chưa có chữ "Tiếng" và không phải là "Tiếng Anh" thì thêm vào
-        if (!langLabel.toLowerCase().startsWith('tiếng') && !langLabel.toLowerCase().includes('english')) {
-            langLabel = "Tiếng " + langLabel;
-        }
-    }
     // Tạo nội dung câu hỏi (Prompt)
-    const systemPrompt = `Đóng vai một từ điển ${langLabel} chuyên sâu, hài hước và dễ hiểu cho người Việt. 
+    const systemPrompt = `Đóng vai một từ điển tiếng anh/indonesia chuyên sâu, hài hước và dễ hiểu cho người Việt. 
     Yêu cầu định dạng output: Chỉ sử dụng thẻ HTML cơ bản (<b>, <br>, <ul>, <li>). Không dùng Markdown.`;
     
     const userPrompt = `Giải thích từ: "${w.english}" (nghĩa Việt chính: "${w.vietnamese}").

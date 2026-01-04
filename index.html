@@ -2159,7 +2159,12 @@ window.initApp = function() {
     applyTheme(); // Applies dark mode, eco mode, brightness
     updateConfigUI();
     updateLangUI();
-    window.fetchTopics(); 
+    window.fetchTopics().then(() => {
+        // Tự động tải dữ liệu chủ đề hiện tại sau khi có danh sách
+        if (currentTopicKey && !allTopics[currentTopicKey]) {
+            loadTopicData(currentTopicKey);
+        }
+    });
     document.getElementById('dashTime').innerText = formatTime(accumulatedTime);
     
     // Reset session points on load
@@ -3179,7 +3184,23 @@ function renderSessionEnd() {
 // --- CARD RENDERER (UPDATED ASYNC PEXELS) ---
 function renderFlashcard() {
     isProcessing = false;
+    
+    // KIỂM TRA AN TOÀN
+    if (!sessionQueue || sessionIndex >= sessionQueue.length) {
+        console.error("Invalid session state", {sessionQueue, sessionIndex});
+        showToast("Lỗi dữ liệu game!", "error");
+        window.closeGame();
+        return;
+    }
+    
     const w = sessionQueue[sessionIndex];
+    if (!w || !w.english) {
+        console.error("Invalid word object", w);
+        showToast("Từ không hợp lệ!", "error");
+        nextStep();
+        return;
+    }
+    
     isFlipped = false;
     
     const isRelearn = sessionQueue.filter(x => x === w).length > 1;
@@ -3630,29 +3651,17 @@ async function renderSentence() {
     const sourceEnglish = w.example || w.english;
     let sourceVietnamese = "";
 
-      if (w.example) {
-
-    // ====== FIX KHÔNG BỊ TREO ======
-    try {
-
-        // Nếu dịch quá 3 giây thì tự dùng nghĩa tiếng Việt có sẵn
-        const safeTranslate = Promise.race([
-            getTranslation(w.example),
-            new Promise(resolve => setTimeout(() => resolve(null), 3000))
-        ]);
-
-        const result = await safeTranslate;
-        sourceVietnamese = result || w.vietnamese;
-
-    } catch(e) {
-        console.error(e);
+    // Try to get translation for the example immediately
+    if (w.example) {
+        try {
+            sourceVietnamese = await getTranslation(w.example);
+        } catch (e) {
+            console.error(e);
+            sourceVietnamese = w.vietnamese; // Fallback
+        }
+    } else {
         sourceVietnamese = w.vietnamese;
     }
-
-} else {
-    sourceVietnamese = w.vietnamese;
-}
-
 
     // Determine Mode: 0 = Arrange English, 1 = Arrange Vietnamese
     const mode = Math.random() > 0.5 ? 'arrange_en' : 'arrange_vn';
@@ -4074,25 +4083,44 @@ window.startGame = async function(mode) {
     window.isSessionActive = true;
     sessionPoints = 0; 
 
-    // 3. Tải dữ liệu chủ đề
-    // Nếu là Flashcard: Chỉ cần tải chủ đề hiện tại
+   // 3. Tải dữ liệu chủ đề - ĐẢM BẢO TẢI XONG TRƯỚC KHI CHẠY
     if (mode === 'flashcard_all') {
-        if (currentTopicKey && !allTopics[currentTopicKey]) {
-            showToast("Đang tải dữ liệu...", "info");
-            await loadTopicData(currentTopicKey);
+        // Flashcard: chỉ cần chủ đề hiện tại
+        if (!currentTopicKey) {
+            showToast("Chưa chọn chủ đề!", "error");
+            return;
         }
-        if (currentTopicKey && !allTopics[currentTopicKey]) return showToast("Không tải được dữ liệu chủ đề!", "error");
-    } 
-    // Nếu là Game (Matching, Quiz...): Tự động tải bù tất cả chủ đề cũ để có vốn từ
-    else {
-        // Tìm các chủ đề chưa được tải
+        if (!allTopics[currentTopicKey]) {
+            showToast("Đang tải dữ liệu...", "info");
+            const loaded = await loadTopicData(currentTopicKey);
+            if (!loaded) {
+                showToast("Không tải được dữ liệu chủ đề!", "error");
+                return;
+            }
+        }
+    } else {
+        // Các game khác: cần tải TẤT CẢ chủ đề
         const missingTopics = allTopicsMetadata.filter(meta => !allTopics[meta.name]);
         if(missingTopics.length > 0) {
-            showToast(`Đang tải dữ liệu từ ${missingTopics.length} chủ đề cũ...`, "info");
-            // Tải song song tất cả
-            await Promise.all(missingTopics.map(meta => loadTopicData(meta.name)));
+            showToast(`Đang tải ${missingTopics.length} chủ đề...`, "info");
+            
+            // Tải tuần tự từng chủ đề (an toàn hơn Promise.all)
+            for (const meta of missingTopics) {
+                await loadTopicData(meta.name);
+            }
+            
+            showToast("Tải xong! Bắt đầu game...", "success");
+        }
+        
+        // Kiểm tra lại có đủ dữ liệu không
+        const loadedCount = Object.keys(allTopics).length;
+        if (loadedCount === 0) {
+            showToast("Không có dữ liệu để chơi game!", "error");
+            return;
         }
     }
+    console.log("Loaded topics:", Object.keys(allTopics));
+    console.log("Current topic:", currentTopicKey, allTopics[currentTopicKey]);
 
     playSound(SFX.POP);
 
@@ -4151,12 +4179,23 @@ window.startGame = async function(mode) {
     
     if(localQueue.length === 0) return showToast("Không có từ nào khả dụng", "error");
 
+
+// Kiểm tra lại localQueue trước khi gán
+    if(!localQueue || localQueue.length === 0) {
+        showToast("Không có từ khả dụng!", "error");
+        return;
+    }
+    
     showToast(`Bắt đầu: ${localQueue.length} thẻ`, "info");
     
     // GÁN VÀO BIẾN GLOBAL (Quan trọng!)
-    window.sessionQueue = localQueue; 
+    sessionQueue = [...localQueue]; // Clone array để tránh reference issue
     sessionIndex = 0;
     currentMode = mode;
+    
+    // Kiểm tra lại sau khi gán
+    console.log("Session queue ready:", sessionQueue.length, "words");
+    console.log("First word:", sessionQueue[0]);
     
     openGameOverlay();
     preloadImages(); 

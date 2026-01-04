@@ -4038,111 +4038,83 @@ window.handleQuiz = function(el, isCorrect) {
     
     window.processResult(isCorrect);
 }
-
 window.startGame = async function(mode) {
-    cleanupGameResources();
+    cleanupGameResources(); // Dọn dẹp tài nguyên cũ
 
-    // --- [FIX] BƯỚC 1: KIỂM TRA DỮ LIỆU ĐẦU VÀO ---
-    // Nếu danh sách file chưa tải xong (do mạng chậm hoặc mới vào), thử lấy từ Cache LocalStorage
+    // --- BƯỚC 1: KIỂM TRA DANH SÁCH CHỦ ĐỀ (METADATA) ---
+    // Nếu chưa có danh sách file, cố gắng lấy từ Cache
     if (!allTopicsMetadata || allTopicsMetadata.length === 0) {
         const cached = localStorage.getItem(`fp_aurora_topics_cache_${currentLang}`);
         if (cached) {
             try {
                 const files = JSON.parse(cached);
-                // Sắp xếp lại giống logic gốc
                 const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
                 allTopicsMetadata = files.filter(f => f.name.endsWith('.json')).sort((a, b) => collator.compare(a.name, b.name));
             } catch (e) { console.error("Cache error", e); }
         }
         
-        // Nếu vẫn không có dữ liệu thì báo người dùng đợi và gọi tải lại
+        // Nếu vẫn không có dữ liệu -> Bắt buộc tải lại và dừng hàm (User cần bấm lại)
         if (!allTopicsMetadata || allTopicsMetadata.length === 0) {
-            showToast("Đang đồng bộ dữ liệu... Vui lòng thử lại sau 2 giây!", "info");
-            window.fetchTopics(); // Gọi tải ngầm
+            showToast("Đang kết nối máy chủ... Vui lòng thử lại sau giây lát!", "info");
+            window.fetchTopics(); 
             return;
         }
     }
 
-    // --- [FIX] BƯỚC 2: ĐẢM BẢO CHỦ ĐỀ HIỆN TẠI KHÔNG BỊ NULL ---
+    // --- BƯỚC 2: ĐẢM BẢO ĐÃ CHỌN CHỦ ĐỀ ---
     if (!currentTopicKey && allTopicsMetadata.length > 0) {
          currentTopicKey = allTopicsMetadata[0].name;
          localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
     }
-    // ----------------------------------------------------
 
-    // 1. Kiểm tra đăng nhập và dùng thử
-    if(!currentUser) {
-        if(trialCount > 3) {
-             showToast("Hết phiên dùng thử. Đăng nhập để chơi!", "error");
-             document.getElementById('requireLoginMsg').style.display = 'block';
-             document.getElementById('dashboardContent').style.display = 'none';
-             return;
-        }
+    // --- BƯỚC 3: TẢI DỮ LIỆU NỘI DUNG (QUAN TRỌNG) ---
+    // Game cần dữ liệu từ vựng để chạy. Nếu chưa tải -> Tải ngay lập tức.
+    if (currentTopicKey && !allTopics[currentTopicKey]) {
+        showToast("Đang tải dữ liệu bài học...", "info");
+        await loadTopicData(currentTopicKey);
     }
     
-    // 2. Kích hoạt AudioContext (Fix lỗi mất tiếng trên iOS/Chrome)
+    // Kiểm tra lần cuối: Nếu vẫn chưa có dữ liệu -> Báo lỗi mạng
+    if (currentTopicKey && !allTopics[currentTopicKey]) {
+        showToast("Lỗi tải dữ liệu. Vui lòng kiểm tra mạng!", "error");
+        return;
+    }
+
+    // --- BƯỚC 4: KÍCH HOẠT ÂM THANH & CHECK LOGIN ---
     if(audioCtx.state === 'suspended') {
         try { await audioCtx.resume(); } catch(e) {}
     }
 
-    // --- CỜ OFFLINE FIRST ---
-    window.isSessionActive = true;
-    sessionPoints = 0; 
-
-    // 3. Tải dữ liệu chủ đề
-    // Nếu là Flashcard: Chỉ cần tải chủ đề hiện tại
-    if (mode === 'flashcard_all') {
-        // [FIX] Luôn đảm bảo tải chủ đề hiện tại nếu chưa có trong RAM
-        if (currentTopicKey && !allTopics[currentTopicKey]) {
-            showToast("Đang tải dữ liệu...", "info");
-            await loadTopicData(currentTopicKey);
-        }
-        if (currentTopicKey && !allTopics[currentTopicKey]) return showToast("Không tải được dữ liệu chủ đề!", "error");
-    } 
-    // Nếu là Game (Matching, Quiz...): Tự động tải bù tất cả chủ đề cũ để có vốn từ
-    else {
-        // [FIX] Ưu tiên tải chủ đề hiện tại TRƯỚC để chắc chắn có dữ liệu
-        if (currentTopicKey && !allTopics[currentTopicKey]) {
-            await loadTopicData(currentTopicKey);
-        }
-
-        // Sau đó mới tìm các chủ đề còn thiếu khác
-        const missingTopics = allTopicsMetadata.filter(meta => !allTopics[meta.name]);
-        // [Tối ưu] Chỉ tải nếu thực sự cần thiết, hoặc tải ngầm dần dần. 
-        // Ở đây ta tải tối đa 5 chủ đề thiếu để tránh treo máy nếu mạng chậm
-        if(missingTopics.length > 0) {
-            const limitLoad = missingTopics.slice(0, 5); 
-            showToast(`Đang chuẩn bị dữ liệu (${limitLoad.length} gói)...`, "info");
-            await Promise.all(limitLoad.map(meta => loadTopicData(meta.name)));
-        }
+    if(!currentUser && trialCount > 3) {
+         showToast("Hết phiên dùng thử. Đăng nhập để chơi!", "error");
+         document.getElementById('requireLoginMsg').style.display = 'block';
+         document.getElementById('dashboardContent').style.display = 'none';
+         return;
     }
 
+    // --- BƯỚC 5: CHUẨN BỊ HÀNG ĐỢI (QUEUE) ---
+    window.isSessionActive = true;
+    sessionPoints = 0; 
     playSound(SFX.POP);
 
     config.newLimit = parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5);
     config.reviewLimit = parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20);
     const totalLimit = config.newLimit + config.reviewLimit;
     
-    // Khởi tạo hàng đợi
     let localQueue = [];
 
-    // --- LOGIC PHÂN LOẠI CHẾ ĐỘ ---
-    
-    // TRƯỜNG HỢP 1: Flashcard (Học bài mới) -> Lấy từ chủ đề hiện tại
     if(mode === 'flashcard_all') {
-        if(!currentTopicKey) return showToast("Chưa chọn chủ đề!", "error");
+        // Chế độ Flashcard: Lấy toàn bộ từ trong chủ đề hiện tại
         localQueue = [...allTopics[currentTopicKey].words]; 
     } 
-    // TRƯỜNG HỢP 2: Game (Ôn tập Global) -> Lấy từ đã học từ TẤT CẢ chủ đề
     else {
+        // Chế độ Game: Lấy tất cả các từ ĐÃ HỌC (SRS/Mastered) từ các chủ đề ĐÃ TẢI
         let allLearnedCandidates = [];
-        const seenKeys = new Set(); // Set giúp lọc trùng lặp cực nhanh
+        const seenKeys = new Set(); 
 
-        // Duyệt qua tất cả chủ đề đã tải trong bộ nhớ
         Object.values(allTopics).forEach(topic => {
             topic.words.forEach(w => {
                 const k = getWordKey(w);
-                // Điều kiện: Đã học (có trong SRS hoặc Mastered) VÀ chưa thêm vào list
                 if ((srsData[k] || masteredWords[k]) && !seenKeys.has(k)) {
                     allLearnedCandidates.push(w);
                     seenKeys.add(k);
@@ -4150,23 +4122,21 @@ window.startGame = async function(mode) {
             });
         });
 
+        // Nếu chưa học từ nào -> Chuyển hướng sang Flashcard để học từ mới
         if (allLearnedCandidates.length === 0) {
-            // [FIX] Nếu chưa học từ nào mà vào game -> Chuyển hướng sang Flashcard để học
             showToast("Bạn chưa có từ vựng đã học! Đang chuyển sang Flashcard...", "info");
             setTimeout(() => window.startGame('flashcard_all'), 1500);
             return;
         }
 
-        // Validate riêng cho Matching
+        // Validate riêng cho Matching (cần ít nhất 2 từ)
         if (mode === 'matching' && allLearnedCandidates.length < 2) {
              showToast("Cần ít nhất 2 từ đã học để chơi Ghép thẻ!", "error");
              return;
         }
 
-        // Xáo trộn ngẫu nhiên
+        // Trộn và giới hạn số lượng
         allLearnedCandidates.sort(() => Math.random() - 0.5);
-        
-        // Giới hạn số lượng thẻ để game không quá dài
         if(allLearnedCandidates.length > totalLimit) {
             localQueue = allLearnedCandidates.slice(0, totalLimit);
         } else {
@@ -4174,11 +4144,12 @@ window.startGame = async function(mode) {
         }
     }
     
+    // Nếu không tìm thấy từ nào
     if(localQueue.length === 0) return showToast("Không có từ nào khả dụng", "error");
 
     showToast(`Bắt đầu: ${localQueue.length} thẻ`, "info");
     
-    // GÁN VÀO BIẾN GLOBAL (Quan trọng!)
+    // --- BƯỚC 6: CHẠY GAME ---
     window.sessionQueue = localQueue; 
     sessionIndex = 0;
     currentMode = mode;
@@ -4186,7 +4157,7 @@ window.startGame = async function(mode) {
     openGameOverlay();
     preloadImages(); 
 
-    // Điều hướng render game
+    // Điều hướng render
     if(mode === 'fill') renderFill();
     else if(mode === 'matching') setupMatching();
     else if(mode === 'quiz') setupQuiz();

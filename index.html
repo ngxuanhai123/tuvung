@@ -2755,23 +2755,36 @@ window.startSmartSession = async function(isExtra = false) {
     // Kể cả chưa đến hạn cũng lấy cho đủ danh sách
     const batchReview = allLearnedWords.slice(0, config.reviewLimit);
 
-    // --- 7. DRIP FEED LOGIC (Quyết định số từ mới) ---
+// --- 7. DRIP FEED LOGIC (Quyết định số từ mới) ---
+    // [LOGIC MỚI] Kiểm tra điều kiện "Ôn tập kĩ"
+    // Đếm số từ đang ở trình độ thấp (Level < 6) VÀ chưa ôn đủ 5 lần
+    const unstableCount = Object.values(srsData).filter(d => 
+        (d.level < 6) && ((d.totalReviews || 0) < 5)
+    ).length;
+
     let maxNewToAdd = 0;
     
-    if (batchReview.length > 0) {
-        // Nếu danh sách ôn tập đã đầy (do mình ép lấy đủ limit),
-        // Ta vẫn cho học thêm tối đa 2 từ mới nếu còn quota (để không bị ngợp)
-        maxNewToAdd = Math.min(2, remainingQuota);
-        
-        // Tuy nhiên, nếu batchReview toàn là từ "chưa đến hạn" (tức là người dùng rảnh),
-        // và người dùng muốn học thêm (isExtra) hoặc quota còn nhiều, ta có thể tăng từ mới lên.
-        // Nhưng logic đơn giản nhất: Giữ nguyên logic cũ.
-    } else {
-        // Nếu hoàn toàn không có từ nào để ôn (người mới chơi), học full từ mới
-        maxNewToAdd = Math.min(config.newLimit, remainingQuota);
+    // Nếu còn từ chưa vững (unstableCount > 0) và vẫn còn bài ôn tập (batchReview > 0)
+    // -> CHẶN từ mới để bắt buộc ôn cho kĩ.
+    if (unstableCount > 0 && batchReview.length > 0) {
+        maxNewToAdd = 0;
+        // Có thể hiện thông báo nhỏ nếu muốn người dùng biết
+        // if(remainingQuota > 0) showToast(`Tập trung ôn ${unstableCount} từ yếu trước!`, "info");
+    } 
+    else {
+        // Nếu đã "sạch" từ yếu, bắt đầu thêm từ mới ngẫu nhiên
+        if (batchReview.length > 0) {
+            // Nếu đang có bài ôn, thêm ngẫu nhiên 1 hoặc 2 từ mới (nếu còn quota)
+            // để tránh bị ngợp, thay vì cố định là 2 như trước
+            const randomDrip = Math.floor(Math.random() * 2) + 1; // Random 1-2 từ
+            maxNewToAdd = Math.min(randomDrip, remainingQuota);
+        } else {
+            // Nếu không có bài ôn nào, học full từ mới theo giới hạn ngày
+            maxNewToAdd = Math.min(config.newLimit, remainingQuota);
+        }
     }
     
-    // Nếu quota hết nhưng người dùng bấm "Học thêm" (isExtra) -> Du di cho 2 từ
+    // Logic học thêm (Force) khi hết quota vẫn giữ nguyên
     if (maxNewToAdd === 0 && isExtra) maxNewToAdd = 2;
 
     // --- 8. Lấy từ mới (Có tự động sang Topic tiếp theo) ---
@@ -2876,7 +2889,11 @@ window.processResult = function(isCorrect, skipNext = false) {
     // Check if it's a new word BEFORE we update srsData
     const isNewWord = !srsData[key];
 
-    let data = srsData[key] || { interval: 0, level: 0, nextReview: 0, consecutiveWrongs: 0 };
+    // [SỬA] Thêm biến totalReviews để đếm tổng số lần đã học
+let data = srsData[key] || { interval: 0, level: 0, nextReview: 0, consecutiveWrongs: 0, totalReviews: 0 };
+
+// Tăng biến đếm số lần ôn tập bất kể đúng hay sai
+data.totalReviews = (data.totalReviews || 0) + 1;
     
     if(isCorrect) {
         // --- STREAK HISTORY UPDATE ---

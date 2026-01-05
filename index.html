@@ -1044,7 +1044,7 @@
 
     <div id="topicList"></div>
   </div>
-  
+
   <div id="view-settings" class="view-container animate__animated animate__fadeIn" style="display:none;">
     <h2 style="margin-bottom: 20px; padding-left: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Cấu hình</h2>
     <div class="glass-panel" style="padding: 24px;">
@@ -1074,22 +1074,66 @@
 
         <hr style="border:0; border-top:1px solid var(--glass-border); margin: 25px 0;">
 
-        <h4 style="margin-bottom:15px; color:#A78BFA; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Hiệu năng & Hiển thị</h4>
-        
-        <!-- NEW SFX TOGGLE -->
+        <h4 style="margin-bottom:15px; color:#A78BFA; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Âm thanh & Giọng đọc</h4>
+
+        <div class="glass-panel" style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); padding:15px; margin-bottom:20px; border-radius:16px;">
+            <div style="font-size:0.85rem; font-weight:700; color:#fbbf24; margin-bottom:15px; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-microphone-alt"></i> Giọng đọc AI (Microsoft Edge)
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <div style="font-size:0.75rem; opacity:0.8; margin-bottom:4px;">Tiếng Anh (Mỹ)</div>
+                <div style="display:flex; gap:8px;">
+                    <select id="cfgVoiceEn" class="input-glass" style="margin-bottom:0; padding:8px; font-size:0.85rem;" onchange="window.saveConfig()">
+                        <option value="Microsoft Server Speech Text to Speech Voice (en-US, ChristopherNeural)">Christopher (Nam - Trầm ấm)</option>
+                        <option value="Microsoft Server Speech Text to Speech Voice (en-US, GuyNeural)">Guy (Nam - Tự nhiên)</option>
+                        <option value="Microsoft Server Speech Text to Speech Voice (en-US, AriaNeural)">Aria (Nữ - Truyền cảm)</option>
+                        <option value="Microsoft Server Speech Text to Speech Voice (en-US, JennyNeural)">Jenny (Nữ - Mượt mà)</option>
+                    </select>
+                    <button class="btn-primary" style="width:40px; padding:0; height:42px; display:flex; align-items:center; justify-content:center;" onclick="window.testVoice('en')"><i class="fas fa-play"></i></button>
+                </div>
+            </div>
+
+            <div style="margin-bottom:15px;">
+                <div style="font-size:0.75rem; opacity:0.8; margin-bottom:4px;">Tiếng Việt</div>
+                <div style="display:flex; gap:8px;">
+                    <select id="cfgVoiceVi" class="input-glass" style="margin-bottom:0; padding:8px; font-size:0.85rem;" onchange="window.saveConfig()">
+                        <option value="Microsoft Server Speech Text to Speech Voice (vi-VN, NamMinhNeural)">Nam Minh (Nam - Truyền hình)</option>
+                        <option value="Microsoft Server Speech Text to Speech Voice (vi-VN, HoaiMyNeural)">Hoài My (Nữ - Nhẹ nhàng)</option>
+                    </select>
+                    <button class="btn-primary" style="width:40px; padding:0; height:42px; display:flex; align-items:center; justify-content:center;" onclick="window.testVoice('vi')"><i class="fas fa-play"></i></button>
+                </div>
+            </div>
+            
+            <div>
+                <div style="font-size:0.75rem; opacity:0.8; margin-bottom:4px;">Indonesia</div>
+                <div style="display:flex; gap:8px;">
+                    <select id="cfgVoiceId" class="input-glass" style="margin-bottom:0; padding:8px; font-size:0.85rem;" onchange="window.saveConfig()">
+                        <option value="Microsoft Server Speech Text to Speech Voice (id-ID, ArdiNeural)">Ardi (Nam)</option>
+                        <option value="Microsoft Server Speech Text to Speech Voice (id-ID, GadisNeural)">Gadis (Nữ)</option>
+                    </select>
+                    <button class="btn-primary" style="width:40px; padding:0; height:42px; display:flex; align-items:center; justify-content:center;" onclick="window.testVoice('id')"><i class="fas fa-play"></i></button>
+                </div>
+            </div>
+        </div>
+
         <div class="switch-container">
             <span>Hiệu ứng âm thanh (SFX)</span>
             <input type="checkbox" id="cfgSfx" class="toggle-switch" onchange="window.saveConfig()">
         </div>
 
         <div class="switch-container">
-            <span>Giọng đọc Google (Hay hơn)</span>
+            <span>Dự phòng: Google Voice</span>
             <input type="checkbox" id="cfgVoiceGoogle" class="toggle-switch" onchange="window.saveConfig()">
         </div>
-        <div style="font-size: 0.75rem; opacity: 0.7; margin-top: -10px; margin-bottom: 15px;">
-            Tắt để dùng giọng mặc định của máy (Nhanh hơn, không cần mạng).
+        <div style="font-size: 0.75rem; opacity: 0.7; margin-top: -10px; margin-bottom: 5px;">
+            Bật nếu Edge bị lỗi. Tắt để dùng giọng máy (Native).
         </div>
-        
+
+        <hr style="border:0; border-top:1px solid var(--glass-border); margin: 25px 0;">
+
+        <h4 style="margin-bottom:15px; color:#34D399; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Hệ thống</h4>
+
         <div class="switch-container">
             <span>Chế độ Tiết kiệm pin (Máy yếu)</span>
             <input type="checkbox" id="cfgEco" class="toggle-switch" onchange="window.saveConfig()">
@@ -1102,12 +1146,14 @@
         <input type="range" id="cfgBrightness" min="20" max="100" value="100" oninput="window.saveConfig()">
         
         <hr style="border:0; border-top:1px solid var(--glass-border); margin: 25px 0;">
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
-    <span><i class="fas fa-robot" style="color:#a855f7;"></i> Dữ liệu AI Offline</span>
-    <button class="btn-primary" style="width: auto; padding: 8px 16px; font-size: 0.8rem; background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.5);" onclick="window.clearAICache()">
-        <i class="fas fa-broom"></i> Xoá Cache
-    </button>
-</div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
+            <span><i class="fas fa-robot" style="color:#a855f7;"></i> Dữ liệu AI Offline</span>
+            <button class="btn-primary" style="width: auto; padding: 8px 16px; font-size: 0.8rem; background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.5);" onclick="window.clearAICache()">
+                <i class="fas fa-broom"></i> Xoá Cache
+            </button>
+        </div>
+
         <button class="action-btn" style="width:100%; height:55px; background:rgba(239, 68, 68, 0.2); border:1px solid rgba(239, 68, 68, 0.5); color:#ef4444; font-size:0.9rem;" onclick="window.resetProgress()">
             <i class="fas fa-trash-alt"></i> &nbsp; Xoá toàn bộ dữ liệu học
         </button>
@@ -1117,8 +1163,6 @@
         </div>
     </div>
   </div>
-
-</div>
 
 <div id="wordListOverlay">
     <div class="list-header">
@@ -1251,6 +1295,22 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+// --- CẤU HÌNH TTS CAO CẤP (EDGE WORKER) ---
+// Link Worker chính chủ của bạn
+const WORKER_TTS_URL = "https://tts.ngxuanhai123.workers.dev"; 
+
+// Cấu hình giọng đọc Microsoft Edge (Neural - Trí tuệ nhân tạo)
+const EDGE_VOICES = {
+    // Tiếng Việt: Nam Minh (Nam) hoặc HoaiMy (Nữ) - Giọng Nam Minh nghe ấm hơn cho việc học
+    'vi': 'Microsoft Server Speech Text to Speech Voice (vi-VN, NamMinhNeural)', 
+    
+    // Tiếng Anh: Christopher (Nam) - Giọng Mỹ chuẩn, trầm ấm, dễ nghe
+    'en': 'Microsoft Server Speech Text to Speech Voice (en-US, ChristopherNeural)', 
+    
+    // Tiếng Indo: Ardi (Nam)
+    'id': 'Microsoft Server Speech Text to Speech Voice (id-ID, ArdiNeural)' 
+};
 
 const firebaseConfig = {
   apiKey: "AIzaSyDtaVYb_72YvoGzvcERJZypUGS-u3skz2M",
@@ -2109,6 +2169,12 @@ let config = {
     brightness: parseInt(localStorage.getItem('fp_aurora_brightness') || '100'),
     voiceEngine: localStorage.getItem('fp_aurora_voice_engine') || 'google',
     sfxEnabled: localStorage.getItem('fp_aurora_sfx') !== 'false', // Default true
+    // THÊM DÒNG NÀY:
+    edgeVoices: JSON.parse(localStorage.getItem('fp_aurora_edge_voices') || JSON.stringify({
+        en: 'Microsoft Server Speech Text to Speech Voice (en-US, ChristopherNeural)',
+        vi: 'Microsoft Server Speech Text to Speech Voice (vi-VN, NamMinhNeural)',
+        id: 'Microsoft Server Speech Text to Speech Voice (id-ID, ArdiNeural)'
+    })),
     activeGameModes: JSON.parse(localStorage.getItem('fp_aurora_game_modes') || '{"flashcard":true,"quiz":true,"fill":true,"sentence":true,"spelling":true,"matching":true}')
 };
 
@@ -4913,6 +4979,31 @@ function applyTheme() {
 window.toggleTheme = function() { config.darkMode = !config.darkMode; localStorage.setItem('fp_aurora_dark', config.darkMode); applyTheme(); playSound(SFX.POP); saveProgressToCloud(); }
 window.toggleMute = function() { config.muted = !config.muted; localStorage.setItem('fp_aurora_muted', config.muted); updateMuteIcon(); saveProgressToCloud(); }
 function updateMuteIcon() { document.getElementById('muteIcon').className = config.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up'; }
+window.testVoice = async function(lang) {
+    // Fake trạng thái đang nghe để hàm ForceAudio hoạt động
+    const wasPlaying = listenState.isPlaying;
+    listenState.isPlaying = true;
+    
+    showToast("Đang test giọng...", "info");
+    
+    let text = "Hello, this is a test.";
+    if(lang === 'vi') text = "Xin chào, đây là giọng đọc tiếng Việt.";
+    if(lang === 'id') text = "Halo, ini adalah tes suara.";
+
+    // Lấy giọng từ config (Full String)
+    const voiceFull = config.edgeVoices[lang];
+    // Lấy mã ngôn ngữ ngắn (en, vi, id) để hàm ForceAudio xử lý
+    const langCode = (lang === 'vi') ? 'vi-VN' : (lang === 'id' ? 'id-ID' : 'en-US');
+    
+    try {
+        await speakSpecificLangForceAudio(text, langCode);
+    } catch(e) {
+        console.error(e);
+    }
+    
+    // Trả lại trạng thái cũ
+    listenState.isPlaying = wasPlaying;
+}
 window.saveConfig = function() {
     config.newLimit = parseInt(document.getElementById('cfgNewLimit').value);
     config.reviewLimit = parseInt(document.getElementById('cfgReviewLimit').value);
@@ -4956,6 +5047,12 @@ function updateConfigUI() {
     document.getElementById('dispBrightness').innerText = config.brightness + '%';
     document.getElementById('cfgVoiceGoogle').checked = (config.voiceEngine === 'google');
     document.getElementById('cfgSfx').checked = config.sfxEnabled;
+    // --- [MỚI] Cập nhật Dropdown giọng đọc ---
+    if(config.edgeVoices) {
+        if(document.getElementById('cfgVoiceEn')) document.getElementById('cfgVoiceEn').value = config.edgeVoices.en;
+        if(document.getElementById('cfgVoiceVi')) document.getElementById('cfgVoiceVi').value = config.edgeVoices.vi;
+        if(document.getElementById('cfgVoiceId')) document.getElementById('cfgVoiceId').value = config.edgeVoices.id;
+    }
 }
 // Hàm cập nhật SRS ngầm (cho chế độ Matching/Batch processing)
 window.silentUpdateSRS = function(w) {
@@ -5025,14 +5122,6 @@ window.clearAICache = function() {
         showToast("Lỗi khi xoá cache", "error");
     }
 }
-  // --- KHỞI ĐỘNG ỨNG DỤNG AN TOÀN (BẮT BUỘC THÊM) ---
-// Đợi trình duyệt tải xong hết module rồi mới chạy initApp
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', () => setTimeout(window.initApp, 100));
-} else {
-    setTimeout(window.initApp, 100);
-}
-// --- BỔ SUNG CÁC HÀM BỊ THIẾU ---
 
 // Hàm quyết định hiển thị game gì (Flashcard/Quiz/Spelling...) dựa trên config
 window.decideSmartRender = function() {
@@ -5090,24 +5179,30 @@ window.onerror = function(msg, url, line) {
 };
 
 /* --- PASSIVE LISTENING MODE ENGINE --- */
+/* --- PASSIVE LISTENING MODE ENGINE (UPDATED FOR BACKGROUND PLAY) --- */
 let listenState = {
     queue: [],
     index: 0,
     isPlaying: false,
     timer: null,
-    currentLangCode: 'en-US' // Default
+    currentLangCode: 'en-US' 
 };
 
-// Hàm bắt đầu chế độ nghe
+// 1. Cập nhật startListeningMode: Đăng ký Media Session
 window.startListeningMode = async function() {
     if(!currentTopicKey || !allTopics[currentTopicKey]) {
         showToast("Vui lòng chọn chủ đề trước!", "error");
         return;
     }
     
-    // Set ngôn ngữ đọc từ vựng dựa trên ngôn ngữ đang học
+    // BẮT BUỘC: Chuyển sang Google TTS khi nghe thụ động để chạy được nền
+    // Native TTS (SpeechSynthesis) sẽ bị tắt ngay khi khóa màn hình
+    if (config.voiceEngine === 'native') {
+        showToast("Đã tự động chuyển sang giọng Google để chạy nền", "info");
+    }
+
     const langCfg = LANG_CONFIG[currentLang];
-    listenState.currentLangCode = langCfg.tts; // en-US hoặc id-ID
+    listenState.currentLangCode = langCfg.tts; 
     
     const words = [...allTopics[currentTopicKey].words];
     if(words.length === 0) return showToast("Chủ đề trống!", "error");
@@ -5123,17 +5218,34 @@ window.startListeningMode = async function() {
     overlay.style.display = 'flex';
     overlay.classList.add('animate__animated', 'animate__fadeIn');
     
-    // Unlock Audio
+    // Unlock Audio Context & Setup Media Session
     if(audioCtx.state === 'suspended') try { await audioCtx.resume(); } catch(e){}
+    setupMediaSession();
     
     playListenLoop();
 };
 
+// Hàm thiết lập Media Session (Để hiện thông báo ngoài màn hình khóa)
+function setupMediaSession() {
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.setActionHandler('play', () => window.toggleListenState());
+        navigator.mediaSession.setActionHandler('pause', () => window.toggleListenState());
+        navigator.mediaSession.setActionHandler('previoustrack', () => window.prevListen());
+        navigator.mediaSession.setActionHandler('nexttrack', () => window.nextListen());
+        navigator.mediaSession.playbackState = "playing";
+    }
+}
+
 window.closeListeningMode = function() {
     listenState.isPlaying = false;
     clearTimeout(listenState.timer);
-    stopGlobalAudio(); // Dừng ngay lập tức
+    stopGlobalAudio();
     document.getElementById('listeningOverlay').style.display = 'none';
+    
+    // Xóa Media Session khi thoát
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = "none";
+    }
 };
 
 window.toggleListenState = function() {
@@ -5144,10 +5256,12 @@ window.toggleListenState = function() {
     if(listenState.isPlaying) {
         btn.innerHTML = '<i class="fas fa-pause"></i>';
         visualizer.style.opacity = '1';
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
         playListenLoop();
     } else {
         btn.innerHTML = '<i class="fas fa-play"></i>';
         visualizer.style.opacity = '0';
+        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
         stopGlobalAudio();
         clearTimeout(listenState.timer);
     }
@@ -5169,55 +5283,57 @@ window.prevListen = function() {
     playListenLoop();
 };
 
-// --- CORE LOGIC: Vòng lặp đọc ---
+// 2. Cập nhật playListenLoop: Update Metadata màn hình khóa & Logic chờ
 async function playListenLoop() {
     if(!listenState.isPlaying) return;
     
     const w = listenState.queue[listenState.index];
     if(!w) return;
 
-    // 1. Cập nhật Giao diện
+    // --- Cập nhật UI ---
     document.getElementById('listen-word').innerText = w.english;
     document.getElementById('listen-meaning').innerText = w.vietnamese;
-    
-    // Progress UI
     document.getElementById('listen-current').innerText = (listenState.index + 1);
     document.getElementById('listen-total').innerText = listenState.queue.length;
     const pct = ((listenState.index + 1) / listenState.queue.length) * 100;
     document.getElementById('listen-progress').style.width = pct + '%';
-
-    // Hiệu ứng sóng nhạc
     document.getElementById('audio-visualizer').style.opacity = '1';
 
-    // Load Ảnh (Background + Main Image)
     const imgUrl = imageCache[w.english] || getImageUrl(w.english);
     const mainImg = document.getElementById('listen-img');
     const bgImg = document.getElementById('listen-bg-blur');
     
     mainImg.src = imgUrl;
-    // Hiệu ứng zoom nhẹ ảnh
     mainImg.style.transform = 'scale(1.1)';
     setTimeout(() => mainImg.style.transform = 'scale(1)', 5000);
-    
     bgImg.style.backgroundImage = `url('${imgUrl}')`;
 
-    // 2. LOGIC ĐỌC THÔNG MINH (Tách ngôn ngữ)
+    // --- Cập nhật Màn hình khóa (Media Session) ---
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: w.english,
+            artist: w.vietnamese,
+            album: 'Hihi Vocabulary Passive',
+            artwork: [
+                { src: imgUrl, sizes: '512x512', type: 'image/jpeg' }
+            ]
+        });
+    }
+
     try {
-        // A. Đọc từ gốc (Tiếng Anh/Indo)
-        // Dùng mã ngôn ngữ chuẩn từ config (listenState.currentLangCode)
-        await speakSpecificLang(w.english, listenState.currentLangCode);
+        // A. Đọc từ gốc (Force Google TTS để chạy nền)
+        await speakSpecificLangForceAudio(w.english, listenState.currentLangCode);
         
-        // Nghỉ 1.5s để người dùng nhẩm theo
+        // Nghỉ 1.5s
         await waitPromise(1500);
         
-        // B. Đọc nghĩa (BẮT BUỘC Tiếng Việt)
-        // Hardcode 'vi' để Google TTS/Native hiểu đây là tiếng Việt
-        await speakSpecificLang(w.vietnamese, 'vi'); 
+        // B. Đọc nghĩa (Force Google TTS)
+        await speakSpecificLangForceAudio(w.vietnamese, 'vi'); 
         
-        // Nghỉ 1s trước khi sang từ mới
+        // Nghỉ 1s
         await waitPromise(1000);
         
-        // Next
+        // Next loop
         if(listenState.isPlaying) {
             listenState.index++;
             if(listenState.index >= listenState.queue.length) listenState.index = 0;
@@ -5225,7 +5341,11 @@ async function playListenLoop() {
         }
         
     } catch (e) {
-        console.log("Audio interrupted", e);
+        console.log("Audio interrupted or background throttled", e);
+        // Retry logic nếu bị ngắt quãng do tắt màn hình quá lâu
+        if(listenState.isPlaying) {
+             setTimeout(playListenLoop, 1000);
+        }
     }
 }
 
@@ -5301,6 +5421,129 @@ if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', () => setTimeout(window.initApp, 100));
 } else {
     setTimeout(window.initApp, 100);
+}
+// ======================================================
+// BƯỚC 3: HÀM XỬ LÝ ÂM THANH
+// ======================================================
+
+// --- HÀM HELPER: PHÁT URL ÂM THANH (Dùng cho Worker & Google) ---
+function playAudioUrl(url) {
+    return new Promise((resolve, reject) => {
+        // Nếu người dùng đã tắt chế độ nghe thì không phát nữa
+        if (!listenState.isPlaying) {
+            resolve();
+            return;
+        }
+
+        ttsPlayer.src = url;
+        ttsPlayer.playbackRate = 1.0;
+
+        // Xử lý sự kiện khi đọc xong
+        ttsPlayer.onended = () => {
+            // Nếu URL là dạng Blob (từ Worker tạo ra), cần giải phóng bộ nhớ
+            if (url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
+            }
+            resolve(); 
+        };
+
+        // Xử lý sự kiện lỗi
+        ttsPlayer.onerror = (e) => {
+            console.warn("Audio Playback Error:", e);
+            reject(e); // Báo lỗi để nhảy sang phương án dự phòng
+        };
+
+        // Bắt đầu phát
+        const playPromise = ttsPlayer.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => {
+                reject(e); // Báo lỗi nếu trình duyệt chặn Autoplay
+            });
+        }
+    });
+}
+
+// --- HÀM ĐỌC THÔNG MINH (3 LỚP DỰ PHÒNG) ---
+async function speakSpecificLangForceAudio(text, langCode) {
+    // 1. Kiểm tra trạng thái
+    if (!listenState.isPlaying) return;
+
+    stopGlobalAudio(); // Dừng mọi âm thanh đang phát
+
+    // Lấy mã ngôn ngữ ngắn (ví dụ: 'en' từ 'en-US')
+    const shortLang = langCode.split('-')[0];
+
+    // === LỚP 1: MICROSOFT EDGE TTS (Qua Worker của bạn) ===
+    try {
+        // Ưu tiên lấy từ Config người dùng
+        let selectedVoice = '';
+        
+        // Kiểm tra xem config có tồn tại không
+        if (config.edgeVoices && config.edgeVoices[shortLang]) {
+            selectedVoice = config.edgeVoices[shortLang];
+        } else {
+            // Fallback nếu chưa lưu config
+            const voiceMap = (typeof EDGE_VOICES !== 'undefined') ? EDGE_VOICES : { 'en': 'Microsoft Server Speech Text to Speech Voice (en-US, ChristopherNeural)' };
+            selectedVoice = voiceMap[shortLang] || voiceMap['en'];
+        }
+        
+        console.log(`🎙️ [1/3] Edge TTS (${shortLang}):`, selectedVoice); 
+
+        const workerUrl = (typeof WORKER_TTS_URL !== 'undefined') ? WORKER_TTS_URL : "https://tts.ngxuanhai123.workers.dev";
+
+        const response = await fetch(workerUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+                text: text, 
+                voice: selectedVoice 
+            })
+        });
+
+        if (!response.ok) throw new Error("Worker trả về lỗi hoặc quá tải");
+
+        // Chuyển dữ liệu nhị phân (mp3) thành Blob URL để phát
+        const blob = await response.blob();
+        const audioUrl = URL.createObjectURL(blob);
+        
+        await playAudioUrl(audioUrl);
+        return; // Thành công! Thoát hàm luôn.
+
+    } catch (e) {
+        console.warn("⚠️ Edge TTS thất bại, chuyển sang Google...", e);
+    }
+
+    // === LỚP 2: GOOGLE TRANSLATE (Dự phòng chạy nền) ===
+    try {
+        console.log(`🎙️ [2/3] Đang gọi Google TTS (${shortLang})...`);
+        const googleUrl = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${shortLang}&q=${encodeURIComponent(text)}`;
+        
+        await playAudioUrl(googleUrl);
+        return; // Thành công! Thoát hàm.
+
+    } catch (e) {
+        console.warn("⚠️ Google TTS thất bại, chuyển sang Native...", e);
+    }
+
+    // === LỚP 3: NATIVE BROWSER (Dự phòng cuối cùng) ===
+    return new Promise((resolve) => {
+        console.log(`🎙️ [3/3] Dùng Native TTS (${langCode})...`);
+        
+        window.speechSynthesis.cancel();
+        
+        const u = new SpeechSynthesisUtterance(text);
+        u.lang = langCode;
+        u.rate = 0.9; 
+        
+        const voices = window.speechSynthesis.getVoices();
+        const nativeVoice = voices.find(v => v.lang.includes(langCode) || v.lang.startsWith(shortLang));
+        if (nativeVoice) u.voice = nativeVoice;
+
+        u.onend = () => resolve();
+        u.onerror = () => resolve();
+
+        window.speechSynthesis.speak(u);
+    });
 }
 </script>
 

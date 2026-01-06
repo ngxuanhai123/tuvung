@@ -2192,6 +2192,7 @@ let config = {
 };
 
 let sessionQueue = []; 
+let sessionRunCount = 0; // Biến đếm số hiệp học liên tiếp
 let sessionIndex = 0;
 let currentMode = '';
 let isProcessing = false;
@@ -2888,10 +2889,17 @@ window.saveGameConfig = function() {
 window.startSmartSession = async function(isExtra = false) {
     cleanupGameResources();
 
-    // FIX: Đảm bảo AudioContext luôn chạy
+    // Fix: Đảm bảo AudioContext luôn chạy
     if(audioCtx.state === 'suspended') { try { await audioCtx.resume(); } catch(e) {} }
 
-    // --- 1. Kiểm tra dữ liệu & Đăng nhập ---
+    // --- LOGIC MỚI: ĐẾM SỐ HIỆP ĐỂ THƯỞNG ---
+    if (isExtra) {
+        sessionRunCount++; // Tăng biến đếm nếu bấm "Học tiếp"
+    } else {
+        sessionRunCount = 0; // Reset về 0 nếu bấm từ màn hình chính
+    }
+
+    // --- 1. Kiểm tra dữ liệu & Đăng nhập (GIỮ NGUYÊN) ---
     if (!allTopicsMetadata || allTopicsMetadata.length === 0) {
         showToast("Dữ liệu chưa tải xong. Vui lòng thử lại!", "error");
         return;
@@ -2908,7 +2916,7 @@ window.startSmartSession = async function(isExtra = false) {
     sessionPoints = 0;
     window.isGlobalReviewSession = false;
 
-    // --- 2. Kiểm tra Chủ đề hiện tại ---
+    // --- 2. Kiểm tra Chủ đề hiện tại (GIỮ NGUYÊN) ---
     if (!currentTopicKey && allTopicsMetadata.length > 0) {
          currentTopicKey = allTopicsMetadata[0].name;
          localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
@@ -2919,18 +2927,18 @@ window.startSmartSession = async function(isExtra = false) {
         await loadTopicData(currentTopicKey);
     }
     
-    // --- 3. Reset Session Streak ---
+    // --- 3. Reset Session Streak (GIỮ NGUYÊN) ---
     window.sessionCorrectStreak = 0;
     config.newLimit = parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5);
     config.reviewLimit = parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20);
 
-    // --- 4. Logic Giới hạn Hằng ngày (Daily Limit) ---
+    // --- 4. Logic Giới hạn Hằng ngày (GIỮ NGUYÊN) ---
     checkDailyLimit();
     let limitNew = config.newLimit;
     let learnedToday = dailyTracking.count;
     let remainingQuota = Math.max(0, limitNew - learnedToday);
 
-    // --- 5. Gom từ vựng từ chủ đề hiện tại (TỪ MỚI) ---
+    // --- 5. Gom từ vựng từ chủ đề hiện tại (GIỮ NGUYÊN) ---
     let currentTopicData = allTopics[currentTopicKey];
     if (!currentTopicData) return showToast("Lỗi dữ liệu chủ đề", "error");
 
@@ -2939,7 +2947,7 @@ window.startSmartSession = async function(isExtra = false) {
         return !masteredWords[k] && !srsData[k];
     });
 
-    // --- 6. Gom bài ôn tập (Reviews) - [ĐÃ SỬA ĐỂ LẤY CẢ TỪ CHƯA ĐẾN HẠN] ---
+    // --- 6. Gom bài ôn tập (GIỮ NGUYÊN) ---
     let allLearnedWords = [];
     const now = Date.now();
 
@@ -2955,46 +2963,47 @@ window.startSmartSession = async function(isExtra = false) {
         });
     });
 
-    // Sắp xếp: Ưu tiên từ quá hạn (nextReview nhỏ) trước, sau đó đến từ sắp đến hạn
+    // Sắp xếp ưu tiên
     allLearnedWords.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
-    
-    // Cắt lấy đúng số lượng Review Limit (VD: 20 từ)
-    // Kể cả chưa đến hạn cũng lấy cho đủ danh sách
     const batchReview = allLearnedWords.slice(0, config.reviewLimit);
 
-// --- 7. DRIP FEED LOGIC (Quyết định số từ mới) ---
-    // [LOGIC MỚI] Kiểm tra điều kiện "Ôn tập kĩ"
-    // Đếm số từ đang ở trình độ thấp (Level < 6) VÀ chưa ôn đủ 5 lần
+    // --- 7. DRIP FEED LOGIC (CÓ SỬA ĐỔI ĐỂ THƯỞNG) ---
     const unstableCount = Object.values(srsData).filter(d => 
         (d.level < 6) && ((d.totalReviews || 0) < 5)
     ).length;
 
     let maxNewToAdd = 0;
     
-    // Nếu còn từ chưa vững (unstableCount > 0) và vẫn còn bài ôn tập (batchReview > 0)
-    // -> CHẶN từ mới để bắt buộc ôn cho kĩ.
     if (unstableCount > 0 && batchReview.length > 0) {
         maxNewToAdd = 0;
-        // Có thể hiện thông báo nhỏ nếu muốn người dùng biết
-        // if(remainingQuota > 0) showToast(`Tập trung ôn ${unstableCount} từ yếu trước!`, "info");
-    } 
-    else {
-        // Nếu đã "sạch" từ yếu, bắt đầu thêm từ mới ngẫu nhiên
+    } else {
         if (batchReview.length > 0) {
-            // Nếu đang có bài ôn, thêm ngẫu nhiên 1 hoặc 2 từ mới (nếu còn quota)
-            // để tránh bị ngợp, thay vì cố định là 2 như trước
-            const randomDrip = Math.floor(Math.random() * 2) + 1; // Random 1-2 từ
+            const randomDrip = Math.floor(Math.random() * 2) + 1; 
             maxNewToAdd = Math.min(randomDrip, remainingQuota);
         } else {
-            // Nếu không có bài ôn nào, học full từ mới theo giới hạn ngày
             maxNewToAdd = Math.min(config.newLimit, remainingQuota);
         }
     }
     
-    // Logic học thêm (Force) khi hết quota vẫn giữ nguyên
+    // Logic học thêm (Force) khi hết quota
     if (maxNewToAdd === 0 && isExtra) maxNewToAdd = 2;
 
-    // --- 8. Lấy từ mới (Có tự động sang Topic tiếp theo) ---
+    // >>> LOGIC THƯỞNG NÓNG MỚI NẰM Ở ĐÂY <<<
+    // Nếu đây là hiệp thứ 3, 6, 9... liên tiếp
+    if (isExtra && sessionRunCount > 0 && sessionRunCount % 3 === 0) {
+        const bonusWords = 3; // Số từ thưởng thêm
+        maxNewToAdd += bonusWords;
+        
+        playSound(SFX.WIN); 
+        if(!config.ecoMode) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        
+        setTimeout(() => {
+             showToast(`🔥 CHÁY QUÁ! Hiệp thứ ${sessionRunCount} liên tiếp! Thưởng thêm ${bonusWords} từ mới!`, "success");
+        }, 500);
+    }
+    // >>> KẾT THÚC LOGIC THƯỞNG NÓNG <<<
+
+    // --- 8. Lấy từ mới (GIỮ NGUYÊN) ---
     let batchNew = [];
     
     if (candidatesNewCurrent.length >= maxNewToAdd) {
@@ -3036,7 +3045,7 @@ window.startSmartSession = async function(isExtra = false) {
         }
     }
     
-    // --- 9. Kiểm tra xem có trống không ---
+    // --- 9. Kiểm tra xem có trống không (GIỮ NGUYÊN) ---
     if(batchNew.length === 0 && batchReview.length === 0) {
         if(!config.ecoMode) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         playSound(SFX.WIN);
@@ -3044,11 +3053,9 @@ window.startSmartSession = async function(isExtra = false) {
         return;
     }
 
-    // --- 10. Tạo hàng đợi bài học (Trộn bài) ---
+    // --- 10. Tạo hàng đợi bài học (GIỮ NGUYÊN) ---
     window.isReviewOnlySession = (batchNew.length === 0);
     
-    // Tính số lượng thực tế để thông báo
-    // (Đếm số từ review thực sự đến hạn để hiển thị cho vui, còn thực tế học là batchReview.length)
     const realDueCount = batchReview.filter(w => srsData[getWordKey(w)].nextReview <= now).length;
     const earlyReviewCount = batchReview.length - realDueCount;
     
@@ -3267,49 +3274,32 @@ function updateProgress() {
     document.getElementById('gameProgressBar').style.width = `${pct}%`;
 }
 
-// FIXED: Infinite Loop Logic in NextStep
 window.nextStep = function() {
-    cleanupGameResources(); // Ensure clean slate for listeners
-    stopGlobalAudio(); // STOP PREVIOUS AUDIO
+    cleanupGameResources(); 
+    stopGlobalAudio(); 
     
-    // RESET HINT COUNT ON NEW STEP
     window.currentHintCount = 0;
 
     if(sessionIndex < sessionQueue.length - 1) {
         const content = document.getElementById('gameContent');
         if(!config.ecoMode) content.classList.add('slide-out-left');
-        else content.style.opacity = 0; // Simple fade for eco
+        else content.style.opacity = 0; 
         
         setTimeout(() => {
             if (document.getElementById('gameOverlay').style.display === 'none') return;
 
-            // --- DRIP FEED INJECTION START (Có chặn duplicate) ---
-            if (window.sessionCorrectStreak > 0 && 
-                window.sessionCorrectStreak % 3 === 0 &&
-                sessionIndex !== lastInjectIndex) { // ✅ Chặn inject trùng
-                
-                lastInjectIndex = sessionIndex; // Đánh dấu đã inject
-                
-                let currentDailyCount = dailyTracking.count;
-                let dailyGoal = config.newLimit;
-                
-                if (currentDailyCount < dailyGoal) {
-                    injectSilentWords(1);
-                }
-            }
-            // --- DRIP FEED INJECTION END ---
+            // --- ĐÃ XOÁ ĐOẠN CODE THƯỞNG NÓNG Ở ĐÂY ---
+            
             sessionIndex++;
             updateProgress();
-            preloadImages(); // Preload next images
+            preloadImages(); 
             
             content.classList.remove('slide-out-left');
             content.style.opacity = 0;
             
-            // LOGIC CHUYỂN BÀI MỚI
             if(currentMode === 'smart') {
                 decideSmartRender();
             } else {
-                // Ensure specific mode renderers are called
                 if(currentMode === 'flashcard_all') renderFlashcard(); 
                 else if(currentMode === 'fill') renderFill();
                 else if(currentMode === 'quiz') setupQuiz();
@@ -3330,7 +3320,6 @@ window.nextStep = function() {
         renderSessionEnd();
     }
 }
-
 function injectSilentWords(count) {
     if(!currentTopicKey || !allTopics[currentTopicKey]) return;
     const allWords = allTopics[currentTopicKey].words;

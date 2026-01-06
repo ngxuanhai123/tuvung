@@ -1295,10 +1295,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 import { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
 // --- CẤU HÌNH TTS CAO CẤP (EDGE WORKER) ---
-// Link Worker chính chủ của bạn
-const WORKER_TTS_URL = "https://tts.ngxuanhai123.workers.dev"; 
+
 
 // Cấu hình giọng đọc Microsoft Edge (Neural - Trí tuệ nhân tạo)
 const EDGE_VOICES = {
@@ -2062,23 +2060,22 @@ async function unlockAudio() {
         } catch(e) { console.warn("Resume failed", e); }
     }
     
-    // Play a silent buffer via HTML Audio to wake up the engine on iOS
-    // iOS often respects the physical mute switch for Web Audio API but not for HTML5 Audio elements
-    // By playing this, we signal the OS that we are "media playback" not just system sounds
-    silentPlayer.play().catch(e => {
-        // Autoplay policy might block this if not triggered directly by user event
-        console.log("Silent player prevented", e);
-    });
-    
-    // Unlock Google TTS global audio by loading/playing a tiny segment
+    // Sửa lại đoạn play silent để bắt lỗi tốt hơn
+    if (silentPlayer) {
+        silentPlayer.play().catch(e => {
+            // Lỗi này không quan trọng, chỉ là browser chặn autoplay
+            console.log("Silent unlock skipped (Autoplay policy)");
+        });
+    }
+
     if(typeof ttsPlayer !== 'undefined') {
+         // Load nhẹ cái ttsPlayer để trình duyệt nhận diện
          ttsPlayer.load(); 
     }
     
     audioUnlocked = true;
-    console.log("Audio Context Unlocked via Interaction");
     
-    // Remove listeners once unlocked
+    // Gỡ sự kiện để không gọi lại nhiều lần
     document.removeEventListener('touchstart', unlockAudio);
     document.removeEventListener('click', unlockAudio);
 }
@@ -4702,68 +4699,33 @@ window.unmarkMastered = function(wordEn) {
     }
 }
 
-window.speakText = function(text, onEnd) {
-    stopGlobalAudio(); // Stop any previous sound immediately
+ window.speakText = async function(text, onEnd) {
+    stopGlobalAudio(); 
 
     if(config.muted) {
         if(onEnd) setTimeout(onEnd, 500); 
         return;
     }
 
-    // CHECK CONFIG: If user chose native, skip google
+    // CHECK CONFIG: Nếu chọn Native thì dùng giọng máy
     if (config.voiceEngine === 'native') {
         window.speakFallback(text, onEnd);
         return;
     }
 
-    // Determine language code
-    let tl = 'en'; 
-    if (currentLang === 'en') tl = 'en'; 
-    else if (currentLang === 'id') tl = 'id';
-    else if (currentLang === 'vi') tl = 'vi';
+    // --- SỬA ĐỔI: GỌI HÀM EDGE MỚI ---
+    let langCode = 'en-US';
+    if(currentLang === 'vi') langCode = 'vi-VN';
+    if(currentLang === 'id') langCode = 'id-ID';
 
-    // Google TTS URL
-    // Use client=gtx for standard reliable access
-    const url = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${tl}&q=${encodeURIComponent(text)}`;
-    
-    // Use global unlocked player if possible
-    ttsPlayer.src = url;
-    ttsPlayer.playbackRate = 1.0;
-    
-    // Clear previous handlers
-    ttsPlayer.onended = null;
-    ttsPlayer.onerror = null;
-
-    // Handle events
-    ttsPlayer.onended = () => {
-        if(onEnd) onEnd();
-        ttsPlayer.onended = null;
-        ttsPlayer.onerror = null;
-    };
-    
-    ttsPlayer.onerror = (e) => {
-        console.warn("Google TTS Error, trying fallback", e);
-        // Fallback to Native if Google fails
-        if ('speechSynthesis' in window) {
-            window.speakFallback(text, onEnd);
-        } else {
-             if(onEnd) onEnd();
-        }
-        ttsPlayer.onended = null;
-        ttsPlayer.onerror = null;
-    };
-
-    const playPromise = ttsPlayer.play();
-    if (playPromise !== undefined) {
-        playPromise.catch(error => {
-            console.warn("Google TTS Playback prevented:", error);
-            // Try fallback immediately
-             if ('speechSynthesis' in window) {
-                window.speakFallback(text, onEnd);
-            } else {
-                 if(onEnd) onEnd();
-        }
-        });
+    try {
+        // Gọi hàm xịn (Edge -> Fallback Google)
+        await speakSpecificLangForceAudio(text, langCode);
+        if(onEnd) setTimeout(onEnd, 100); // Callback giả lập
+    } catch(e) {
+        console.error(e);
+        // Dự phòng cuối cùng
+        window.speakFallback(text, onEnd);
     }
 }
 
@@ -5005,6 +4967,7 @@ window.testVoice = async function(lang) {
     listenState.isPlaying = wasPlaying;
 }
 window.saveConfig = function() {
+    // 1. Lưu các cấu hình cơ bản (giữ nguyên)
     config.newLimit = parseInt(document.getElementById('cfgNewLimit').value);
     config.reviewLimit = parseInt(document.getElementById('cfgReviewLimit').value);
     config.ecoMode = document.getElementById('cfgEco').checked;
@@ -5012,10 +4975,19 @@ window.saveConfig = function() {
     config.voiceEngine = document.getElementById('cfgVoiceGoogle').checked ? 'google' : 'native';
     config.sfxEnabled = document.getElementById('cfgSfx').checked;
     
-    // FIX: Resume AudioContext immediately if SFX enabled by user click
+    // --- [THÊM ĐOẠN NÀY ĐỂ LƯU GIỌNG ĐỌC] ---
+    config.edgeVoices = {
+        en: document.getElementById('cfgVoiceEn').value,
+        vi: document.getElementById('cfgVoiceVi').value,
+        id: document.getElementById('cfgVoiceId').value
+    };
+    // Lưu vào LocalStorage để F5 không bị mất
+    localStorage.setItem('fp_aurora_edge_voices', JSON.stringify(config.edgeVoices));
+    // ----------------------------------------
+
+    // 2. Kích hoạt lại AudioContext nếu vừa bật SFX (giữ nguyên)
     if (config.sfxEnabled && audioCtx.state === 'suspended') {
         audioCtx.resume().then(() => {
-            // Optional: Play a tiny silent oscillator to 'warm up' iOS audio
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
             gain.gain.value = 0.001; 
@@ -5026,6 +4998,7 @@ window.saveConfig = function() {
         });
     }
     
+    // 3. Lưu các cấu hình khác vào LocalStorage (giữ nguyên)
     localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
     localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
     localStorage.setItem('fp_aurora_eco', config.ecoMode);
@@ -5034,8 +5007,8 @@ window.saveConfig = function() {
     localStorage.setItem('fp_aurora_sfx', config.sfxEnabled);
 
     saveProgressToCloud();
-    updateConfigUI();
-    applyTheme(); // Apply eco mode and brightness changes immediately
+    updateConfigUI(); // Hàm này sẽ cập nhật lại giao diện theo config mới
+    applyTheme();
 }
 function updateConfigUI() {
     document.getElementById('cfgNewLimit').value = config.newLimit;
@@ -5349,43 +5322,6 @@ async function playListenLoop() {
     }
 }
 
-// --- HÀM ĐỌC ĐA NGÔN NGỮ MỚI ---
-// Hàm này thay thế speakPromise cũ, cho phép chỉ định ngôn ngữ cụ thể
-function speakSpecificLang(text, langCode) {
-    return new Promise((resolve) => {
-        if(!listenState.isPlaying) return resolve();
-        
-        // 1. Xử lý Google TTS (Nếu đang bật trong Config)
-        if (config.voiceEngine === 'google') {
-            stopGlobalAudio(); // Dừng âm thanh cũ
-            
-            // Xây dựng URL Google TTS với tham số `tl` (Target Language) chính xác
-            // langCode có thể là 'en-US', 'vi-VN', 'id'... Google chỉ cần 'en', 'vi', 'id'
-            const shortLang = langCode.split('-')[0]; // Lấy 'en' từ 'en-US'
-            
-            const url = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${shortLang}&q=${encodeURIComponent(text)}`;
-            
-            ttsPlayer.src = url;
-            ttsPlayer.playbackRate = (shortLang === 'vi') ? 0.9 : 1.0; // Đọc tiếng Việt chậm hơn xíu cho rõ
-            
-            ttsPlayer.onended = () => { resolve(); };
-            ttsPlayer.onerror = () => { 
-                // Fallback sang Native nếu Google lỗi
-                speakNativeFallback(text, langCode, resolve); 
-            };
-            
-            ttsPlayer.play().catch(e => {
-                // Nếu bị chặn autoplay, fallback
-                speakNativeFallback(text, langCode, resolve);
-            });
-            
-        } else {
-            // 2. Dùng Native TTS (Nếu Config chọn Native hoặc Google lỗi)
-            speakNativeFallback(text, langCode, resolve);
-        }
-    });
-}
-
 // Hàm phụ trợ cho giọng máy Native
 function speakNativeFallback(text, langCode, onEnd) {
     window.speechSynthesis.cancel();
@@ -5429,13 +5365,10 @@ if (document.readyState === 'loading') {
 // --- HÀM HELPER: PHÁT URL ÂM THANH (Dùng cho Worker & Google) ---
 function playAudioUrl(url) {
     return new Promise((resolve, reject) => {
-        // Nếu người dùng đã tắt chế độ nghe thì không phát nữa
-        if (!listenState.isPlaying) {
-            resolve();
-            return;
-        }
-
+        // Chỉ cần giữ lại phần gán src và play bên dưới
         ttsPlayer.src = url;
+        ttsPlayer.playbackRate = 1.0;
+   ttsPlayer.src = url;
         ttsPlayer.playbackRate = 1.0;
 
         // Xử lý sự kiện khi đọc xong
@@ -5463,86 +5396,136 @@ function playAudioUrl(url) {
     });
 }
 
-// --- HÀM ĐỌC THÔNG MINH (3 LỚP DỰ PHÒNG) ---
+// ======================================================
+// HÀM ĐỌC THÔNG MINH (DÙNG TRỰC TIẾP WEBSOCKET - KHÔNG WORKER)
+// ======================================================
+
 async function speakSpecificLangForceAudio(text, langCode) {
-    // 1. Kiểm tra trạng thái
-    if (!listenState.isPlaying) return;
+    stopGlobalAudio();
 
-    stopGlobalAudio(); // Dừng mọi âm thanh đang phát
-
-    // Lấy mã ngôn ngữ ngắn (ví dụ: 'en' từ 'en-US')
+    // 1. Xử lý tên giọng đọc & ngôn ngữ
     const shortLang = langCode.split('-')[0];
+    let selectedVoice = '';
 
-    // === LỚP 1: MICROSOFT EDGE TTS (Qua Worker của bạn) ===
+    // Lấy giọng từ Config
+    if (config.edgeVoices && config.edgeVoices[shortLang]) {
+        selectedVoice = config.edgeVoices[shortLang];
+    } else {
+        const voiceMap = (typeof EDGE_VOICES !== 'undefined') ? EDGE_VOICES : { 
+            'en': 'Microsoft Server Speech Text to Speech Voice (en-US, ChristopherNeural)',
+            'vi': 'Microsoft Server Speech Text to Speech Voice (vi-VN, NamMinhNeural)',
+            'id': 'Microsoft Server Speech Text to Speech Voice (id-ID, ArdiNeural)'
+        };
+        selectedVoice = voiceMap[shortLang] || voiceMap['en'];
+    }
+
+    // --- LỚP 1: EDGE DIRECT (WebSocket) ---
     try {
-        // Ưu tiên lấy từ Config người dùng
-        let selectedVoice = '';
+        console.log(`🎙️ [1/3] Đang thử Edge (${shortLang}):`, selectedVoice);
         
-        // Kiểm tra xem config có tồn tại không
-        if (config.edgeVoices && config.edgeVoices[shortLang]) {
-            selectedVoice = config.edgeVoices[shortLang];
-        } else {
-            // Fallback nếu chưa lưu config
-            const voiceMap = (typeof EDGE_VOICES !== 'undefined') ? EDGE_VOICES : { 'en': 'Microsoft Server Speech Text to Speech Voice (en-US, ChristopherNeural)' };
-            selectedVoice = voiceMap[shortLang] || voiceMap['en'];
-        }
+        const audioUrl = await edgeTTSDirect(text, selectedVoice);
         
-        console.log(`🎙️ [1/3] Edge TTS (${shortLang}):`, selectedVoice); 
-
-        const workerUrl = (typeof WORKER_TTS_URL !== 'undefined') ? WORKER_TTS_URL : "https://tts.ngxuanhai123.workers.dev";
-
-        const response = await fetch(workerUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                text: text, 
-                voice: selectedVoice 
-            })
-        });
-
-        if (!response.ok) throw new Error("Worker trả về lỗi hoặc quá tải");
-
-        // Chuyển dữ liệu nhị phân (mp3) thành Blob URL để phát
-        const blob = await response.blob();
-        const audioUrl = URL.createObjectURL(blob);
-        
+        // Chờ play xong mới coi là thành công
         await playAudioUrl(audioUrl);
-        return; // Thành công! Thoát hàm luôn.
+        console.log("✅ Edge TTS thành công!");
+        return; 
 
     } catch (e) {
-        console.warn("⚠️ Edge TTS thất bại, chuyển sang Google...", e);
+        // Log lỗi chi tiết để biết tại sao Edge tạch
+        console.warn("⚠️ Edge Direct thất bại, lý do:", e.message || e);
+        console.log("🔄 Đang chuyển sang Google TTS...");
     }
 
-    // === LỚP 2: GOOGLE TRANSLATE (Dự phòng chạy nền) ===
+    // --- LỚP 2: GOOGLE TRANSLATE (Dự phòng) ---
     try {
-        console.log(`🎙️ [2/3] Đang gọi Google TTS (${shortLang})...`);
-        const googleUrl = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${shortLang}&q=${encodeURIComponent(text)}`;
-        
+        let gLang = shortLang;
+        if(langCode === 'id-ID') gLang = 'id';
+        const googleUrl = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${gLang}&dt=t&q=${encodeURIComponent(text)}`;
         await playAudioUrl(googleUrl);
-        return; // Thành công! Thoát hàm.
-
     } catch (e) {
-        console.warn("⚠️ Google TTS thất bại, chuyển sang Native...", e);
+        console.error("❌ Google cũng thất bại, chuyển Native:", e);
+        // Fallback cuối cùng về giọng máy
+        window.speakFallback(text);
     }
+}
+// =================================================================
+// BỘ MÁY KẾT NỐI TRỰC TIẾP MICROSOFT EDGE (KHÔNG CẦN WORKER)
+// =================================================================
 
-    // === LỚP 3: NATIVE BROWSER (Dự phòng cuối cùng) ===
-    return new Promise((resolve) => {
-        console.log(`🎙️ [3/3] Dùng Native TTS (${langCode})...`);
-        
-        window.speechSynthesis.cancel();
-        
-        const u = new SpeechSynthesisUtterance(text);
-        u.lang = langCode;
-        u.rate = 0.9; 
-        
-        const voices = window.speechSynthesis.getVoices();
-        const nativeVoice = voices.find(v => v.lang.includes(langCode) || v.lang.startsWith(shortLang));
-        if (nativeVoice) u.voice = nativeVoice;
+const EDGE_WSS_URL = "wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?trustedclienttoken=6A5AA1D4EAFF4E9FB37E23D68491D6F4&sec-ms-gec-version=1-130.0.2849.68";
 
-        u.onend = () => resolve();
-        u.onerror = () => resolve();
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
 
-        window.speechSynthesis.speak(u);
+function createSSML(text, voiceName) {
+    const safeText = text.replace(/[<>&'"]/g, c => {
+        switch (c) {
+            case '<': return '&lt;'; case '>': return '&gt;'; case '&': return '&amp;'; case '\'': return '&apos;'; case '"': return '&quot;'; default: return c;
+        }
+    });
+    return `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'><voice name='${voiceName}'><prosody pitch='+0Hz' rate='0%' volume='+0%'>${safeText}</prosody></voice></speak>`;
+}
+
+// Hàm kết nối WebSocket trực tiếp
+// Hàm kết nối WebSocket trực tiếp
+function edgeTTSDirect(text, voice) {
+    return new Promise((resolve, reject) => {
+        const ws = new WebSocket(EDGE_WSS_URL);
+        const requestId = uuidv4();
+        const audioData = [];
+
+        // Timeout an toàn: Nếu sau 10s không xong thì ngắt để chuyển Google
+        const timeout = setTimeout(() => {
+            if(ws.readyState === WebSocket.OPEN) ws.close();
+            reject(new Error("Edge TTS Timeout (10s)"));
+        }, 10000);
+
+        ws.onopen = () => {
+            // 1. Gửi cấu hình Audio
+            const configMsg = `X-Timestamp:${new Date().toString()}\r\nContent-Type:application/json; charset=utf-8\r\nPath:speech.config\r\n\r\n{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"false"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}`
+            ws.send(configMsg);
+
+            // 2. Gửi SSML (Nội dung đọc)
+            const ssml = createSSML(text, voice);
+            const ssmlMsg = `X-Timestamp:${new Date().toString()}\r\nX-RequestId:${requestId}\r\nContent-Type:application/ssml+xml\r\nPath:ssml\r\n\r\n${ssml}`;
+            ws.send(ssmlMsg);
+        };
+
+        ws.onmessage = (event) => {
+            const data = event.data;
+            if (typeof data === 'string') {
+                // Nhận metadata
+                if (data.includes("Path:turn.end")) {
+                    ws.close();
+                }
+            } else if (data instanceof Blob) {
+                // --- SỬA LỖI TẠI ĐÂY ---
+                // KHÔNG DÙNG .slice(130) cho tất cả các gói!
+                // Trình duyệt sẽ tự handle header rác.
+                audioData.push(data); 
+            }
+        };
+
+        ws.onclose = () => {
+            clearTimeout(timeout); // Xóa timeout khi đóng
+            if (audioData.length > 0) {
+                // Gom tất cả blob lại thành 1 file mp3
+                const blob = new Blob(audioData, { type: 'audio/mp3' });
+                const url = URL.createObjectURL(blob);
+                resolve(url);
+            } else {
+                reject(new Error("Edge TTS: Không nhận được dữ liệu âm thanh (socket closed)"));
+            }
+        };
+
+        ws.onerror = (e) => {
+            clearTimeout(timeout);
+            reject(new Error("Lỗi kết nối WebSocket Edge"));
+        };
     });
 }
 </script>

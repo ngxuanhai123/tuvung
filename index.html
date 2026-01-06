@@ -1219,58 +1219,74 @@
   <div id="gameContent">
       </div>
 </div>
-<div id="listeningOverlay" style="display:none; position:fixed; inset:0; z-index:6000; background:#0f172a; flex-direction:column; align-items:center; justify-content:center; overflow:hidden;">
+<div id="listeningOverlay" style="display:none; position:fixed; inset:0; z-index:6000; background:#0f172a; flex-direction:column; overflow:hidden;">
     
-    <div id="listen-bg-blur" style="position:absolute; inset:0; background-size:cover; background-position:center; filter:blur(40px) brightness(0.4); opacity:0.8; transition:background-image 0.5s;"></div>
+    <div class="aurora-bg-listen"></div>
     
-    <div style="position:relative; z-index:2; width:100%; padding:20px; display:flex; justify-content:space-between; align-items:center;">
-        <div style="color:white; font-weight:700; font-size:0.9rem; opacity:0.8;"><i class="fas fa-broadcast-tower"></i> Passive Learning</div>
-        <button onclick="window.closeListeningMode()" style="background:rgba(255,255,255,0.1); border:none; color:white; width:35px; height:35px; border-radius:50%; cursor:pointer;"><i class="fas fa-chevron-down"></i></button>
+    <div style="position:relative; z-index:10; width:100%; padding:20px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="color:rgba(255,255,255,0.6); font-weight:600; font-size:0.85rem; letter-spacing: 1px; text-transform: uppercase;">
+            <i class="fas fa-broadcast-tower" style="color:#a855f7"></i> &nbsp;Passive Mode
+        </div>
+        <button onclick="window.closeListeningMode()" style="background:rgba(255,255,255,0.1); border:none; color:white; width:40px; height:40px; border-radius:50%; cursor:pointer; backdrop-filter: blur(5px); transition:0.2s;">
+            <i class="fas fa-times"></i>
+        </button>
     </div>
 
-    <div style="position:relative; z-index:2; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; max-width:400px; padding:20px;">
+    <div style="position:relative; z-index:10; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; padding:20px; text-align:center;">
         
-        <div style="width:280px; height:280px; border-radius:20px; box-shadow:0 20px 50px rgba(0,0,0,0.5); overflow:hidden; margin-bottom:40px; position:relative; background:#1e293b;">
-            <img id="listen-img" src="" style="width:100%; height:100%; object-fit:cover; transition:transform 10s ease;">
+        <h2 id="listen-word" class="animate__animated animate__fadeInUp" style="font-size: clamp(3rem, 10vw, 5rem); font-weight:800; color:white; margin:0; line-height:1.1; letter-spacing:-1px; text-shadow: 0 10px 30px rgba(0,0,0,0.3);">
+            Loading...
+        </h2>
+        
+        <p id="listen-meaning" class="animate__animated animate__fadeInUp" style="font-size: clamp(1.2rem, 4vw, 1.8rem); color:rgba(255,255,255,0.8); font-weight:400; margin-top:15px; margin-bottom:40px; font-family: 'Quicksand', sans-serif;">
+            ...
+        </p>
+        
+        <div id="audio-visualizer" style="display:flex; justify-content:center; gap:6px; height:40px; align-items:center; opacity:0; transition: opacity 0.5s;">
+            <div class="bar" style="animation-delay:0.0s"></div>
+            <div class="bar" style="animation-delay:0.2s"></div>
+            <div class="bar" style="animation-delay:0.4s"></div>
+            <div class="bar" style="animation-delay:0.1s"></div>
+            <div class="bar" style="animation-delay:0.3s"></div>
         </div>
+    </div>
 
-        <div style="text-align:center; margin-bottom:30px; width:100%;">
-            <h2 id="listen-word" style="font-size:2.2rem; font-weight:800; color:white; margin-bottom:5px; text-shadow:0 2px 10px rgba(0,0,0,0.5);">Loading...</h2>
-            <p id="listen-meaning" style="font-size:1.1rem; color:rgba(255,255,255,0.7); font-weight:500;">...</p>
-            
-            <div id="audio-visualizer" style="display:flex; justify-content:center; gap:4px; height:20px; margin-top:15px; opacity:0;">
-                <div class="bar" style="animation-delay:0.1s"></div>
-                <div class="bar" style="animation-delay:0.2s"></div>
-                <div class="bar" style="animation-delay:0.3s"></div>
-                <div class="bar" style="animation-delay:0.4s"></div>
-                <div class="bar" style="animation-delay:0.5s"></div>
+    <div style="position:relative; z-index:10; width:100%; padding:0 30px 50px 30px; display:flex; flex-direction:column; align-items:center;">
+        
+        <div style="width:100%; max-width:400px; margin-bottom:30px;">
+            <div style="width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
+                <div id="listen-progress" style="width:0%; height:100%; background:white; border-radius:10px; transition:width 0.3s; box-shadow: 0 0 10px rgba(255,255,255,0.5);"></div>
             </div>
-        </div>
-
-        <div style="width:90%; margin-bottom:40px;">
-            <div style="width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden;">
-                <div id="listen-progress" style="width:0%; height:100%; background:#f97316; border-radius:2px; transition:width 0.3s;"></div>
-            </div>
-            <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:0.7rem; color:rgba(255,255,255,0.5);">
-                <span id="listen-current">0:00</span>
-                <span id="listen-total">--:--</span>
+            <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.75rem; color:rgba(255,255,255,0.4); font-weight:600;">
+                <span id="listen-current">0</span>
+                <span id="listen-total">0</span>
             </div>
         </div>
 
         <div style="display:flex; align-items:center; gap:40px;">
-            <button onclick="window.prevListen()" style="background:none; border:none; color:white; font-size:1.8rem; opacity:0.8; cursor:pointer;"><i class="fas fa-step-backward"></i></button>
+            <button onclick="window.prevListen()" style="background:none; border:none; color:rgba(255,255,255,0.6); font-size:2rem; cursor:pointer; transition:0.2s;"><i class="fas fa-step-backward"></i></button>
             
-            <button onclick="window.toggleListenState()" id="btn-play-pause" style="width:70px; height:70px; border-radius:50%; background:#f97316; border:none; color:white; font-size:2rem; box-shadow:0 10px 30px rgba(249, 115, 22, 0.4); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.2s;">
+            <button onclick="window.toggleListenState()" id="btn-play-pause" style="width:80px; height:80px; border-radius:50%; background:white; border:none; color:#0f172a; font-size:2rem; box-shadow:0 0 30px rgba(255,255,255,0.2); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.2s;">
                 <i class="fas fa-pause"></i>
             </button>
             
-            <button onclick="window.nextListen()" style="background:none; border:none; color:white; font-size:1.8rem; opacity:0.8; cursor:pointer;"><i class="fas fa-step-forward"></i></button>
+            <button onclick="window.nextListen()" style="background:none; border:none; color:rgba(255,255,255,0.6); font-size:2rem; cursor:pointer; transition:0.2s;"><i class="fas fa-step-forward"></i></button>
         </div>
     </div>
     
     <style>
-        .bar { width: 4px; background: #f97316; border-radius: 2px; animation: soundWave 0.8s ease-in-out infinite; }
-        @keyframes soundWave { 0% { height: 5px; } 50% { height: 20px; } 100% { height: 5px; } }
+        /* Nền Gradient động */
+        .aurora-bg-listen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(125deg, #2e1065, #0f172a, #4c1d95, #1e1b4b);
+            background-size: 400% 400%;
+            animation: gradientBG 10s ease infinite;
+            z-index: 1;
+        }
+        .bar { width: 6px; background: white; border-radius: 3px; animation: soundWave 1.2s ease-in-out infinite; height: 10px; opacity: 0.8; }
+        @keyframes soundWave { 0%, 100% { height: 10px; } 50% { height: 40px; } }
+        /* Hiệu ứng chữ Hero */
+        #listen-word { transition: transform 0.3s; }
     </style>
 </div>
 <div class="tab-bar">
@@ -3363,8 +3379,12 @@ function injectSilentWords(count) {
     playSound(SFX.POP); 
 }
 
-// UPDATED: Enhanced Session End UI with Buttons
+// Tìm và thay thế toàn bộ hàm renderSessionEnd bằng đoạn này:
 function renderSessionEnd() {
+    // 1. Lưu lại điểm session hiện tại vào biến tạm TRƯỚC KHI gọi save
+    // Vì hàm saveProgressToCloud sẽ reset sessionPoints về 0
+    const finalScore = sessionPoints; 
+
     // OFFLINE FIRST SYNC: Session ended, reset flag and force sync
     window.isSessionActive = false;
     saveProgressToCloud(true);
@@ -3381,7 +3401,7 @@ function renderSessionEnd() {
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:25px;">
                  <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:15px;">
                      <div style="font-size:0.8rem; opacity:0.7;">Điểm</div>
-                     <div style="font-size:1.2rem; font-weight:700; color:#fbbf24;">+${sessionPoints || 0}</div>
+                     <div style="font-size:1.2rem; font-weight:700; color:#fbbf24;">+${finalScore || 0}</div>
                  </div>
                  <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:15px;">
                      <div style="font-size:0.8rem; opacity:0.7;">Số từ</div>
@@ -5256,54 +5276,58 @@ window.prevListen = function() {
     playListenLoop();
 };
 
-// 2. Cập nhật playListenLoop: Update Metadata màn hình khóa & Logic chờ
+// 1. Cập nhật playListenLoop: Bỏ xử lý ảnh, chỉ tập trung vào Text & Audio
 async function playListenLoop() {
     if(!listenState.isPlaying) return;
     
     const w = listenState.queue[listenState.index];
     if(!w) return;
 
-    // --- Cập nhật UI ---
-    document.getElementById('listen-word').innerText = w.english;
-    document.getElementById('listen-meaning').innerText = w.vietnamese;
+    // --- Cập nhật UI (Chỉ Text) ---
+    const wordEl = document.getElementById('listen-word');
+    const meaningEl = document.getElementById('listen-meaning');
+    
+    // Hiệu ứng chuyển đổi nhẹ
+    wordEl.style.opacity = 0; 
+    meaningEl.style.opacity = 0;
+    
+    setTimeout(() => {
+        wordEl.innerText = w.english;
+        meaningEl.innerText = w.vietnamese;
+        wordEl.style.opacity = 1;
+        meaningEl.style.opacity = 1;
+        // Hiệu ứng phóng to nhẹ khi bắt đầu đọc
+        wordEl.style.transform = "scale(1.1)";
+        setTimeout(() => wordEl.style.transform = "scale(1)", 500);
+    }, 200);
+
     document.getElementById('listen-current').innerText = (listenState.index + 1);
     document.getElementById('listen-total').innerText = listenState.queue.length;
     const pct = ((listenState.index + 1) / listenState.queue.length) * 100;
     document.getElementById('listen-progress').style.width = pct + '%';
     document.getElementById('audio-visualizer').style.opacity = '1';
 
-    const imgUrl = imageCache[w.english] || getImageUrl(w.english);
-    const mainImg = document.getElementById('listen-img');
-    const bgImg = document.getElementById('listen-bg-blur');
-    
-    mainImg.src = imgUrl;
-    mainImg.style.transform = 'scale(1.1)';
-    setTimeout(() => mainImg.style.transform = 'scale(1)', 5000);
-    bgImg.style.backgroundImage = `url('${imgUrl}')`;
-
-    // --- Cập nhật Màn hình khóa (Media Session) ---
+    // --- Cập nhật Màn hình khóa (Bỏ ảnh artwork để tránh lỗi load) ---
     if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
             title: w.english,
             artist: w.vietnamese,
-            album: 'Hihi Vocabulary Passive',
-            artwork: [
-                { src: imgUrl, sizes: '512x512', type: 'image/jpeg' }
-            ]
+            album: 'Hihi Passive Learning'
+            // Đã xoá artwork
         });
     }
 
     try {
-        // A. Đọc từ gốc (Force Google TTS để chạy nền)
+        // A. Đọc từ gốc (Tiếng Anh/Indo...)
         await speakSpecificLangForceAudio(w.english, listenState.currentLangCode);
         
         // Nghỉ 1.5s
         await waitPromise(1500);
         
-        // B. Đọc nghĩa (Force Google TTS)
+        // B. Đọc nghĩa (Tiếng Việt)
         await speakSpecificLangForceAudio(w.vietnamese, 'vi'); 
         
-        // Nghỉ 1s
+        // Nghỉ 1s trước khi sang từ tiếp theo
         await waitPromise(1000);
         
         // Next loop
@@ -5314,13 +5338,45 @@ async function playListenLoop() {
         }
         
     } catch (e) {
-        console.log("Audio interrupted or background throttled", e);
-        // Retry logic nếu bị ngắt quãng do tắt màn hình quá lâu
-        if(listenState.isPlaying) {
-             setTimeout(playListenLoop, 1000);
-        }
+        console.log("Audio interrupted", e);
+        if(listenState.isPlaying) setTimeout(playListenLoop, 1000);
     }
 }
+
+// 2. Cập nhật startListeningMode: Bỏ logic preload ảnh
+window.startListeningMode = async function() {
+    if(!currentTopicKey || !allTopics[currentTopicKey]) {
+        showToast("Vui lòng chọn chủ đề trước!", "error");
+        return;
+    }
+    
+    if (config.voiceEngine === 'native') {
+        showToast("Đã tự động chuyển sang giọng Google để chạy nền", "info");
+    }
+
+    const langCfg = LANG_CONFIG[currentLang];
+    listenState.currentLangCode = langCfg.tts; 
+    
+    const words = [...allTopics[currentTopicKey].words];
+    if(words.length === 0) return showToast("Chủ đề trống!", "error");
+    
+    words.sort(() => Math.random() - 0.5);
+
+    listenState.queue = words;
+    listenState.index = 0;
+    listenState.isPlaying = true;
+
+    // Show UI
+    const overlay = document.getElementById('listeningOverlay');
+    overlay.style.display = 'flex';
+    overlay.classList.add('animate__animated', 'animate__fadeIn');
+    
+    // Unlock Audio Context
+    if(audioCtx.state === 'suspended') try { await audioCtx.resume(); } catch(e){}
+    setupMediaSession();
+    
+    playListenLoop();
+};
 
 // Hàm phụ trợ cho giọng máy Native
 function speakNativeFallback(text, langCode, onEnd) {
@@ -5362,44 +5418,41 @@ if (document.readyState === 'loading') {
 // BƯỚC 3: HÀM XỬ LÝ ÂM THANH
 // ======================================================
 
-// --- HÀM HELPER: PHÁT URL ÂM THANH (Dùng cho Worker & Google) ---
 function playAudioUrl(url) {
     return new Promise((resolve, reject) => {
-        // Chỉ cần giữ lại phần gán src và play bên dưới
+        // Reset trình phát trước khi gán nguồn mới
+        ttsPlayer.pause();
+        ttsPlayer.currentTime = 0;
+        
         ttsPlayer.src = url;
         ttsPlayer.playbackRate = 1.0;
-   ttsPlayer.src = url;
-        ttsPlayer.playbackRate = 1.0;
 
-        // Xử lý sự kiện khi đọc xong
         ttsPlayer.onended = () => {
-            // Nếu URL là dạng Blob (từ Worker tạo ra), cần giải phóng bộ nhớ
+            // Dọn dẹp bộ nhớ nếu là Blob URL
             if (url.startsWith('blob:')) {
                 URL.revokeObjectURL(url);
             }
             resolve(); 
         };
 
-        // Xử lý sự kiện lỗi
         ttsPlayer.onerror = (e) => {
             console.warn("Audio Playback Error:", e);
-            reject(e); // Báo lỗi để nhảy sang phương án dự phòng
+            // Dù lỗi cũng resolve để app không bị treo
+            resolve(); 
         };
 
-        // Bắt đầu phát
+        // Bắt promise play để tránh lỗi "User interaction required"
         const playPromise = ttsPlayer.play();
         if (playPromise !== undefined) {
             playPromise.catch(e => {
-                reject(e); // Báo lỗi nếu trình duyệt chặn Autoplay
+                console.warn("Trình duyệt chặn Autoplay:", e);
+                reject(e); 
             });
         }
     });
 }
 
-// ======================================================
-// HÀM ĐỌC THÔNG MINH (DÙNG TRỰC TIẾP WEBSOCKET - KHÔNG WORKER)
-// ======================================================
-
+// HÀM ĐỌC THÔNG MINH
 async function speakSpecificLangForceAudio(text, langCode) {
     stopGlobalAudio();
 
@@ -5470,55 +5523,65 @@ function createSSML(text, voiceName) {
     return `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'><voice name='${voiceName}'><prosody pitch='+0Hz' rate='0%' volume='+0%'>${safeText}</prosody></voice></speak>`;
 }
 
-// Hàm kết nối WebSocket trực tiếp
-// Hàm kết nối WebSocket trực tiếp
+// Hàm kết nối WebSocket trực tiếp 
 function edgeTTSDirect(text, voice) {
     return new Promise((resolve, reject) => {
-        const ws = new WebSocket(EDGE_WSS_URL);
+        // 1. Thêm tham số thời gian để mỗi lần gọi là một kết nối mới tinh
+        // Giúp tránh việc trình duyệt dùng lại kết nối cũ bị lỗi
+        const endpoint = `${EDGE_WSS_URL}&_t=${Date.now()}`;
+        
+        const ws = new WebSocket(endpoint);
+        ws.binaryType = "arraybuffer"; // Dùng arraybuffer để xử lý nhanh hơn Blob
+        
         const requestId = uuidv4();
         const audioData = [];
+        let isDone = false;
 
-        // Timeout an toàn: Nếu sau 10s không xong thì ngắt để chuyển Google
+        // Timeout an toàn: 10 giây không xong thì hủy
         const timeout = setTimeout(() => {
-            if(ws.readyState === WebSocket.OPEN) ws.close();
-            reject(new Error("Edge TTS Timeout (10s)"));
+            if (ws.readyState === WebSocket.OPEN) ws.close();
+            if (!isDone) reject(new Error("Edge TTS Timeout (10s)"));
         }, 10000);
 
         ws.onopen = () => {
-            // 1. Gửi cấu hình Audio
-            const configMsg = `X-Timestamp:${new Date().toString()}\r\nContent-Type:application/json; charset=utf-8\r\nPath:speech.config\r\n\r\n{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"false"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}`
+            // 2. Sửa định dạng thời gian sang ISO String (Chuẩn hơn toString)
+            const dateStr = new Date().toISOString();
+            
+            const configMsg = `X-Timestamp:${dateStr}\r\nContent-Type:application/json; charset=utf-8\r\nPath:speech.config\r\n\r\n{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"false"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}`
             ws.send(configMsg);
 
-            // 2. Gửi SSML (Nội dung đọc)
             const ssml = createSSML(text, voice);
-            const ssmlMsg = `X-Timestamp:${new Date().toString()}\r\nX-RequestId:${requestId}\r\nContent-Type:application/ssml+xml\r\nPath:ssml\r\n\r\n${ssml}`;
+            const ssmlMsg = `X-Timestamp:${dateStr}\r\nX-RequestId:${requestId}\r\nContent-Type:application/ssml+xml\r\nPath:ssml\r\n\r\n${ssml}`;
             ws.send(ssmlMsg);
         };
 
         ws.onmessage = (event) => {
             const data = event.data;
+            
+            // Xử lý Text (Metadata)
             if (typeof data === 'string') {
-                // Nhận metadata
                 if (data.includes("Path:turn.end")) {
-                    ws.close();
+                    isDone = true;
+                    ws.close(); // Đóng ngay khi nhận tín hiệu kết thúc
                 }
-            } else if (data instanceof Blob) {
-                // --- SỬA LỖI TẠI ĐÂY ---
-                // KHÔNG DÙNG .slice(130) cho tất cả các gói!
-                // Trình duyệt sẽ tự handle header rác.
-                audioData.push(data); 
+            } 
+            // Xử lý Binary (Âm thanh)
+            else if (data instanceof ArrayBuffer) {
+                // Header của Edge TTS binary thường là 2 bytes đầu
+                // Ta cứ lấy hết, trình duyệt tự lọc header rác
+                audioData.push(data);
             }
         };
 
         ws.onclose = () => {
-            clearTimeout(timeout); // Xóa timeout khi đóng
+            clearTimeout(timeout);
             if (audioData.length > 0) {
-                // Gom tất cả blob lại thành 1 file mp3
+                // Gom dữ liệu lại thành Blob
                 const blob = new Blob(audioData, { type: 'audio/mp3' });
                 const url = URL.createObjectURL(blob);
                 resolve(url);
             } else {
-                reject(new Error("Edge TTS: Không nhận được dữ liệu âm thanh (socket closed)"));
+                if(!isDone) reject(new Error("Edge TTS đóng kết nối mà không có dữ liệu"));
             }
         };
 

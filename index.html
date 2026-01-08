@@ -1042,12 +1042,8 @@
         </div>
     </div>
 
-    <div id="topicList">
-    <div style="text-align:center; padding:40px; opacity:0.6;">
-        <i class="fas fa-circle-notch fa-spin" style="font-size:2rem; color:#60a5fa;"></i>
-        <div style="margin-top:10px; font-size:0.9rem;">Đang tải thư viện...</div>
-    </div>
-    </div>
+    <div id="topicList"></div>
+  </div>
 
   <div id="view-settings" class="view-container animate__animated animate__fadeIn" style="display:none;">
     <h2 style="margin-bottom: 20px; padding-left: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Cấu hình</h2>
@@ -1078,44 +1074,43 @@
 
         <hr style="border:0; border-top:1px solid var(--glass-border); margin: 25px 0;">
 
+        <h4 style="margin-bottom:15px; color:#A78BFA; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Âm thanh & Giọng đọc</h4>
+
         <div class="glass-panel" style="background:rgba(0,0,0,0.2); border:1px solid rgba(255,255,255,0.1); padding:15px; margin-bottom:20px; border-radius:16px;">
-            <div class="switch-container">
-                <span><i class="fab fa-google" style="color:#ea4335"></i> &nbsp;Ưu tiên Google TTS (Online)</span>
-                <input type="checkbox" id="cfgVoiceGoogle" class="toggle-switch" onchange="window.saveConfig()">
-            </div>
-            <div style="font-size: 0.75rem; opacity: 0.7; margin-top: -10px; margin-bottom: 15px;">
-                Dùng giọng Google Translate (cần mạng). Nếu tắt hoặc lỗi mạng sẽ dùng giọng máy bên dưới.
+            <div style="font-size:0.85rem; font-weight:700; color:#fbbf24; margin-bottom:15px; display:flex; align-items:center; gap:8px;">
+                <i class="fas fa-microphone-alt"></i> Giọng đọc AI (Microsoft Edge)
             </div>
 
-            <div style="font-size:0.85rem; font-weight:700; color:#fbbf24; margin-bottom:10px; display:flex; align-items:center; gap:8px;">
-                <i class="fas fa-microchip"></i> Giọng Máy (Offline/Native)
-            </div>
-            
             <div style="margin-bottom:15px;">
-                <div style="font-size:0.75rem; opacity:0.8; margin-bottom:4px;">Tiếng Anh (EN)</div>
+                <div style="font-size:0.75rem; opacity:0.8; margin-bottom:4px;">Tiếng Anh (Mỹ)</div>
                 <div style="display:flex; gap:8px;">
-                    <select id="cfgNativeEn" class="input-glass" style="margin-bottom:0; padding:8px; font-size:0.85rem;" onchange="window.saveConfig()">
-                        <option value="">Đang tải giọng...</option>
+                    <select id="cfgVoiceEn" class="input-glass" style="margin-bottom:0; padding:8px; font-size:0.85rem;" onchange="window.saveConfig()">
+                        <option value="Microsoft Server Speech Text to Speech Voice (en-US, ChristopherNeural)">Christopher (Nam - Trầm ấm)</option>
+                        <option value="Microsoft Server Speech Text to Speech Voice (en-US, GuyNeural)">Guy (Nam - Tự nhiên)</option>
+                        <option value="Microsoft Server Speech Text to Speech Voice (en-US, AriaNeural)">Aria (Nữ - Truyền cảm)</option>
+                        <option value="Microsoft Server Speech Text to Speech Voice (en-US, JennyNeural)">Jenny (Nữ - Mượt mà)</option>
                     </select>
                     <button class="btn-primary" style="width:40px; padding:0; height:42px; display:flex; align-items:center; justify-content:center;" onclick="window.testVoice('en')"><i class="fas fa-play"></i></button>
                 </div>
             </div>
 
             <div style="margin-bottom:15px;">
-                <div style="font-size:0.75rem; opacity:0.8; margin-bottom:4px;">Tiếng Việt (VN)</div>
+                <div style="font-size:0.75rem; opacity:0.8; margin-bottom:4px;">Tiếng Việt</div>
                 <div style="display:flex; gap:8px;">
-                    <select id="cfgNativeVi" class="input-glass" style="margin-bottom:0; padding:8px; font-size:0.85rem;" onchange="window.saveConfig()">
-                        <option value="">Đang tải giọng...</option>
+                    <select id="cfgVoiceVi" class="input-glass" style="margin-bottom:0; padding:8px; font-size:0.85rem;" onchange="window.saveConfig()">
+                        <option value="Microsoft Server Speech Text to Speech Voice (vi-VN, NamMinhNeural)">Nam Minh (Nam - Truyền hình)</option>
+                        <option value="Microsoft Server Speech Text to Speech Voice (vi-VN, HoaiMyNeural)">Hoài My (Nữ - Nhẹ nhàng)</option>
                     </select>
                     <button class="btn-primary" style="width:40px; padding:0; height:42px; display:flex; align-items:center; justify-content:center;" onclick="window.testVoice('vi')"><i class="fas fa-play"></i></button>
                 </div>
             </div>
             
             <div>
-                <div style="font-size:0.75rem; opacity:0.8; margin-bottom:4px;">Indonesia (ID)</div>
+                <div style="font-size:0.75rem; opacity:0.8; margin-bottom:4px;">Indonesia</div>
                 <div style="display:flex; gap:8px;">
-                    <select id="cfgNativeId" class="input-glass" style="margin-bottom:0; padding:8px; font-size:0.85rem;" onchange="window.saveConfig()">
-                        <option value="">Đang tải giọng...</option>
+                    <select id="cfgVoiceId" class="input-glass" style="margin-bottom:0; padding:8px; font-size:0.85rem;" onchange="window.saveConfig()">
+                        <option value="Microsoft Server Speech Text to Speech Voice (id-ID, ArdiNeural)">Ardi (Nam)</option>
+                        <option value="Microsoft Server Speech Text to Speech Voice (id-ID, GadisNeural)">Gadis (Nữ)</option>
                     </select>
                     <button class="btn-primary" style="width:40px; padding:0; height:42px; display:flex; align-items:center; justify-content:center;" onclick="window.testVoice('id')"><i class="fas fa-play"></i></button>
                 </div>
@@ -1126,6 +1121,15 @@
             <span>Hiệu ứng âm thanh (SFX)</span>
             <input type="checkbox" id="cfgSfx" class="toggle-switch" onchange="window.saveConfig()">
         </div>
+
+        <div class="switch-container">
+            <span>Dự phòng: Google Voice</span>
+            <input type="checkbox" id="cfgVoiceGoogle" class="toggle-switch" onchange="window.saveConfig()">
+        </div>
+        <div style="font-size: 0.75rem; opacity: 0.7; margin-top: -10px; margin-bottom: 5px;">
+            Bật nếu Edge bị lỗi. Tắt để dùng giọng máy (Native).
+        </div>
+
         <hr style="border:0; border-top:1px solid var(--glass-border); margin: 25px 0;">
 
         <h4 style="margin-bottom:15px; color:#34D399; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">Hệ thống</h4>
@@ -1215,74 +1219,58 @@
   <div id="gameContent">
       </div>
 </div>
-<div id="listeningOverlay" style="display:none; position:fixed; inset:0; z-index:6000; background:#0f172a; flex-direction:column; overflow:hidden;">
+<div id="listeningOverlay" style="display:none; position:fixed; inset:0; z-index:6000; background:#0f172a; flex-direction:column; align-items:center; justify-content:center; overflow:hidden;">
     
-    <div class="aurora-bg-listen"></div>
+    <div id="listen-bg-blur" style="position:absolute; inset:0; background-size:cover; background-position:center; filter:blur(40px) brightness(0.4); opacity:0.8; transition:background-image 0.5s;"></div>
     
-    <div style="position:relative; z-index:10; width:100%; padding:20px; display:flex; justify-content:space-between; align-items:center;">
-        <div style="color:rgba(255,255,255,0.6); font-weight:600; font-size:0.85rem; letter-spacing: 1px; text-transform: uppercase;">
-            <i class="fas fa-broadcast-tower" style="color:#a855f7"></i> &nbsp;Passive Mode
-        </div>
-        <button onclick="window.closeListeningMode()" style="background:rgba(255,255,255,0.1); border:none; color:white; width:40px; height:40px; border-radius:50%; cursor:pointer; backdrop-filter: blur(5px); transition:0.2s;">
-            <i class="fas fa-times"></i>
-        </button>
+    <div style="position:relative; z-index:2; width:100%; padding:20px; display:flex; justify-content:space-between; align-items:center;">
+        <div style="color:white; font-weight:700; font-size:0.9rem; opacity:0.8;"><i class="fas fa-broadcast-tower"></i> Passive Learning</div>
+        <button onclick="window.closeListeningMode()" style="background:rgba(255,255,255,0.1); border:none; color:white; width:35px; height:35px; border-radius:50%; cursor:pointer;"><i class="fas fa-chevron-down"></i></button>
     </div>
 
-    <div style="position:relative; z-index:10; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; padding:20px; text-align:center;">
+    <div style="position:relative; z-index:2; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; max-width:400px; padding:20px;">
         
-        <h2 id="listen-word" class="animate__animated animate__fadeInUp" style="font-size: clamp(3rem, 10vw, 5rem); font-weight:800; color:white; margin:0; line-height:1.1; letter-spacing:-1px; text-shadow: 0 10px 30px rgba(0,0,0,0.3);">
-            Loading...
-        </h2>
-        
-        <p id="listen-meaning" class="animate__animated animate__fadeInUp" style="font-size: clamp(1.2rem, 4vw, 1.8rem); color:rgba(255,255,255,0.8); font-weight:400; margin-top:15px; margin-bottom:40px; font-family: 'Quicksand', sans-serif;">
-            ...
-        </p>
-        
-        <div id="audio-visualizer" style="display:flex; justify-content:center; gap:6px; height:40px; align-items:center; opacity:0; transition: opacity 0.5s;">
-            <div class="bar" style="animation-delay:0.0s"></div>
-            <div class="bar" style="animation-delay:0.2s"></div>
-            <div class="bar" style="animation-delay:0.4s"></div>
-            <div class="bar" style="animation-delay:0.1s"></div>
-            <div class="bar" style="animation-delay:0.3s"></div>
+        <div style="width:280px; height:280px; border-radius:20px; box-shadow:0 20px 50px rgba(0,0,0,0.5); overflow:hidden; margin-bottom:40px; position:relative; background:#1e293b;">
+            <img id="listen-img" src="" style="width:100%; height:100%; object-fit:cover; transition:transform 10s ease;">
         </div>
-    </div>
 
-    <div style="position:relative; z-index:10; width:100%; padding:0 30px 50px 30px; display:flex; flex-direction:column; align-items:center;">
-        
-        <div style="width:100%; max-width:400px; margin-bottom:30px;">
-            <div style="width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:10px; overflow:hidden;">
-                <div id="listen-progress" style="width:0%; height:100%; background:white; border-radius:10px; transition:width 0.3s; box-shadow: 0 0 10px rgba(255,255,255,0.5);"></div>
+        <div style="text-align:center; margin-bottom:30px; width:100%;">
+            <h2 id="listen-word" style="font-size:2.2rem; font-weight:800; color:white; margin-bottom:5px; text-shadow:0 2px 10px rgba(0,0,0,0.5);">Loading...</h2>
+            <p id="listen-meaning" style="font-size:1.1rem; color:rgba(255,255,255,0.7); font-weight:500;">...</p>
+            
+            <div id="audio-visualizer" style="display:flex; justify-content:center; gap:4px; height:20px; margin-top:15px; opacity:0;">
+                <div class="bar" style="animation-delay:0.1s"></div>
+                <div class="bar" style="animation-delay:0.2s"></div>
+                <div class="bar" style="animation-delay:0.3s"></div>
+                <div class="bar" style="animation-delay:0.4s"></div>
+                <div class="bar" style="animation-delay:0.5s"></div>
             </div>
-            <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:0.75rem; color:rgba(255,255,255,0.4); font-weight:600;">
-                <span id="listen-current">0</span>
-                <span id="listen-total">0</span>
+        </div>
+
+        <div style="width:90%; margin-bottom:40px;">
+            <div style="width:100%; height:4px; background:rgba(255,255,255,0.1); border-radius:2px; overflow:hidden;">
+                <div id="listen-progress" style="width:0%; height:100%; background:#f97316; border-radius:2px; transition:width 0.3s;"></div>
+            </div>
+            <div style="display:flex; justify-content:space-between; margin-top:8px; font-size:0.7rem; color:rgba(255,255,255,0.5);">
+                <span id="listen-current">0:00</span>
+                <span id="listen-total">--:--</span>
             </div>
         </div>
 
         <div style="display:flex; align-items:center; gap:40px;">
-            <button onclick="window.prevListen()" style="background:none; border:none; color:rgba(255,255,255,0.6); font-size:2rem; cursor:pointer; transition:0.2s;"><i class="fas fa-step-backward"></i></button>
+            <button onclick="window.prevListen()" style="background:none; border:none; color:white; font-size:1.8rem; opacity:0.8; cursor:pointer;"><i class="fas fa-step-backward"></i></button>
             
-            <button onclick="window.toggleListenState()" id="btn-play-pause" style="width:80px; height:80px; border-radius:50%; background:white; border:none; color:#0f172a; font-size:2rem; box-shadow:0 0 30px rgba(255,255,255,0.2); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.2s;">
+            <button onclick="window.toggleListenState()" id="btn-play-pause" style="width:70px; height:70px; border-radius:50%; background:#f97316; border:none; color:white; font-size:2rem; box-shadow:0 10px 30px rgba(249, 115, 22, 0.4); cursor:pointer; display:flex; align-items:center; justify-content:center; transition:transform 0.2s;">
                 <i class="fas fa-pause"></i>
             </button>
             
-            <button onclick="window.nextListen()" style="background:none; border:none; color:rgba(255,255,255,0.6); font-size:2rem; cursor:pointer; transition:0.2s;"><i class="fas fa-step-forward"></i></button>
+            <button onclick="window.nextListen()" style="background:none; border:none; color:white; font-size:1.8rem; opacity:0.8; cursor:pointer;"><i class="fas fa-step-forward"></i></button>
         </div>
     </div>
     
     <style>
-        /* Nền Gradient động */
-        .aurora-bg-listen {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            background: linear-gradient(125deg, #2e1065, #0f172a, #4c1d95, #1e1b4b);
-            background-size: 400% 400%;
-            animation: gradientBG 10s ease infinite;
-            z-index: 1;
-        }
-        .bar { width: 6px; background: white; border-radius: 3px; animation: soundWave 1.2s ease-in-out infinite; height: 10px; opacity: 0.8; }
-        @keyframes soundWave { 0%, 100% { height: 10px; } 50% { height: 40px; } }
-        /* Hiệu ứng chữ Hero */
-        #listen-word { transition: transform 0.3s; }
+        .bar { width: 4px; background: #f97316; border-radius: 2px; animation: soundWave 0.8s ease-in-out infinite; }
+        @keyframes soundWave { 0% { height: 5px; } 50% { height: 20px; } 100% { height: 5px; } }
     </style>
 </div>
 <div class="tab-bar">
@@ -1419,7 +1407,7 @@ let dailyTracking = JSON.parse(
     localStorage.getItem(`fp_aurora_daily_${currentLang}`) || 
     '{"date":"", "count":0, "learnedWords":[]}'
 );
-let streakHistory = JSON.parse(localStorage.getItem('fp_aurora_streak_history') || '[]');
+
 // ✅ BẮT BUỘC: Khởi tạo learnedWords cho cả data mới và cũ
 // Kiểm tra kỹ hơn: nếu không tồn tại HOẶC không phải là mảng thì reset về mảng rỗng
 if (!dailyTracking.learnedWords || !Array.isArray(dailyTracking.learnedWords)) {
@@ -1431,6 +1419,8 @@ if (!dailyTracking.learnedWords || !Array.isArray(dailyTracking.learnedWords)) {
 dailyTracking.count = dailyTracking.learnedWords.length;
 
   let scoreHistory = {}; // 
+// STREAK HISTORY TRACKING (Shared or language specific? Let's make it shared for simplicity, showing general activity)
+let streakHistory = JSON.parse(localStorage.getItem('fp_aurora_streak_history') || '[]');
 
 let trialCount = parseInt(localStorage.getItem('fp_aurora_trial_access') || '0');
 // Calendar view mode state
@@ -2176,17 +2166,16 @@ let config = {
     brightness: parseInt(localStorage.getItem('fp_aurora_brightness') || '100'),
     voiceEngine: localStorage.getItem('fp_aurora_voice_engine') || 'google',
     sfxEnabled: localStorage.getItem('fp_aurora_sfx') !== 'false', // Default true
-// --- THAY DÒNG edgeVoices CŨ BẰNG DÒNG NÀY ---
-    nativeVoices: JSON.parse(localStorage.getItem('fp_aurora_native_voices') || JSON.stringify({
-        en: '',
-        vi: '',
-        id: ''
+    // THÊM DÒNG NÀY:
+    edgeVoices: JSON.parse(localStorage.getItem('fp_aurora_edge_voices') || JSON.stringify({
+        en: 'Microsoft Server Speech Text to Speech Voice (en-US, ChristopherNeural)',
+        vi: 'Microsoft Server Speech Text to Speech Voice (vi-VN, NamMinhNeural)',
+        id: 'Microsoft Server Speech Text to Speech Voice (id-ID, ArdiNeural)'
     })),
     activeGameModes: JSON.parse(localStorage.getItem('fp_aurora_game_modes') || '{"flashcard":true,"quiz":true,"fill":true,"sentence":true,"spelling":true,"matching":true}')
 };
 
 let sessionQueue = []; 
-let sessionRunCount = 0; // Biến đếm số hiệp học liên tiếp
 let sessionIndex = 0;
 let currentMode = '';
 let isProcessing = false;
@@ -2784,7 +2773,7 @@ window.fetchTopics = async function(manual = false) {
 
         // Store metadata globally
         allTopicsMetadata = jsonFiles;
-        renderTopicList();
+        
         status.innerText = "Aurora Rank Master • Ready";
 
         // Determine current topic or default to first
@@ -2883,17 +2872,10 @@ window.saveGameConfig = function() {
 window.startSmartSession = async function(isExtra = false) {
     cleanupGameResources();
 
-    // Fix: Đảm bảo AudioContext luôn chạy
+    // FIX: Đảm bảo AudioContext luôn chạy
     if(audioCtx.state === 'suspended') { try { await audioCtx.resume(); } catch(e) {} }
 
-    // --- LOGIC MỚI: ĐẾM SỐ HIỆP ĐỂ THƯỞNG ---
-    if (isExtra) {
-        sessionRunCount++; // Tăng biến đếm nếu bấm "Học tiếp"
-    } else {
-        sessionRunCount = 0; // Reset về 0 nếu bấm từ màn hình chính
-    }
-
-    // --- 1. Kiểm tra dữ liệu & Đăng nhập (GIỮ NGUYÊN) ---
+    // --- 1. Kiểm tra dữ liệu & Đăng nhập ---
     if (!allTopicsMetadata || allTopicsMetadata.length === 0) {
         showToast("Dữ liệu chưa tải xong. Vui lòng thử lại!", "error");
         return;
@@ -2910,7 +2892,7 @@ window.startSmartSession = async function(isExtra = false) {
     sessionPoints = 0;
     window.isGlobalReviewSession = false;
 
-    // --- 2. Kiểm tra Chủ đề hiện tại (GIỮ NGUYÊN) ---
+    // --- 2. Kiểm tra Chủ đề hiện tại ---
     if (!currentTopicKey && allTopicsMetadata.length > 0) {
          currentTopicKey = allTopicsMetadata[0].name;
          localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
@@ -2921,18 +2903,18 @@ window.startSmartSession = async function(isExtra = false) {
         await loadTopicData(currentTopicKey);
     }
     
-    // --- 3. Reset Session Streak (GIỮ NGUYÊN) ---
+    // --- 3. Reset Session Streak ---
     window.sessionCorrectStreak = 0;
     config.newLimit = parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5);
     config.reviewLimit = parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20);
 
-    // --- 4. Logic Giới hạn Hằng ngày (GIỮ NGUYÊN) ---
+    // --- 4. Logic Giới hạn Hằng ngày (Daily Limit) ---
     checkDailyLimit();
     let limitNew = config.newLimit;
     let learnedToday = dailyTracking.count;
     let remainingQuota = Math.max(0, limitNew - learnedToday);
 
-    // --- 5. Gom từ vựng từ chủ đề hiện tại (GIỮ NGUYÊN) ---
+    // --- 5. Gom từ vựng từ chủ đề hiện tại (TỪ MỚI) ---
     let currentTopicData = allTopics[currentTopicKey];
     if (!currentTopicData) return showToast("Lỗi dữ liệu chủ đề", "error");
 
@@ -2941,7 +2923,7 @@ window.startSmartSession = async function(isExtra = false) {
         return !masteredWords[k] && !srsData[k];
     });
 
-    // --- 6. Gom bài ôn tập (GIỮ NGUYÊN) ---
+    // --- 6. Gom bài ôn tập (Reviews) - [ĐÃ SỬA ĐỂ LẤY CẢ TỪ CHƯA ĐẾN HẠN] ---
     let allLearnedWords = [];
     const now = Date.now();
 
@@ -2957,47 +2939,46 @@ window.startSmartSession = async function(isExtra = false) {
         });
     });
 
-    // Sắp xếp ưu tiên
+    // Sắp xếp: Ưu tiên từ quá hạn (nextReview nhỏ) trước, sau đó đến từ sắp đến hạn
     allLearnedWords.sort((a,b) => srsData[getWordKey(a)].nextReview - srsData[getWordKey(b)].nextReview);
+    
+    // Cắt lấy đúng số lượng Review Limit (VD: 20 từ)
+    // Kể cả chưa đến hạn cũng lấy cho đủ danh sách
     const batchReview = allLearnedWords.slice(0, config.reviewLimit);
 
-    // --- 7. DRIP FEED LOGIC (CÓ SỬA ĐỔI ĐỂ THƯỞNG) ---
+// --- 7. DRIP FEED LOGIC (Quyết định số từ mới) ---
+    // [LOGIC MỚI] Kiểm tra điều kiện "Ôn tập kĩ"
+    // Đếm số từ đang ở trình độ thấp (Level < 6) VÀ chưa ôn đủ 5 lần
     const unstableCount = Object.values(srsData).filter(d => 
         (d.level < 6) && ((d.totalReviews || 0) < 5)
     ).length;
 
     let maxNewToAdd = 0;
     
+    // Nếu còn từ chưa vững (unstableCount > 0) và vẫn còn bài ôn tập (batchReview > 0)
+    // -> CHẶN từ mới để bắt buộc ôn cho kĩ.
     if (unstableCount > 0 && batchReview.length > 0) {
         maxNewToAdd = 0;
-    } else {
+        // Có thể hiện thông báo nhỏ nếu muốn người dùng biết
+        // if(remainingQuota > 0) showToast(`Tập trung ôn ${unstableCount} từ yếu trước!`, "info");
+    } 
+    else {
+        // Nếu đã "sạch" từ yếu, bắt đầu thêm từ mới ngẫu nhiên
         if (batchReview.length > 0) {
-            const randomDrip = Math.floor(Math.random() * 2) + 1; 
+            // Nếu đang có bài ôn, thêm ngẫu nhiên 1 hoặc 2 từ mới (nếu còn quota)
+            // để tránh bị ngợp, thay vì cố định là 2 như trước
+            const randomDrip = Math.floor(Math.random() * 2) + 1; // Random 1-2 từ
             maxNewToAdd = Math.min(randomDrip, remainingQuota);
         } else {
+            // Nếu không có bài ôn nào, học full từ mới theo giới hạn ngày
             maxNewToAdd = Math.min(config.newLimit, remainingQuota);
         }
     }
     
-    // Logic học thêm (Force) khi hết quota
+    // Logic học thêm (Force) khi hết quota vẫn giữ nguyên
     if (maxNewToAdd === 0 && isExtra) maxNewToAdd = 2;
 
-    // >>> LOGIC THƯỞNG NÓNG MỚI NẰM Ở ĐÂY <<<
-    // Nếu đây là hiệp thứ 3, 6, 9... liên tiếp
-    if (isExtra && sessionRunCount > 0 && sessionRunCount % 3 === 0) {
-        const bonusWords = 3; // Số từ thưởng thêm
-        maxNewToAdd += bonusWords;
-        
-        playSound(SFX.WIN); 
-        if(!config.ecoMode) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
-        
-        setTimeout(() => {
-             showToast(`🔥 CHÁY QUÁ! Hiệp thứ ${sessionRunCount} liên tiếp! Thưởng thêm ${bonusWords} từ mới!`, "success");
-        }, 500);
-    }
-    // >>> KẾT THÚC LOGIC THƯỞNG NÓNG <<<
-
-    // --- 8. Lấy từ mới (GIỮ NGUYÊN) ---
+    // --- 8. Lấy từ mới (Có tự động sang Topic tiếp theo) ---
     let batchNew = [];
     
     if (candidatesNewCurrent.length >= maxNewToAdd) {
@@ -3039,7 +3020,7 @@ window.startSmartSession = async function(isExtra = false) {
         }
     }
     
-    // --- 9. Kiểm tra xem có trống không (GIỮ NGUYÊN) ---
+    // --- 9. Kiểm tra xem có trống không ---
     if(batchNew.length === 0 && batchReview.length === 0) {
         if(!config.ecoMode) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         playSound(SFX.WIN);
@@ -3047,9 +3028,11 @@ window.startSmartSession = async function(isExtra = false) {
         return;
     }
 
-    // --- 10. Tạo hàng đợi bài học (GIỮ NGUYÊN) ---
+    // --- 10. Tạo hàng đợi bài học (Trộn bài) ---
     window.isReviewOnlySession = (batchNew.length === 0);
     
+    // Tính số lượng thực tế để thông báo
+    // (Đếm số từ review thực sự đến hạn để hiển thị cho vui, còn thực tế học là batchReview.length)
     const realDueCount = batchReview.filter(w => srsData[getWordKey(w)].nextReview <= now).length;
     const earlyReviewCount = batchReview.length - realDueCount;
     
@@ -3268,32 +3251,49 @@ function updateProgress() {
     document.getElementById('gameProgressBar').style.width = `${pct}%`;
 }
 
+// FIXED: Infinite Loop Logic in NextStep
 window.nextStep = function() {
-    cleanupGameResources(); 
-    stopGlobalAudio(); 
+    cleanupGameResources(); // Ensure clean slate for listeners
+    stopGlobalAudio(); // STOP PREVIOUS AUDIO
     
+    // RESET HINT COUNT ON NEW STEP
     window.currentHintCount = 0;
 
     if(sessionIndex < sessionQueue.length - 1) {
         const content = document.getElementById('gameContent');
         if(!config.ecoMode) content.classList.add('slide-out-left');
-        else content.style.opacity = 0; 
+        else content.style.opacity = 0; // Simple fade for eco
         
         setTimeout(() => {
             if (document.getElementById('gameOverlay').style.display === 'none') return;
 
-            // --- ĐÃ XOÁ ĐOẠN CODE THƯỞNG NÓNG Ở ĐÂY ---
-            
+            // --- DRIP FEED INJECTION START (Có chặn duplicate) ---
+            if (window.sessionCorrectStreak > 0 && 
+                window.sessionCorrectStreak % 3 === 0 &&
+                sessionIndex !== lastInjectIndex) { // ✅ Chặn inject trùng
+                
+                lastInjectIndex = sessionIndex; // Đánh dấu đã inject
+                
+                let currentDailyCount = dailyTracking.count;
+                let dailyGoal = config.newLimit;
+                
+                if (currentDailyCount < dailyGoal) {
+                    injectSilentWords(1);
+                }
+            }
+            // --- DRIP FEED INJECTION END ---
             sessionIndex++;
             updateProgress();
-            preloadImages(); 
+            preloadImages(); // Preload next images
             
             content.classList.remove('slide-out-left');
             content.style.opacity = 0;
             
+            // LOGIC CHUYỂN BÀI MỚI
             if(currentMode === 'smart') {
                 decideSmartRender();
             } else {
+                // Ensure specific mode renderers are called
                 if(currentMode === 'flashcard_all') renderFlashcard(); 
                 else if(currentMode === 'fill') renderFill();
                 else if(currentMode === 'quiz') setupQuiz();
@@ -3314,6 +3314,7 @@ window.nextStep = function() {
         renderSessionEnd();
     }
 }
+
 function injectSilentWords(count) {
     if(!currentTopicKey || !allTopics[currentTopicKey]) return;
     const allWords = allTopics[currentTopicKey].words;
@@ -3362,12 +3363,8 @@ function injectSilentWords(count) {
     playSound(SFX.POP); 
 }
 
-// Tìm và thay thế toàn bộ hàm renderSessionEnd bằng đoạn này:
+// UPDATED: Enhanced Session End UI with Buttons
 function renderSessionEnd() {
-    // 1. Lưu lại điểm session hiện tại vào biến tạm TRƯỚC KHI gọi save
-    // Vì hàm saveProgressToCloud sẽ reset sessionPoints về 0
-    const finalScore = sessionPoints; 
-
     // OFFLINE FIRST SYNC: Session ended, reset flag and force sync
     window.isSessionActive = false;
     saveProgressToCloud(true);
@@ -3384,7 +3381,7 @@ function renderSessionEnd() {
             <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:25px;">
                  <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:15px;">
                      <div style="font-size:0.8rem; opacity:0.7;">Điểm</div>
-                     <div style="font-size:1.2rem; font-weight:700; color:#fbbf24;">+${finalScore || 0}</div>
+                     <div style="font-size:1.2rem; font-weight:700; color:#fbbf24;">+${sessionPoints || 0}</div>
                  </div>
                  <div style="background:rgba(255,255,255,0.05); padding:10px; border-radius:15px;">
                      <div style="font-size:0.8rem; opacity:0.7;">Số từ</div>
@@ -4926,6 +4923,14 @@ window.resetProgress = function() {
     playSound(SFX.POP);
 }
 
+function setupVoice() {
+    const voices = window.speechSynthesis.getVoices();
+    const targetLang = LANG_CONFIG[currentLang].tts;
+    // Try to find exact match for current language
+    selectedVoice = voices.find(v => v.lang === targetLang) ||
+                    voices.find(v => v.lang.startsWith(targetLang.split('-')[0])) ||
+                    voices.find(v => v.name === 'Google US English'); // Fallback
+}
 
 function applyTheme() {
     document.body.classList.toggle('dark-mode', config.darkMode);
@@ -4936,6 +4941,92 @@ function applyTheme() {
 window.toggleTheme = function() { config.darkMode = !config.darkMode; localStorage.setItem('fp_aurora_dark', config.darkMode); applyTheme(); playSound(SFX.POP); saveProgressToCloud(); }
 window.toggleMute = function() { config.muted = !config.muted; localStorage.setItem('fp_aurora_muted', config.muted); updateMuteIcon(); saveProgressToCloud(); }
 function updateMuteIcon() { document.getElementById('muteIcon').className = config.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up'; }
+window.testVoice = async function(lang) {
+    // Fake trạng thái đang nghe để hàm ForceAudio hoạt động
+    const wasPlaying = listenState.isPlaying;
+    listenState.isPlaying = true;
+    
+    showToast("Đang test giọng...", "info");
+    
+    let text = "Hello, this is a test.";
+    if(lang === 'vi') text = "Xin chào, đây là giọng đọc tiếng Việt.";
+    if(lang === 'id') text = "Halo, ini adalah tes suara.";
+
+    // Lấy giọng từ config (Full String)
+    const voiceFull = config.edgeVoices[lang];
+    // Lấy mã ngôn ngữ ngắn (en, vi, id) để hàm ForceAudio xử lý
+    const langCode = (lang === 'vi') ? 'vi-VN' : (lang === 'id' ? 'id-ID' : 'en-US');
+    
+    try {
+        await speakSpecificLangForceAudio(text, langCode);
+    } catch(e) {
+        console.error(e);
+    }
+    
+    // Trả lại trạng thái cũ
+    listenState.isPlaying = wasPlaying;
+}
+window.saveConfig = function() {
+    // 1. Lưu các cấu hình cơ bản (giữ nguyên)
+    config.newLimit = parseInt(document.getElementById('cfgNewLimit').value);
+    config.reviewLimit = parseInt(document.getElementById('cfgReviewLimit').value);
+    config.ecoMode = document.getElementById('cfgEco').checked;
+    config.brightness = parseInt(document.getElementById('cfgBrightness').value);
+    config.voiceEngine = document.getElementById('cfgVoiceGoogle').checked ? 'google' : 'native';
+    config.sfxEnabled = document.getElementById('cfgSfx').checked;
+    
+    // --- [THÊM ĐOẠN NÀY ĐỂ LƯU GIỌNG ĐỌC] ---
+    config.edgeVoices = {
+        en: document.getElementById('cfgVoiceEn').value,
+        vi: document.getElementById('cfgVoiceVi').value,
+        id: document.getElementById('cfgVoiceId').value
+    };
+    // Lưu vào LocalStorage để F5 không bị mất
+    localStorage.setItem('fp_aurora_edge_voices', JSON.stringify(config.edgeVoices));
+    // ----------------------------------------
+
+    // 2. Kích hoạt lại AudioContext nếu vừa bật SFX (giữ nguyên)
+    if (config.sfxEnabled && audioCtx.state === 'suspended') {
+        audioCtx.resume().then(() => {
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            gain.gain.value = 0.001; 
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start(0);
+            osc.stop(0.1);
+        });
+    }
+    
+    // 3. Lưu các cấu hình khác vào LocalStorage (giữ nguyên)
+    localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
+    localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
+    localStorage.setItem('fp_aurora_eco', config.ecoMode);
+    localStorage.setItem('fp_aurora_brightness', config.brightness);
+    localStorage.setItem('fp_aurora_voice_engine', config.voiceEngine);
+    localStorage.setItem('fp_aurora_sfx', config.sfxEnabled);
+
+    saveProgressToCloud();
+    updateConfigUI(); // Hàm này sẽ cập nhật lại giao diện theo config mới
+    applyTheme();
+}
+function updateConfigUI() {
+    document.getElementById('cfgNewLimit').value = config.newLimit;
+    document.getElementById('dispLimitNew').innerText = config.newLimit;
+    document.getElementById('cfgReviewLimit').value = config.reviewLimit;
+    document.getElementById('dispLimitReview').innerText = config.reviewLimit;
+    document.getElementById('cfgEco').checked = config.ecoMode;
+    document.getElementById('cfgBrightness').value = config.brightness;
+    document.getElementById('dispBrightness').innerText = config.brightness + '%';
+    document.getElementById('cfgVoiceGoogle').checked = (config.voiceEngine === 'google');
+    document.getElementById('cfgSfx').checked = config.sfxEnabled;
+    // --- [MỚI] Cập nhật Dropdown giọng đọc ---
+    if(config.edgeVoices) {
+        if(document.getElementById('cfgVoiceEn')) document.getElementById('cfgVoiceEn').value = config.edgeVoices.en;
+        if(document.getElementById('cfgVoiceVi')) document.getElementById('cfgVoiceVi').value = config.edgeVoices.vi;
+        if(document.getElementById('cfgVoiceId')) document.getElementById('cfgVoiceId').value = config.edgeVoices.id;
+    }
+}
 // Hàm cập nhật SRS ngầm (cho chế độ Matching/Batch processing)
 window.silentUpdateSRS = function(w) {
     const key = getWordKey(w);
@@ -5165,58 +5256,54 @@ window.prevListen = function() {
     playListenLoop();
 };
 
-// 1. Cập nhật playListenLoop: Bỏ xử lý ảnh, chỉ tập trung vào Text & Audio
+// 2. Cập nhật playListenLoop: Update Metadata màn hình khóa & Logic chờ
 async function playListenLoop() {
     if(!listenState.isPlaying) return;
     
     const w = listenState.queue[listenState.index];
     if(!w) return;
 
-    // --- Cập nhật UI (Chỉ Text) ---
-    const wordEl = document.getElementById('listen-word');
-    const meaningEl = document.getElementById('listen-meaning');
-    
-    // Hiệu ứng chuyển đổi nhẹ
-    wordEl.style.opacity = 0; 
-    meaningEl.style.opacity = 0;
-    
-    setTimeout(() => {
-        wordEl.innerText = w.english;
-        meaningEl.innerText = w.vietnamese;
-        wordEl.style.opacity = 1;
-        meaningEl.style.opacity = 1;
-        // Hiệu ứng phóng to nhẹ khi bắt đầu đọc
-        wordEl.style.transform = "scale(1.1)";
-        setTimeout(() => wordEl.style.transform = "scale(1)", 500);
-    }, 200);
-
+    // --- Cập nhật UI ---
+    document.getElementById('listen-word').innerText = w.english;
+    document.getElementById('listen-meaning').innerText = w.vietnamese;
     document.getElementById('listen-current').innerText = (listenState.index + 1);
     document.getElementById('listen-total').innerText = listenState.queue.length;
     const pct = ((listenState.index + 1) / listenState.queue.length) * 100;
     document.getElementById('listen-progress').style.width = pct + '%';
     document.getElementById('audio-visualizer').style.opacity = '1';
 
-    // --- Cập nhật Màn hình khóa (Bỏ ảnh artwork để tránh lỗi load) ---
+    const imgUrl = imageCache[w.english] || getImageUrl(w.english);
+    const mainImg = document.getElementById('listen-img');
+    const bgImg = document.getElementById('listen-bg-blur');
+    
+    mainImg.src = imgUrl;
+    mainImg.style.transform = 'scale(1.1)';
+    setTimeout(() => mainImg.style.transform = 'scale(1)', 5000);
+    bgImg.style.backgroundImage = `url('${imgUrl}')`;
+
+    // --- Cập nhật Màn hình khóa (Media Session) ---
     if ('mediaSession' in navigator) {
         navigator.mediaSession.metadata = new MediaMetadata({
             title: w.english,
             artist: w.vietnamese,
-            album: 'Hihi Passive Learning'
-            // Đã xoá artwork
+            album: 'Hihi Vocabulary Passive',
+            artwork: [
+                { src: imgUrl, sizes: '512x512', type: 'image/jpeg' }
+            ]
         });
     }
 
     try {
-        // A. Đọc từ gốc (Tiếng Anh/Indo...)
+        // A. Đọc từ gốc (Force Google TTS để chạy nền)
         await speakSpecificLangForceAudio(w.english, listenState.currentLangCode);
         
         // Nghỉ 1.5s
         await waitPromise(1500);
         
-        // B. Đọc nghĩa (Tiếng Việt)
+        // B. Đọc nghĩa (Force Google TTS)
         await speakSpecificLangForceAudio(w.vietnamese, 'vi'); 
         
-        // Nghỉ 1s trước khi sang từ tiếp theo
+        // Nghỉ 1s
         await waitPromise(1000);
         
         // Next loop
@@ -5227,45 +5314,13 @@ async function playListenLoop() {
         }
         
     } catch (e) {
-        console.log("Audio interrupted", e);
-        if(listenState.isPlaying) setTimeout(playListenLoop, 1000);
+        console.log("Audio interrupted or background throttled", e);
+        // Retry logic nếu bị ngắt quãng do tắt màn hình quá lâu
+        if(listenState.isPlaying) {
+             setTimeout(playListenLoop, 1000);
+        }
     }
 }
-
-// 2. Cập nhật startListeningMode: Bỏ logic preload ảnh
-window.startListeningMode = async function() {
-    if(!currentTopicKey || !allTopics[currentTopicKey]) {
-        showToast("Vui lòng chọn chủ đề trước!", "error");
-        return;
-    }
-    
-    if (config.voiceEngine === 'native') {
-        showToast("Đã tự động chuyển sang giọng Google để chạy nền", "info");
-    }
-
-    const langCfg = LANG_CONFIG[currentLang];
-    listenState.currentLangCode = langCfg.tts; 
-    
-    const words = [...allTopics[currentTopicKey].words];
-    if(words.length === 0) return showToast("Chủ đề trống!", "error");
-    
-    words.sort(() => Math.random() - 0.5);
-
-    listenState.queue = words;
-    listenState.index = 0;
-    listenState.isPlaying = true;
-
-    // Show UI
-    const overlay = document.getElementById('listeningOverlay');
-    overlay.style.display = 'flex';
-    overlay.classList.add('animate__animated', 'animate__fadeIn');
-    
-    // Unlock Audio Context
-    if(audioCtx.state === 'suspended') try { await audioCtx.resume(); } catch(e){}
-    setupMediaSession();
-    
-    playListenLoop();
-};
 
 // Hàm phụ trợ cho giọng máy Native
 function speakNativeFallback(text, langCode, onEnd) {
@@ -5297,228 +5352,215 @@ styleSheet.innerText = `
 @keyframes spin { 100% { transform: rotate(360deg); } }
 `;
 document.head.appendChild(styleSheet);
-
-// --- LOGIC ÂM THANH & CẤU HÌNH MỚI (FIXED - FINAL VERSION) ---
-
-// 1. Hàm khởi tạo giọng (Native)
-function setupVoice() {
-    if (!window.speechSynthesis) return;
-    const voices = window.speechSynthesis.getVoices();
-    // Nếu trình duyệt chưa tải xong giọng, đợi và thử lại
-    if(voices.length === 0) {
-        return; 
-    }
-
-    const fillSelect = (id, langCode, savedName) => {
-        const select = document.getElementById(id);
-        if(!select) return;
-        
-        // Lưu lại giá trị hiện tại nếu đang mở config (để không bị reset khi voices changed)
-        const currentVal = select.value || savedName;
-        
-        select.innerHTML = '';
-        
-        // Lọc giọng theo ngôn ngữ
-        // Mẹo: filter lỏng lẻo hơn để bắt được 'en-US', 'en_US', 'en'
-        const filtered = voices.filter(v => v.lang.replace('_','-').startsWith(langCode));
-        
-        if(filtered.length === 0) {
-            const opt = document.createElement('option');
-            opt.value = "";
-            opt.text = "Mặc định hệ thống (Không tìm thấy giọng)";
-            select.add(opt);
-        } else {
-            filtered.forEach(v => {
-                const opt = document.createElement('option');
-                opt.value = v.name;
-                // Làm đẹp tên hiển thị
-                let cleanName = v.name.replace(/Microsoft|Google|Android|English|Vietnamese|Indonesian/g, '').trim();
-                opt.text = cleanName || v.name;
-                
-                // Chọn lại giá trị đã lưu
-                if(v.name === currentVal) opt.selected = true;
-                select.add(opt);
-            });
-        }
-    };
-
-    if(config && config.nativeVoices) {
-        fillSelect('cfgNativeEn', 'en', config.nativeVoices.en);
-        fillSelect('cfgNativeVi', 'vi', config.nativeVoices.vi);
-        fillSelect('cfgNativeId', 'id', config.nativeVoices.id);
-    }
+// --- KHỞI ĐỘNG ỨNG DỤNG AN TOÀN (BẮT BUỘC THÊM) ---
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', () => setTimeout(window.initApp, 100));
+} else {
+    setTimeout(window.initApp, 100);
 }
+// ======================================================
+// BƯỚC 3: HÀM XỬ LÝ ÂM THANH
+// ======================================================
 
-// Trigger loading voices (Đảm bảo chạy cả khi sự kiện đã qua)
-if (window.speechSynthesis) {
-    window.speechSynthesis.onvoiceschanged = setupVoice;
-    setTimeout(setupVoice, 500);
-    setTimeout(setupVoice, 2000); // Thử lại lần nữa cho chắc
-}
-
-// 2. Lưu cấu hình (Save Config)
-window.saveConfig = function() {
-    // Lấy giá trị từ UI
-    config.newLimit = parseInt(document.getElementById('cfgNewLimit').value) || 5;
-    config.reviewLimit = parseInt(document.getElementById('cfgReviewLimit').value) || 20;
-    config.ecoMode = document.getElementById('cfgEco').checked;
-    config.brightness = parseInt(document.getElementById('cfgBrightness').value) || 100;
-    
-    // Checkbox: Checked = Google, Unchecked = Native
-    config.voiceEngine = document.getElementById('cfgVoiceGoogle').checked ? 'google' : 'native';
-    config.sfxEnabled = document.getElementById('cfgSfx').checked;
-    
-    // Lưu giọng đọc Native đã chọn
-    config.nativeVoices = {
-        en: document.getElementById('cfgNativeEn').value || '',
-        vi: document.getElementById('cfgNativeVi').value || '',
-        id: document.getElementById('cfgNativeId').value || ''
-    };
-    
-    // --- LƯU VÀO LOCALSTORAGE ---
-    localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
-    localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
-    localStorage.setItem('fp_aurora_eco', config.ecoMode); // Lưu 'true'/'false' string
-    localStorage.setItem('fp_aurora_brightness', config.brightness);
-    localStorage.setItem('fp_aurora_voice_engine', config.voiceEngine);
-    localStorage.setItem('fp_aurora_sfx', config.sfxEnabled);
-    localStorage.setItem('fp_aurora_native_voices', JSON.stringify(config.nativeVoices));
-
-    // --- LƯU LÊN SERVER & ÁP DỤNG ---
-    // Truyền true để ép lưu ngay lập tức
-    saveProgressToCloud(true); 
-    
-    applyTheme();
-    updateMuteIcon(); // Cập nhật icon loa nếu có thay đổi
-    
-    showToast("Đã lưu cài đặt thành công!", "success");
-    playSound(SFX.CORRECT);
-}
-
-// 3. Cập nhật giao diện Config (Update UI)
-window.updateConfigUI = function() {
-    // Gán giá trị từ Config vào Input
-    document.getElementById('cfgNewLimit').value = config.newLimit;
-    document.getElementById('dispLimitNew').innerText = config.newLimit;
-    
-    document.getElementById('cfgReviewLimit').value = config.reviewLimit;
-    document.getElementById('dispLimitReview').innerText = config.reviewLimit;
-    
-    // Checkbox Eco Mode
-    document.getElementById('cfgEco').checked = (config.ecoMode === true || config.ecoMode === 'true');
-    
-    document.getElementById('cfgBrightness').value = config.brightness;
-    document.getElementById('dispBrightness').innerText = config.brightness + '%';
-    
-    // Checkbox Voice Engine (Google = checked)
-    const ggChk = document.getElementById('cfgVoiceGoogle');
-    if(ggChk) ggChk.checked = (config.voiceEngine === 'google');
-    
-    document.getElementById('cfgSfx').checked = (config.sfxEnabled === true || config.sfxEnabled === 'true');
-    
-    // Gọi setupVoice để điền dropdown (nếu chưa có)
-    setupVoice(); 
-}
-
-// 4. Hàm Test giọng (Test Voice)
-window.testVoice = async function(lang) {
-    showToast(`Đang test giọng ${lang.toUpperCase()}...`, "info");
-    
-    // Chọn câu mẫu
-    let text = "Hello, testing voice.";
-    if(lang === 'vi') text = "Xin chào, kiểm tra âm thanh.";
-    if(lang === 'id') text = "Halo, tes suara.";
-    
-    // Kiểm tra xem đang chọn Engine nào TRÊN GIAO DIỆN (không phải trong config đã lưu)
-    // Để người dùng test được ngay khi vừa bấm checkbox mà chưa Save
-    const isGoogle = document.getElementById('cfgVoiceGoogle').checked;
-    const selectedVoiceName = document.getElementById(lang === 'vi' ? 'cfgNativeVi' : (lang === 'id' ? 'cfgNativeId' : 'cfgNativeEn')).value;
-
-    if(isGoogle) {
-        // Test Google TTS
-        const gLang = (lang === 'id') ? 'id' : (lang === 'vi' ? 'vi' : 'en');
-        const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${gLang}&client=tw-ob`;
-        try { await playAudioUrl(googleUrl); } catch(e) { console.error(e); }
-    } else {
-        // Test Native TTS với giọng đang chọn trong Dropdown
-        window.speechSynthesis.cancel();
-        const u = new SpeechSynthesisUtterance(text);
-        
-        // Cố gắng set giọng
-        const voices = window.speechSynthesis.getVoices();
-        const foundVoice = voices.find(v => v.name === selectedVoiceName);
-        if(foundVoice) u.voice = foundVoice;
-        
-        u.rate = 0.9; 
-        window.speechSynthesis.speak(u);
-    }
-}
-// 5. Hàm đọc text chính (ĐÃ SỬA LỖI VÒNG LẶP)
-window.speakText = async function(text, onEnd) {
-    stopGlobalAudio(); 
-
-    if(config.muted) {
-        if(onEnd) setTimeout(onEnd, 500);
-        return;
-    }
-
-    // Ưu tiên config hiện tại: Nếu chọn Native thì dùng luôn
-    if (config.voiceEngine === 'native') {
-        window.speakFallback(text, onEnd);
-        return;
-    }
-
-    // Mặc định: Dùng Google TTS (Online)
-    // Code này xử lý trực tiếp, KHÔNG gọi hàm khác để tránh lặp
-    try {
-        let gLang = (currentLang === 'id') ? 'id' : (currentLang === 'vi' ? 'vi' : 'en');
-        const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${gLang}&client=tw-ob`;
-        
-        await playAudioUrl(googleUrl);
-        
-        if(onEnd) setTimeout(onEnd, 100);
-    } catch(e) {
-        console.warn("Google TTS lỗi, chuyển sang Native:", e);
-        // Nếu lỗi mạng thì mới fallback về Native
-        window.speakFallback(text, onEnd);
-    }
-}
-
-// 6. Helper: Play URL
+// --- HÀM HELPER: PHÁT URL ÂM THANH (Dùng cho Worker & Google) ---
 function playAudioUrl(url) {
     return new Promise((resolve, reject) => {
-        if (typeof ttsPlayer !== 'undefined') {
-            ttsPlayer.pause();
-            ttsPlayer.currentTime = 0;
-            ttsPlayer.src = url;
-            ttsPlayer.playbackRate = 1.0;
-            ttsPlayer.onended = () => resolve();
-            ttsPlayer.onerror = () => {
-                console.warn("Audio URL load error");
-                resolve(); // Vẫn resolve để app chạy tiếp
-            };
-            
-            const p = ttsPlayer.play();
-            if (p !== undefined) {
-                p.catch(e => {
-                    console.warn("Autoplay blocked/Interrupted:", e);
-                    reject(e);
-                });
+        // Chỉ cần giữ lại phần gán src và play bên dưới
+        ttsPlayer.src = url;
+        ttsPlayer.playbackRate = 1.0;
+   ttsPlayer.src = url;
+        ttsPlayer.playbackRate = 1.0;
+
+        // Xử lý sự kiện khi đọc xong
+        ttsPlayer.onended = () => {
+            // Nếu URL là dạng Blob (từ Worker tạo ra), cần giải phóng bộ nhớ
+            if (url.startsWith('blob:')) {
+                URL.revokeObjectURL(url);
             }
-        } else {
-            const aud = new Audio(url);
-            aud.onended = resolve;
-            aud.onerror = resolve;
-            aud.play().catch(reject);
+            resolve(); 
+        };
+
+        // Xử lý sự kiện lỗi
+        ttsPlayer.onerror = (e) => {
+            console.warn("Audio Playback Error:", e);
+            reject(e); // Báo lỗi để nhảy sang phương án dự phòng
+        };
+
+        // Bắt đầu phát
+        const playPromise = ttsPlayer.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => {
+                reject(e); // Báo lỗi nếu trình duyệt chặn Autoplay
+            });
         }
     });
 }
 
-// 7. Compatibility Fix (ĐÃ SỬA)
-// Hàm này chỉ gọi speakText, nhưng speakText ở trên KHÔNG gọi lại nó nữa -> Hết lỗi lặp
+// ======================================================
+// HÀM ĐỌC THÔNG MINH (DÙNG TRỰC TIẾP WEBSOCKET - KHÔNG WORKER)
+// ======================================================
+
 async function speakSpecificLangForceAudio(text, langCode) {
-    await window.speakText(text); 
+    stopGlobalAudio();
+
+    // 1. Xử lý tên giọng đọc & ngôn ngữ
+    const shortLang = langCode.split('-')[0];
+    let selectedVoice = '';
+
+    // Lấy giọng từ Config
+    if (config.edgeVoices && config.edgeVoices[shortLang]) {
+        selectedVoice = config.edgeVoices[shortLang];
+    } else {
+        const voiceMap = (typeof EDGE_VOICES !== 'undefined') ? EDGE_VOICES : { 
+            'en': 'Microsoft Server Speech Text to Speech Voice (en-US, ChristopherNeural)',
+            'vi': 'Microsoft Server Speech Text to Speech Voice (vi-VN, NamMinhNeural)',
+            'id': 'Microsoft Server Speech Text to Speech Voice (id-ID, ArdiNeural)'
+        };
+        selectedVoice = voiceMap[shortLang] || voiceMap['en'];
+    }
+
+    // --- LỚP 1: EDGE DIRECT (WebSocket) ---
+    try {
+        console.log(`🎙️ [1/3] Đang thử Edge (${shortLang}):`, selectedVoice);
+        
+        const audioUrl = await edgeTTSDirect(text, selectedVoice);
+        
+        // Chờ play xong mới coi là thành công
+        await playAudioUrl(audioUrl);
+        console.log("✅ Edge TTS thành công!");
+        return; 
+
+    } catch (e) {
+        // Log lỗi chi tiết để biết tại sao Edge tạch
+        console.warn("⚠️ Edge Direct thất bại, lý do:", e.message || e);
+        console.log("🔄 Đang chuyển sang Google TTS...");
+    }
+
+    // --- LỚP 2: GOOGLE TRANSLATE (Dự phòng) ---
+    try {
+        let gLang = shortLang;
+        if(langCode === 'id-ID') gLang = 'id';
+        const googleUrl = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${gLang}&dt=t&q=${encodeURIComponent(text)}`;
+        await playAudioUrl(googleUrl);
+    } catch (e) {
+        console.error("❌ Google cũng thất bại, chuyển Native:", e);
+        // Fallback cuối cùng về giọng máy
+        window.speakFallback(text);
+    }
+}
+// =================================================================
+// BỘ MÁY KẾT NỐI TRỰC TIẾP MICROSOFT EDGE (KHÔNG CẦN WORKER)
+// =================================================================
+
+const EDGE_WSS_URL = "wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1?trustedclienttoken=6A5AA1D4EAFF4E9FB37E23D68491D6F4&sec-ms-gec-version=1-130.0.2849.68";
+
+function uuidv4() {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        var r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+    });
+}
+
+function createSSML(text, voiceName) {
+    const safeText = text.replace(/[<>&'"]/g, c => {
+        switch (c) {
+            case '<': return '&lt;'; case '>': return '&gt;'; case '&': return '&amp;'; case '\'': return '&apos;'; case '"': return '&quot;'; default: return c;
+        }
+    });
+    return `<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='en-US'><voice name='${voiceName}'><prosody pitch='+0Hz' rate='0%' volume='+0%'>${safeText}</prosody></voice></speak>`;
+}
+
+// Hàm kết nối WebSocket trực tiếp
+// Hàm kết nối WebSocket trực tiếp
+function edgeTTSDirect(text, voice) {
+    return new Promise((resolve, reject) => {
+        const ws = new WebSocket(EDGE_WSS_URL);
+        const requestId = uuidv4();
+        const audioData = [];
+
+        // Timeout an toàn: Nếu sau 10s không xong thì ngắt để chuyển Google
+        const timeout = setTimeout(() => {
+            if(ws.readyState === WebSocket.OPEN) ws.close();
+            reject(new Error("Edge TTS Timeout (10s)"));
+        }, 10000);
+
+        ws.onopen = () => {
+            // 1. Gửi cấu hình Audio
+            const configMsg = `X-Timestamp:${new Date().toString()}\r\nContent-Type:application/json; charset=utf-8\r\nPath:speech.config\r\n\r\n{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"false"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}`
+            ws.send(configMsg);
+
+            // 2. Gửi SSML (Nội dung đọc)
+            const ssml = createSSML(text, voice);
+            const ssmlMsg = `X-Timestamp:${new Date().toString()}\r\nX-RequestId:${requestId}\r\nContent-Type:application/ssml+xml\r\nPath:ssml\r\n\r\n${ssml}`;
+            ws.send(ssmlMsg);
+        };
+
+        ws.onmessage = (event) => {
+            const data = event.data;
+            if (typeof data === 'string') {
+                // Nhận metadata
+                if (data.includes("Path:turn.end")) {
+                    ws.close();
+                }
+            } else if (data instanceof Blob) {
+                // --- SỬA LỖI TẠI ĐÂY ---
+                // KHÔNG DÙNG .slice(130) cho tất cả các gói!
+                // Trình duyệt sẽ tự handle header rác.
+                audioData.push(data); 
+            }
+        };
+
+        ws.onclose = () => {
+            clearTimeout(timeout); // Xóa timeout khi đóng
+            if (audioData.length > 0) {
+                // Gom tất cả blob lại thành 1 file mp3
+                const blob = new Blob(audioData, { type: 'audio/mp3' });
+                const url = URL.createObjectURL(blob);
+                resolve(url);
+            } else {
+                reject(new Error("Edge TTS: Không nhận được dữ liệu âm thanh (socket closed)"));
+            }
+        };
+
+        ws.onerror = (e) => {
+            clearTimeout(timeout);
+            reject(new Error("Lỗi kết nối WebSocket Edge"));
+        };
+    });
 }
 </script>
+
+<a href="https://ngxuanhai123.github.io/" class="floating-home-btn">
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+    </svg>
+    <span>Trang chủ</span>
+</a>
+
+<style>
+    .floating-home-btn {
+        position: fixed; bottom: 120px; left: 20px; z-index: 1000;
+        display: flex; align-items: center; gap: 10px;
+        padding: 10px 20px;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 50px; color: white; text-decoration: none;
+        font-family: 'Poppins', sans-serif; font-weight: 600;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        transition: all 0.3s ease; overflow: hidden;
+    }
+    .floating-home-btn:hover {
+        background: linear-gradient(90deg, #4facfe, #00f2fe);
+        transform: translateY(-2px); box-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
+        border-color: transparent; color: #0f172a;
+    }
+    .floating-home-btn svg { width: 24px; height: 24px; transition: transform 0.3s ease; }
+    .floating-home-btn:hover svg { transform: scale(1.1); }
+    @media (max-width: 640px) {
+        .floating-home-btn span { display: none; }
+        .floating-home-btn { padding: 12px; border-radius: 50%; }
+    }
+</style>
 </body>
 </html>

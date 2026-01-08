@@ -1042,8 +1042,12 @@
         </div>
     </div>
 
-    <div id="topicList"></div>
-  </div>
+    <div id="topicList">
+    <div style="text-align:center; padding:40px; opacity:0.6;">
+        <i class="fas fa-circle-notch fa-spin" style="font-size:2rem; color:#60a5fa;"></i>
+        <div style="margin-top:10px; font-size:0.9rem;">Đang tải thư viện...</div>
+    </div>
+    </div>
 
   <div id="view-settings" class="view-container animate__animated animate__fadeIn" style="display:none;">
     <h2 style="margin-bottom: 20px; padding-left: 10px; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">Cấu hình</h2>
@@ -1415,7 +1419,7 @@ let dailyTracking = JSON.parse(
     localStorage.getItem(`fp_aurora_daily_${currentLang}`) || 
     '{"date":"", "count":0, "learnedWords":[]}'
 );
-
+let streakHistory = JSON.parse(localStorage.getItem('fp_aurora_streak_history') || '[]');
 // ✅ BẮT BUỘC: Khởi tạo learnedWords cho cả data mới và cũ
 // Kiểm tra kỹ hơn: nếu không tồn tại HOẶC không phải là mảng thì reset về mảng rỗng
 if (!dailyTracking.learnedWords || !Array.isArray(dailyTracking.learnedWords)) {
@@ -2780,7 +2784,7 @@ window.fetchTopics = async function(manual = false) {
 
         // Store metadata globally
         allTopicsMetadata = jsonFiles;
-        
+        renderTopicList();
         status.innerText = "Aurora Rank Master • Ready";
 
         // Determine current topic or default to first
@@ -4932,92 +4936,6 @@ function applyTheme() {
 window.toggleTheme = function() { config.darkMode = !config.darkMode; localStorage.setItem('fp_aurora_dark', config.darkMode); applyTheme(); playSound(SFX.POP); saveProgressToCloud(); }
 window.toggleMute = function() { config.muted = !config.muted; localStorage.setItem('fp_aurora_muted', config.muted); updateMuteIcon(); saveProgressToCloud(); }
 function updateMuteIcon() { document.getElementById('muteIcon').className = config.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up'; }
-window.testVoice = async function(lang) {
-    // Fake trạng thái đang nghe để hàm ForceAudio hoạt động
-    const wasPlaying = listenState.isPlaying;
-    listenState.isPlaying = true;
-    
-    showToast("Đang test giọng...", "info");
-    
-    let text = "Hello, this is a test.";
-    if(lang === 'vi') text = "Xin chào, đây là giọng đọc tiếng Việt.";
-    if(lang === 'id') text = "Halo, ini adalah tes suara.";
-
-    // Lấy giọng từ config (Full String)
-    const voiceFull = config.edgeVoices[lang];
-    // Lấy mã ngôn ngữ ngắn (en, vi, id) để hàm ForceAudio xử lý
-    const langCode = (lang === 'vi') ? 'vi-VN' : (lang === 'id' ? 'id-ID' : 'en-US');
-    
-    try {
-        await speakSpecificLangForceAudio(text, langCode);
-    } catch(e) {
-        console.error(e);
-    }
-    
-    // Trả lại trạng thái cũ
-    listenState.isPlaying = wasPlaying;
-}
-window.saveConfig = function() {
-    // 1. Lưu các cấu hình cơ bản (giữ nguyên)
-    config.newLimit = parseInt(document.getElementById('cfgNewLimit').value);
-    config.reviewLimit = parseInt(document.getElementById('cfgReviewLimit').value);
-    config.ecoMode = document.getElementById('cfgEco').checked;
-    config.brightness = parseInt(document.getElementById('cfgBrightness').value);
-    config.voiceEngine = document.getElementById('cfgVoiceGoogle').checked ? 'google' : 'native';
-    config.sfxEnabled = document.getElementById('cfgSfx').checked;
-    
-    // --- [THÊM ĐOẠN NÀY ĐỂ LƯU GIỌNG ĐỌC] ---
-    config.edgeVoices = {
-        en: document.getElementById('cfgVoiceEn').value,
-        vi: document.getElementById('cfgVoiceVi').value,
-        id: document.getElementById('cfgVoiceId').value
-    };
-    // Lưu vào LocalStorage để F5 không bị mất
-    localStorage.setItem('fp_aurora_edge_voices', JSON.stringify(config.edgeVoices));
-    // ----------------------------------------
-
-    // 2. Kích hoạt lại AudioContext nếu vừa bật SFX (giữ nguyên)
-    if (config.sfxEnabled && audioCtx.state === 'suspended') {
-        audioCtx.resume().then(() => {
-            const osc = audioCtx.createOscillator();
-            const gain = audioCtx.createGain();
-            gain.gain.value = 0.001; 
-            osc.connect(gain);
-            gain.connect(audioCtx.destination);
-            osc.start(0);
-            osc.stop(0.1);
-        });
-    }
-    
-    // 3. Lưu các cấu hình khác vào LocalStorage (giữ nguyên)
-    localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
-    localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
-    localStorage.setItem('fp_aurora_eco', config.ecoMode);
-    localStorage.setItem('fp_aurora_brightness', config.brightness);
-    localStorage.setItem('fp_aurora_voice_engine', config.voiceEngine);
-    localStorage.setItem('fp_aurora_sfx', config.sfxEnabled);
-
-    saveProgressToCloud();
-    updateConfigUI(); // Hàm này sẽ cập nhật lại giao diện theo config mới
-    applyTheme();
-}
-function updateConfigUI() {
-    document.getElementById('cfgNewLimit').value = config.newLimit;
-    document.getElementById('dispLimitNew').innerText = config.newLimit;
-    document.getElementById('cfgReviewLimit').value = config.reviewLimit;
-    document.getElementById('dispLimitReview').innerText = config.reviewLimit;
-    document.getElementById('cfgEco').checked = config.ecoMode;
-    document.getElementById('cfgBrightness').value = config.brightness;
-    document.getElementById('dispBrightness').innerText = config.brightness + '%';
-    document.getElementById('cfgVoiceGoogle').checked = (config.voiceEngine === 'google');
-    document.getElementById('cfgSfx').checked = config.sfxEnabled;
-    // --- [MỚI] Cập nhật Dropdown giọng đọc ---
-    if(config.edgeVoices) {
-        if(document.getElementById('cfgVoiceEn')) document.getElementById('cfgVoiceEn').value = config.edgeVoices.en;
-        if(document.getElementById('cfgVoiceVi')) document.getElementById('cfgVoiceVi').value = config.edgeVoices.vi;
-        if(document.getElementById('cfgVoiceId')) document.getElementById('cfgVoiceId').value = config.edgeVoices.id;
-    }
-}
 // Hàm cập nhật SRS ngầm (cho chế độ Matching/Batch processing)
 window.silentUpdateSRS = function(w) {
     const key = getWordKey(w);

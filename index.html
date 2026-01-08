@@ -5298,35 +5298,48 @@ styleSheet.innerText = `
 `;
 document.head.appendChild(styleSheet);
 
-// --- LOGIC ÂM THANH & CẤU HÌNH MỚI (FIXED) ---
+// --- LOGIC ÂM THANH & CẤU HÌNH MỚI (FIXED - FINAL VERSION) ---
 
 // 1. Hàm khởi tạo giọng (Native)
 function setupVoice() {
+    if (!window.speechSynthesis) return;
     const voices = window.speechSynthesis.getVoices();
-    if(voices.length === 0) return;
+    // Nếu trình duyệt chưa tải xong giọng, đợi và thử lại
+    if(voices.length === 0) {
+        return; 
+    }
 
     const fillSelect = (id, langCode, savedName) => {
         const select = document.getElementById(id);
         if(!select) return;
+        
+        // Lưu lại giá trị hiện tại nếu đang mở config (để không bị reset khi voices changed)
+        const currentVal = select.value || savedName;
+        
         select.innerHTML = '';
         
-        // Filter by lang
-        const filtered = voices.filter(v => v.lang.startsWith(langCode));
+        // Lọc giọng theo ngôn ngữ
+        // Mẹo: filter lỏng lẻo hơn để bắt được 'en-US', 'en_US', 'en'
+        const filtered = voices.filter(v => v.lang.replace('_','-').startsWith(langCode));
         
         if(filtered.length === 0) {
             const opt = document.createElement('option');
-            opt.text = "Mặc định hệ thống";
+            opt.value = "";
+            opt.text = "Mặc định hệ thống (Không tìm thấy giọng)";
             select.add(opt);
-            return;
+        } else {
+            filtered.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.name;
+                // Làm đẹp tên hiển thị
+                let cleanName = v.name.replace(/Microsoft|Google|Android|English|Vietnamese|Indonesian/g, '').trim();
+                opt.text = cleanName || v.name;
+                
+                // Chọn lại giá trị đã lưu
+                if(v.name === currentVal) opt.selected = true;
+                select.add(opt);
+            });
         }
-
-        filtered.forEach(v => {
-            const opt = document.createElement('option');
-            opt.value = v.name;
-            opt.text = v.name.replace(/Microsoft|Google|Android|English|Vietnamese|Indonesian/g, '').trim() || v.name;
-            if(v.name === savedName) opt.selected = true;
-            select.add(opt);
-        });
     };
 
     if(config && config.nativeVoices) {
@@ -5336,86 +5349,111 @@ function setupVoice() {
     }
 }
 
-// Trigger loading voices
+// Trigger loading voices (Đảm bảo chạy cả khi sự kiện đã qua)
 if (window.speechSynthesis) {
     window.speechSynthesis.onvoiceschanged = setupVoice;
-    // Call once immediately in case voices are already loaded
-    setTimeout(setupVoice, 1000);
+    setTimeout(setupVoice, 500);
+    setTimeout(setupVoice, 2000); // Thử lại lần nữa cho chắc
 }
 
-// 2. Lưu cấu hình
+// 2. Lưu cấu hình (Save Config)
 window.saveConfig = function() {
-    config.newLimit = parseInt(document.getElementById('cfgNewLimit').value);
-    config.reviewLimit = parseInt(document.getElementById('cfgReviewLimit').value);
+    // Lấy giá trị từ UI
+    config.newLimit = parseInt(document.getElementById('cfgNewLimit').value) || 5;
+    config.reviewLimit = parseInt(document.getElementById('cfgReviewLimit').value) || 20;
     config.ecoMode = document.getElementById('cfgEco').checked;
-    config.brightness = parseInt(document.getElementById('cfgBrightness').value);
+    config.brightness = parseInt(document.getElementById('cfgBrightness').value) || 100;
     
+    // Checkbox: Checked = Google, Unchecked = Native
     config.voiceEngine = document.getElementById('cfgVoiceGoogle').checked ? 'google' : 'native';
     config.sfxEnabled = document.getElementById('cfgSfx').checked;
     
+    // Lưu giọng đọc Native đã chọn
     config.nativeVoices = {
-        en: document.getElementById('cfgNativeEn').value,
-        vi: document.getElementById('cfgNativeVi').value,
-        id: document.getElementById('cfgNativeId').value
+        en: document.getElementById('cfgNativeEn').value || '',
+        vi: document.getElementById('cfgNativeVi').value || '',
+        id: document.getElementById('cfgNativeId').value || ''
     };
-    localStorage.setItem('fp_aurora_native_voices', JSON.stringify(config.nativeVoices));
-
-    // Save other settings
+    
+    // --- LƯU VÀO LOCALSTORAGE ---
     localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
     localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
-    localStorage.setItem('fp_aurora_eco', config.ecoMode);
+    localStorage.setItem('fp_aurora_eco', config.ecoMode); // Lưu 'true'/'false' string
     localStorage.setItem('fp_aurora_brightness', config.brightness);
     localStorage.setItem('fp_aurora_voice_engine', config.voiceEngine);
     localStorage.setItem('fp_aurora_sfx', config.sfxEnabled);
+    localStorage.setItem('fp_aurora_native_voices', JSON.stringify(config.nativeVoices));
 
-    saveProgressToCloud();
-    updateConfigUI();
-    applyTheme();
+    // --- LƯU LÊN SERVER & ÁP DỤNG ---
+    // Truyền true để ép lưu ngay lập tức
+    saveProgressToCloud(true); 
     
-    showToast("Đã lưu cài đặt!", "success");
+    applyTheme();
+    updateMuteIcon(); // Cập nhật icon loa nếu có thay đổi
+    
+    showToast("Đã lưu cài đặt thành công!", "success");
+    playSound(SFX.CORRECT);
 }
 
-// 3. Cập nhật giao diện Config
+// 3. Cập nhật giao diện Config (Update UI)
 window.updateConfigUI = function() {
+    // Gán giá trị từ Config vào Input
     document.getElementById('cfgNewLimit').value = config.newLimit;
     document.getElementById('dispLimitNew').innerText = config.newLimit;
+    
     document.getElementById('cfgReviewLimit').value = config.reviewLimit;
     document.getElementById('dispLimitReview').innerText = config.reviewLimit;
-    document.getElementById('cfgEco').checked = config.ecoMode;
+    
+    // Checkbox Eco Mode
+    document.getElementById('cfgEco').checked = (config.ecoMode === true || config.ecoMode === 'true');
+    
     document.getElementById('cfgBrightness').value = config.brightness;
     document.getElementById('dispBrightness').innerText = config.brightness + '%';
     
+    // Checkbox Voice Engine (Google = checked)
     const ggChk = document.getElementById('cfgVoiceGoogle');
     if(ggChk) ggChk.checked = (config.voiceEngine === 'google');
     
-    document.getElementById('cfgSfx').checked = config.sfxEnabled;
+    document.getElementById('cfgSfx').checked = (config.sfxEnabled === true || config.sfxEnabled === 'true');
     
+    // Gọi setupVoice để điền dropdown (nếu chưa có)
     setupVoice(); 
 }
 
-// 4. Hàm Test giọng
+// 4. Hàm Test giọng (Test Voice)
 window.testVoice = async function(lang) {
-    const wasPlaying = (typeof listenState !== 'undefined') ? listenState.isPlaying : false;
-    if(typeof listenState !== 'undefined') listenState.isPlaying = true;
-    
     showToast(`Đang test giọng ${lang.toUpperCase()}...`, "info");
     
+    // Chọn câu mẫu
     let text = "Hello, testing voice.";
     if(lang === 'vi') text = "Xin chào, kiểm tra âm thanh.";
     if(lang === 'id') text = "Halo, tes suara.";
     
-    if(config.voiceEngine === 'google') {
+    // Kiểm tra xem đang chọn Engine nào TRÊN GIAO DIỆN (không phải trong config đã lưu)
+    // Để người dùng test được ngay khi vừa bấm checkbox mà chưa Save
+    const isGoogle = document.getElementById('cfgVoiceGoogle').checked;
+    const selectedVoiceName = document.getElementById(lang === 'vi' ? 'cfgNativeVi' : (lang === 'id' ? 'cfgNativeId' : 'cfgNativeEn')).value;
+
+    if(isGoogle) {
+        // Test Google TTS
         const gLang = (lang === 'id') ? 'id' : (lang === 'vi' ? 'vi' : 'en');
         const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${gLang}&client=tw-ob`;
         try { await playAudioUrl(googleUrl); } catch(e) { console.error(e); }
     } else {
-        speakNativeWithSelector(text, lang, () => {});
+        // Test Native TTS với giọng đang chọn trong Dropdown
+        window.speechSynthesis.cancel();
+        const u = new SpeechSynthesisUtterance(text);
+        
+        // Cố gắng set giọng
+        const voices = window.speechSynthesis.getVoices();
+        const foundVoice = voices.find(v => v.name === selectedVoiceName);
+        if(foundVoice) u.voice = foundVoice;
+        
+        u.rate = 0.9; 
+        window.speechSynthesis.speak(u);
     }
-    
-    if(typeof listenState !== 'undefined') listenState.isPlaying = wasPlaying;
 }
-
-// 5. Hàm đọc text chính (Thay thế hoàn toàn bản cũ)
+// 5. Hàm đọc text chính (ĐÃ SỬA LỖI VÒNG LẶP)
 window.speakText = async function(text, onEnd) {
     stopGlobalAudio(); 
 
@@ -5424,52 +5462,29 @@ window.speakText = async function(text, onEnd) {
         return;
     }
 
-    if (config.voiceEngine === 'google') {
-        try {
-            let gLang = (currentLang === 'id') ? 'id' : (currentLang === 'vi' ? 'vi' : 'en');
-            const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${gLang}&client=tw-ob`;
-            await playAudioUrl(googleUrl);
-            if(onEnd) setTimeout(onEnd, 100);
-            return; 
-        } catch(e) {
-            console.warn("Google TTS lỗi, chuyển sang Native:", e);
-        }
+    // Ưu tiên config hiện tại: Nếu chọn Native thì dùng luôn
+    if (config.voiceEngine === 'native') {
+        window.speakFallback(text, onEnd);
+        return;
     }
 
-    // Native fallback
-    const shortLang = (currentLang === 'vi') ? 'vi' : (currentLang === 'id' ? 'id' : 'en');
-    speakNativeWithSelector(text, shortLang, onEnd);
-}
-
-// 6. Helper: Đọc Native theo lựa chọn
-function speakNativeWithSelector(text, shortLang, onEnd) {
-    window.speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text);
-    
-    if(shortLang === 'vi') u.lang = 'vi-VN';
-    else if(shortLang === 'id') u.lang = 'id-ID';
-    else u.lang = 'en-US';
-
-    if(config && config.nativeVoices) {
-        const savedVoiceName = config.nativeVoices[shortLang];
-        const voices = window.speechSynthesis.getVoices();
+    // Mặc định: Dùng Google TTS (Online)
+    // Code này xử lý trực tiếp, KHÔNG gọi hàm khác để tránh lặp
+    try {
+        let gLang = (currentLang === 'id') ? 'id' : (currentLang === 'vi' ? 'vi' : 'en');
+        const googleUrl = `https://translate.google.com/translate_tts?ie=UTF-8&q=${encodeURIComponent(text)}&tl=${gLang}&client=tw-ob`;
         
-        if(savedVoiceName) {
-            const foundVoice = voices.find(v => v.name === savedVoiceName);
-            if(foundVoice) u.voice = foundVoice;
-        }
+        await playAudioUrl(googleUrl);
+        
+        if(onEnd) setTimeout(onEnd, 100);
+    } catch(e) {
+        console.warn("Google TTS lỗi, chuyển sang Native:", e);
+        // Nếu lỗi mạng thì mới fallback về Native
+        window.speakFallback(text, onEnd);
     }
-
-    u.rate = 0.9; 
-    
-    if(onEnd) {
-        u.onend = onEnd;
-        u.onerror = onEnd;
-    }
-    window.speechSynthesis.speak(u);
 }
 
-// 7. Helper: Play URL
+// 6. Helper: Play URL
 function playAudioUrl(url) {
     return new Promise((resolve, reject) => {
         if (typeof ttsPlayer !== 'undefined') {
@@ -5478,55 +5493,32 @@ function playAudioUrl(url) {
             ttsPlayer.src = url;
             ttsPlayer.playbackRate = 1.0;
             ttsPlayer.onended = () => resolve();
-            ttsPlayer.onerror = () => resolve(); 
+            ttsPlayer.onerror = () => {
+                console.warn("Audio URL load error");
+                resolve(); // Vẫn resolve để app chạy tiếp
+            };
+            
             const p = ttsPlayer.play();
-            if (p !== undefined) p.catch(() => reject("Autoplay blocked"));
+            if (p !== undefined) {
+                p.catch(e => {
+                    console.warn("Autoplay blocked/Interrupted:", e);
+                    reject(e);
+                });
+            }
         } else {
             const aud = new Audio(url);
             aud.onended = resolve;
+            aud.onerror = resolve;
             aud.play().catch(reject);
         }
     });
 }
 
-// 8. Compatibility Fix (Tránh lỗi nếu code cũ gọi hàm này)
+// 7. Compatibility Fix (ĐÃ SỬA)
+// Hàm này chỉ gọi speakText, nhưng speakText ở trên KHÔNG gọi lại nó nữa -> Hết lỗi lặp
 async function speakSpecificLangForceAudio(text, langCode) {
     await window.speakText(text); 
 }
 </script>
-
-<a href="https://ngxuanhai123.github.io/" class="floating-home-btn">
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-    </svg>
-    <span>Trang chủ</span>
-</a>
-
-<style>
-    .floating-home-btn {
-        position: fixed; bottom: 120px; left: 20px; z-index: 1000;
-        display: flex; align-items: center; gap: 10px;
-        padding: 10px 20px;
-        background: rgba(255, 255, 255, 0.1);
-        backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        border-radius: 50px; color: white; text-decoration: none;
-        font-family: 'Poppins', sans-serif; font-weight: 600;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        transition: all 0.3s ease; overflow: hidden;
-    }
-    .floating-home-btn:hover {
-        background: linear-gradient(90deg, #4facfe, #00f2fe);
-        transform: translateY(-2px); box-shadow: 0 0 20px rgba(79, 172, 254, 0.6);
-        border-color: transparent; color: #0f172a;
-    }
-    .floating-home-btn svg { width: 24px; height: 24px; transition: transform 0.3s ease; }
-    .floating-home-btn:hover svg { transform: scale(1.1); }
-    @media (max-width: 640px) {
-        .floating-home-btn span { display: none; }
-        .floating-home-btn { padding: 12px; border-radius: 50%; }
-    }
-</style>
 </body>
 </html>
-

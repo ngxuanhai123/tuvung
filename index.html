@@ -1298,16 +1298,11 @@ import { getFirestore, doc, setDoc, getDoc, collection, query, orderBy, limit, o
 // --- CẤU HÌNH TTS CAO CẤP (EDGE WORKER) ---
 
 
-// Cấu hình giọng đọc Microsoft Edge (Neural - Trí tuệ nhân tạo)
+// Cấu hình giọng đọc chuẩn Azure (ShortName)
 const EDGE_VOICES = {
-    // Tiếng Việt: Nam Minh (Nam) hoặc HoaiMy (Nữ) - Giọng Nam Minh nghe ấm hơn cho việc học
-    'vi': 'Microsoft Server Speech Text to Speech Voice (vi-VN, NamMinhNeural)', 
-    
-    // Tiếng Anh: Christopher (Nam) - Giọng Mỹ chuẩn, trầm ấm, dễ nghe
-    'en': 'Microsoft Server Speech Text to Speech Voice (en-US, ChristopherNeural)', 
-    
-    // Tiếng Indo: Ardi (Nam)
-    'id': 'Microsoft Server Speech Text to Speech Voice (id-ID, ArdiNeural)' 
+    'vi': 'vi-VN-NamMinhNeural', 
+    'en': 'en-US-ChristopherNeural', 
+    'id': 'id-ID-ArdiNeural' 
 };
 
 const firebaseConfig = {
@@ -5400,52 +5395,78 @@ function playAudioUrl(url) {
 // HÀM ĐỌC THÔNG MINH (DÙNG TRỰC TIẾP WEBSOCKET - KHÔNG WORKER)
 // ======================================================
 
+// ======================================================
+// HÀM ĐỌC MỚI: GỌI CLOUDFLARE WORKER (AZURE TTS)
+// ======================================================
 async function speakSpecificLangForceAudio(text, langCode) {
     stopGlobalAudio();
 
-    // 1. Xử lý tên giọng đọc & ngôn ngữ
+    // 1. Xử lý tên giọng đọc
     const shortLang = langCode.split('-')[0];
     let selectedVoice = '';
 
-    // Lấy giọng từ Config
+    // Ưu tiên lấy từ Config người dùng, nếu không có thì lấy mặc định
     if (config.edgeVoices && config.edgeVoices[shortLang]) {
         selectedVoice = config.edgeVoices[shortLang];
     } else {
-        const voiceMap = (typeof EDGE_VOICES !== 'undefined') ? EDGE_VOICES : { 
-            'en': 'Microsoft Server Speech Text to Speech Voice (en-US, ChristopherNeural)',
-            'vi': 'Microsoft Server Speech Text to Speech Voice (vi-VN, NamMinhNeural)',
-            'id': 'Microsoft Server Speech Text to Speech Voice (id-ID, ArdiNeural)'
-        };
-        selectedVoice = voiceMap[shortLang] || voiceMap['en'];
+        selectedVoice = EDGE_VOICES[shortLang] || 'en-US-ChristopherNeural';
     }
 
-    // --- LỚP 1: EDGE DIRECT (WebSocket) ---
+    // Làm sạch tên giọng (Phòng trường hợp user vẫn lưu tên dài cũ trong localStorage)
+    // Chuyển: "Microsoft Server Speech... (vi-VN, NamMinhNeural)" -> "vi-VN-NamMinhNeural"
+    if (selectedVoice.includes('(')) {
+        const match = selectedVoice.match(/\((.*?)\)/);
+        if (match && match[1]) {
+            selectedVoice = match[1].replace(', ', '-');
+        }
+    }
+
+    // --- GỌI CLOUDFLARE WORKER ---
+    const workerUrl = "https://tts.ngxuanhai123.workers.dev"; // URL Worker của bạn
+
     try {
-        console.log(`🎙️ [1/3] Đang thử Edge (${shortLang}):`, selectedVoice);
+        console.log(`☁️ Gọi Azure qua Worker: ${selectedVoice}`);
         
-        const audioUrl = await edgeTTSDirect(text, selectedVoice);
-        
-        // Chờ play xong mới coi là thành công
+        const response = await fetch(workerUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                text: text,
+                voice: selectedVoice,
+                rate: "0%",  // Tốc độ bình thường
+                pitch: "0Hz" // Cao độ bình thường
+            })
+        });
+
+        if (!response.ok) {
+            // Nếu lỗi 429 (Hết Quota) hoặc lỗi khác -> Ném lỗi để chuyển sang Google
+            const errText = await response.text();
+            throw new Error(`Worker Error: ${response.status} - ${errText}`);
+        }
+
+        // Lấy Blob âm thanh trả về
+        const blob = await response.blob();
+        const audioUrl = URL.createObjectURL(blob);
+
+        // Phát âm thanh
         await playAudioUrl(audioUrl);
-        console.log("✅ Edge TTS thành công!");
-        return; 
+        console.log("✅ Azure TTS thành công!");
+        return;
 
     } catch (e) {
-        // Log lỗi chi tiết để biết tại sao Edge tạch
-        console.warn("⚠️ Edge Direct thất bại, lý do:", e.message || e);
+        console.warn("⚠️ Worker thất bại:", e.message);
         console.log("🔄 Đang chuyển sang Google TTS...");
-    }
-
-    // --- LỚP 2: GOOGLE TRANSLATE (Dự phòng) ---
-    try {
-        let gLang = shortLang;
-        if(langCode === 'id-ID') gLang = 'id';
-        const googleUrl = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${gLang}&dt=t&q=${encodeURIComponent(text)}`;
-        await playAudioUrl(googleUrl);
-    } catch (e) {
-        console.error("❌ Google cũng thất bại, chuyển Native:", e);
-        // Fallback cuối cùng về giọng máy
-        window.speakFallback(text);
+        
+        // --- FALLBACK: GOOGLE TRANSLATE ---
+        try {
+            let gLang = shortLang;
+            if(langCode === 'id-ID') gLang = 'id';
+            const googleUrl = `https://translate.googleapis.com/translate_tts?client=gtx&ie=UTF-8&tl=${gLang}&dt=t&q=${encodeURIComponent(text)}`;
+            await playAudioUrl(googleUrl);
+        } catch (err) {
+            console.error("❌ Google cũng thất bại, chuyển Native:", err);
+            window.speakFallback(text);
+        }
     }
 }
 // =================================================================

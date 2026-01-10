@@ -2988,38 +2988,39 @@ window.startSmartSession = async function(isExtra = false) {
     // Kể cả chưa đến hạn cũng lấy cho đủ danh sách
     const batchReview = allLearnedWords.slice(0, config.reviewLimit);
 
-// --- 7. DRIP FEED LOGIC (Quyết định số từ mới) ---
-    // [LOGIC MỚI] Kiểm tra điều kiện "Ôn tập kĩ"
-    // Đếm số từ đang ở trình độ thấp (Level < 6) VÀ chưa ôn đủ 5 lần
-    const unstableCount = Object.values(srsData).filter(d => 
-        (d.level < 6) && ((d.totalReviews || 0) < 5)
-    ).length;
-
+// --- 7. LOGIC "ÉP" ÔN TRƯỚC - HỌC SAU (STRICT REVIEW FIRST) ---
+    
     let maxNewToAdd = 0;
     
-    // Nếu còn từ chưa vững (unstableCount > 0) và vẫn còn bài ôn tập (batchReview > 0)
-    // -> CHẶN từ mới để bắt buộc ôn cho kĩ.
-    if (unstableCount > 0 && batchReview.length > 0) {
+    // Đếm số lượng bài cần ôn đang có trong hàng đợi
+    const pendingReviewCount = batchReview.length;
+
+    // 🔴 QUY TẮC CỨNG: Nếu còn bất kỳ bài ôn nào (pendingReviewCount > 0)
+    // -> BẮT BUỘC maxNewToAdd = 0 (Không cho học từ mới)
+    if (pendingReviewCount > 0) {
         maxNewToAdd = 0;
-        // Có thể hiện thông báo nhỏ nếu muốn người dùng biết
-        // if(remainingQuota > 0) showToast(`Tập trung ôn ${unstableCount} từ yếu trước!`, "info");
+        
+        // Thông báo rõ ràng cho người dùng biết tại sao
+        // Chỉ hiện thông báo nếu họ vẫn còn quota từ mới (để tránh nhầm với việc hết quota)
+        if (remainingQuota > 0) {
+            // Dùng setTimeout để Toast hiện sau khi Overlay mở ra
+            setTimeout(() => {
+                showToast(`🔒 ôn tập chút trước khi học mới nha!`, "warning");
+            }, 500);
+        }
     } 
     else {
-        // Nếu đã "sạch" từ yếu, bắt đầu thêm từ mới ngẫu nhiên
-        if (batchReview.length > 0) {
-            // Nếu đang có bài ôn, thêm ngẫu nhiên 1 hoặc 2 từ mới (nếu còn quota)
-            // để tránh bị ngợp, thay vì cố định là 2 như trước
-            const randomDrip = Math.floor(Math.random() * 2) + 1; // Random 1-2 từ
-            maxNewToAdd = Math.min(randomDrip, remainingQuota);
-        } else {
-            // Nếu không có bài ôn nào, học full từ mới theo giới hạn ngày
-            maxNewToAdd = Math.min(config.newLimit, remainingQuota);
+        // 🟢 ĐÃ SẠCH BÀI ÔN -> CHO PHÉP HỌC TỪ MỚI
+        
+        // Logic cũ: Lấy theo giới hạn ngày hoặc quota còn lại
+        maxNewToAdd = Math.min(config.newLimit, remainingQuota);
+
+        // Logic học thêm (Force) khi hết quota (nếu bấm nút "Học thêm bài nữa")
+        if (maxNewToAdd === 0 && isExtra) {
+            maxNewToAdd = 5; // Cho phép học thêm 5 từ nếu muốn
+            showToast("Học tốt nhaaaa!", "info");
         }
     }
-    
-    // Logic học thêm (Force) khi hết quota vẫn giữ nguyên
-    if (maxNewToAdd === 0 && isExtra) maxNewToAdd = 2;
-
     // --- 8. Lấy từ mới (Có tự động sang Topic tiếp theo) ---
     let batchNew = [];
     
@@ -3078,10 +3079,10 @@ window.startSmartSession = async function(isExtra = false) {
     const realDueCount = batchReview.filter(w => srsData[getWordKey(w)].nextReview <= now).length;
     const earlyReviewCount = batchReview.length - realDueCount;
     
-    let msg = `Bắt đầu: ${batchNew.length} từ mới`;
+    let msg = `Letgo!!!`;
     if(batchReview.length > 0) {
-        msg += ` + ${batchReview.length} ôn tập`;
-        if(earlyReviewCount > 0) msg += ` (gồm ${earlyReviewCount} ôn sớm)`;
+        msg += ` bạn thật giỏi`;
+        if(earlyReviewCount > 0) msg += ` cố lên, tương lai là của bạn`;
     }
     
     showToast(msg, "info");
@@ -3106,17 +3107,13 @@ window.startSmartSession = async function(isExtra = false) {
     preloadImages(); 
     decideSmartRender();
 }
-// Tăng biến đếm số lần ôn tập bất kể đúng hay sai
+// --- LOGIC XỬ LÝ KẾT QUẢ (STRICT MASTERY V2) ---
 window.processResult = function(isCorrect, skipNext = false) {
-    // ✅ DEBOUNCE: Chặn spam click trong 300ms
+    // ✅ DEBOUNCE: Chặn spam click
     const now = Date.now();
-    if (now - lastProcessTime < 300) {
-        console.warn("⚠️ Click quá nhanh, bỏ qua");
-        return;
-    }
+    if (now - lastProcessTime < 300) return;
     lastProcessTime = now;
     
-    // Các check hiện tại
     if(isProcessing) return;
     if (document.getElementById('gameOverlay').style.display === 'none') return;
     
@@ -3124,16 +3121,29 @@ window.processResult = function(isCorrect, skipNext = false) {
     
     const w = sessionQueue[sessionIndex];
     const key = getWordKey(w);
-    
-    // Check if it's a new word BEFORE we update srsData
     const isNewWord = !srsData[key];
 
-    // --- DÒNG GIỮ NGUYÊN ---
-    let data = srsData[key] || { interval: 0, level: 0, nextReview: 0, consecutiveWrongs: 0, totalReviews: 0 };
+    // Lấy data cũ hoặc khởi tạo data mới với các trường mở rộng
+    let data = srsData[key] || { 
+        interval: 0, 
+        level: 0, 
+        nextReview: 0, 
+        consecutiveWrongs: 0, 
+        totalReviews: 0,
+        // --- CÁC TRƯỜNG MỚI CHO STRICT MODE ---
+        masteryStreak: 0,       // Chuỗi đúng liên tiếp
+        passedModes: [],        // Các mode đã vượt qua
+        firstCorrectTime: null  // Thời gian bắt đầu chuỗi đúng
+    };
 
-    // --- [CODE MỚI BẮT ĐẦU TỪ ĐÂY] ---
+    // Đảm bảo dữ liệu cũ không bị lỗi (fallback)
+    if (!Array.isArray(data.passedModes)) data.passedModes = [];
+    if (typeof data.masteryStreak === 'undefined') data.masteryStreak = 0;
+
     if(isCorrect) {
-        // --- STREAK & TRACKING ---
+        // --- 1. XỬ LÝ ĐÚNG ---
+        
+        // Cập nhật Streak toàn cục (cho session này)
         const todayStr = new Date().toISOString().split('T')[0];
         if(!streakHistory.includes(todayStr)) {
             streakHistory.push(todayStr);
@@ -3145,7 +3155,7 @@ window.processResult = function(isCorrect, skipNext = false) {
         if(!config.ecoMode) confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, scalar: 0.7 });
         addPoints(10);
         
-        // --- DAILY TRACKING ---
+        // Daily Tracking
         if(isNewWord) {
             checkDailyLimit();
             if (!dailyTracking.learnedWords) dailyTracking.learnedWords = [];
@@ -3156,40 +3166,74 @@ window.processResult = function(isCorrect, skipNext = false) {
             }
         }
         
-        // --- SRS LOGIC (HYBRID SYSTEM) ---
+        // --- LOGIC SRS CƠ BẢN ---
         data.consecutiveWrongs = 0;
-        data.totalReviews = (data.totalReviews || 0) + 1;
-        
-        // Bảng interval cố định (Fibonacci-inspired)
-        const INTERVALS = [0, 1, 3, 7, 14, 30, 60, 90];
-        
+        data.totalReviews++;
         data.level++;
         
-        // Lấy interval từ bảng
-        if (data.level < INTERVALS.length) {
-            data.interval = INTERVALS[data.level];
-        } else {
-            data.interval = 90; // Max 3 tháng
-        }
+        // Bảng interval (Fibonacci)
+        const INTERVALS = [0, 1, 3, 7, 14, 30, 60, 90];
+        if (data.level < INTERVALS.length) data.interval = INTERVALS[data.level];
+        else data.interval = 90;
         
-        // Penalty cho từ khó
         if (data.isHard) {
             data.interval = Math.ceil(data.interval * 0.7);
             data.isHard = false;
         }
-        
         data.nextReview = Date.now() + (data.interval * 24 * 3600 * 1000);
+
+        // --- 🟢 LOGIC STRICT MASTERY (QUY TẮC CỨNG) ---
         
-        // Auto-graduate
-        if (data.level >= 7 && data.totalReviews >= 5) {
+        // 1. Tăng Streak Đúng
+        data.masteryStreak++;
+
+        // 2. Ghi nhận Mode (Nếu chưa có trong list)
+        // Sử dụng biến window.activeGameType ta đã thêm ở Bước 1
+        const currentModeName = window.activeGameType || 'flashcard'; 
+        if (!data.passedModes.includes(currentModeName)) {
+            data.passedModes.push(currentModeName);
+        }
+
+        // 3. Ghi nhận thời gian bắt đầu (Nếu chưa có)
+        if (!data.firstCorrectTime) {
+            data.firstCorrectTime = Date.now();
+        }
+
+        // --- KIỂM TRA ĐIỀU KIỆN MASTERED ---
+        const STREAK_REQ = 3;   // Yêu cầu: 3 lần đúng liên tiếp
+        const MODES_REQ = 3;    // Yêu cầu: 3 loại game khác nhau
+        const TIME_REQ_MS = 2 * 24 * 60 * 60 * 1000; // Yêu cầu: 2 ngày (48 giờ)
+
+        const timeDiff = Date.now() - data.firstCorrectTime;
+        const uniqueModesCount = data.passedModes.length;
+
+        // Debug log (Bật F12 để xem tiến độ)
+        console.log(`Word: ${w.english} | Streak: ${data.masteryStreak}/${STREAK_REQ} | Modes: ${uniqueModesCount}/${MODES_REQ} | Time: ${(timeDiff/3600000).toFixed(1)}h/48h`);
+
+        if (data.masteryStreak >= STREAK_REQ && 
+            uniqueModesCount >= MODES_REQ && 
+            timeDiff >= TIME_REQ_MS) {
+            
+            // --> ĐỦ ĐIỀU KIỆN MASTERED
             masteredWords[key] = true;
-            delete srsData[key];
+            delete srsData[key]; // Xóa khỏi danh sách đang học
+            
             localStorage.setItem(getDataKey('fp_aurora_mastered'), JSON.stringify(masteredWords));
-            showToast("🏆 Từ này đã THUỘC LÒNG!", "success");
+            localStorage.setItem(getDataKey('fp_aurora_srs'), JSON.stringify(srsData)); // Cập nhật SRS để xóa key cũ
+            
+            showToast(`🏆 TUYỆT VỜI! Đã thuộc lòng: ${w.english}`, "success");
+            playSound(SFX.WIN);
             if(!config.ecoMode) confetti({ particleCount: 100, spread: 70 });
+
         } else {
+            // --> CHƯA ĐỦ ĐIỀU KIỆN, LƯU SRS BÌNH THƯỜNG
             srsData[key] = data;
             localStorage.setItem(getDataKey('fp_aurora_srs'), JSON.stringify(srsData));
+            
+            // Thông báo động viên nếu sắp đạt
+            if (uniqueModesCount >= 2 && data.masteryStreak >= 2) {
+                // showToast("Sắp thuộc lòng rồi! Cố lên!", "info");
+            }
         }
         
         if(!skipNext) {
@@ -3200,14 +3244,20 @@ window.processResult = function(isCorrect, skipNext = false) {
             }, 600);
         }
         
-    } else { // isCorrect = false
+    } else { 
+        // --- 2. XỬ LÝ SAI (RESET TIẾN ĐỘ MASTERY) ---
         window.sessionCorrectStreak = 0;
         playSound(SFX.WRONG);
         
-        // Giảm cấp nhẹ hơn
+        // 🔴 QUY TẮC CỨNG: SAI LÀ RESET MASTERY
+        data.masteryStreak = 0;
+        data.passedModes = []; // Xóa lịch sử mode
+        data.firstCorrectTime = null; // Reset thời gian
+        
+        // Logic SRS giảm cấp (giữ nguyên)
         if (data.level > 1) {
-            data.level = Math.max(0, data.level - 1); // Chỉ giảm 1 cấp
-            data.interval = Math.ceil(data.interval * 0.5); // Giữ 50%
+            data.level = Math.max(0, data.level - 1);
+            data.interval = Math.ceil(data.interval * 0.5);
             if (data.interval < 1) data.interval = 1;
         } else {
             data.level = 0;
@@ -3217,12 +3267,13 @@ window.processResult = function(isCorrect, skipNext = false) {
         data.nextReview = Date.now();
         data.consecutiveWrongs = (data.consecutiveWrongs || 0) + 1;
         
-        // Đánh dấu từ khó
         if (data.consecutiveWrongs > 3) {
             data.isHard = true;
-            showToast("⚠️ Từ khó! Sẽ ôn kỹ hơn.", "error");
+            showToast("⚠️ Từ khó! Đã reset tiến độ Master.", "error");
             sessionQueue.push(w);
             sessionQueue.push(w);
+        } else {
+             showToast("Sai rồi! Tiến độ Master bị reset.", "error");
         }
         
         srsData[key] = data;
@@ -3235,7 +3286,6 @@ window.processResult = function(isCorrect, skipNext = false) {
             } else {
                 sessionQueue.push(w);
             }
-            if(data.consecutiveWrongs <= 3) showToast("Sẽ ôn lại từ này ngay!", "error");
         }
         
         if(document.getElementById('flashcardObj') && !isFlipped) {
@@ -3247,9 +3297,8 @@ window.processResult = function(isCorrect, skipNext = false) {
             isProcessing = false; 
             nextStep();
         }, 2500);
-        }
     }
-
+}
 // --- UI RENDERING & ANIMATIONS ---
 function openGameOverlay() {
     document.getElementById('gameOverlay').style.display = 'flex';
@@ -3445,6 +3494,7 @@ function renderSessionEnd() {
 
 // --- CARD RENDERER (UPDATED ASYNC PEXELS) ---
 function renderFlashcard() {
+window.activeGameType = 'flashcard';
     isProcessing = false;
     
     // KIỂM TRA AN TOÀN
@@ -3739,6 +3789,7 @@ function applyHintPenalty(key) {
 
 // --- SPELLING MODE ---
 function renderSpelling() {
+   window.activeGameType = 'spelling'; 
     isProcessing = false;
     window.currentHintCount = 0; // Explicit Reset
 
@@ -3929,6 +3980,7 @@ window.revealSentenceHint = function() {
 }
 
 async function renderSentence() {
+    window.activeGameType = 'sentence';
     isProcessing = false;
     const w = sessionQueue[sessionIndex];
 
@@ -4080,6 +4132,7 @@ window.checkSentence = function(correctSentence) {
 // --- END SENTENCE MODE ---
 
 function renderFill() {
+    window.activeGameType = 'fill';
     isProcessing = false;
     window.currentHintCount = 0; // Explicit Reset
 
@@ -4169,6 +4222,7 @@ window.checkFill = function(ans) {
 }
 
 function setupMatching() {
+    window.activeGameType = 'matching';
     isProcessing = false;
     
     // Logic look-ahead (Fix 1: Avoid Duplicates)
@@ -4300,6 +4354,7 @@ window.matchClick = function(idx, id) {
 }
 
 function setupQuiz() {
+    window.activeGameType = 'quiz';
     isProcessing = false;
     const w = sessionQueue[sessionIndex];
     const all = allTopics[currentTopicKey].words;
@@ -5456,35 +5511,50 @@ const TTS_LANG_MAP = {
 // Hàm tìm giọng Edge Native (Sửa đổi để bắt dính hơn)
 function getNativeEdgeVoice(langCode) {
     const voices = window.speechSynthesis.getVoices();
-    const shortLang = langCode.split('-')[0]; // Lấy 'vi', 'en', 'id'
+    // Kiểm tra xem có phải trình duyệt Edge thật không
+    const isEdgeBrowser = /Edg\//.test(navigator.userAgent);
+    
+    if (!isEdgeBrowser) return null;
 
-    // 1. Ưu tiên tìm giọng Microsoft Natural (Chất lượng cao nhất)
-    let bestVoice = voices.find(v => {
-        // So sánh mã ngôn ngữ lỏng (chỉ cần bắt đầu bằng 'vi' là được)
-        const langMatch = v.lang.replace('_', '-').toLowerCase().startsWith(shortLang);
-        // Tên phải có Microsoft và Natural
-        const isEdgeHighQuality = v.name.includes('Microsoft') && v.name.includes('Natural');
-        return langMatch && isEdgeHighQuality;
-    });
-
-    // 2. Nếu không thấy Natural, tìm giọng Microsoft bất kỳ (Trên Windows thường có Microsoft An/Nam)
-    if (!bestVoice) {
-        bestVoice = voices.find(v => {
-            const langMatch = v.lang.replace('_', '-').toLowerCase().startsWith(shortLang);
-            const isMicrosoft = v.name.includes('Microsoft');
-            return langMatch && isMicrosoft;
-        });
-    }
-
-    // Debug: In ra để bạn kiểm tra xem máy có giọng nào
-    if (!bestVoice) {
-        console.log(`⚠️ Không tìm thấy giọng Edge Native cho ${langCode}. Danh sách giọng hiện có:`, voices.map(v => `${v.name} (${v.lang})`));
-    } else {
-        console.log(`✅ Đã tìm thấy giọng Edge Native: ${bestVoice.name}`);
-    }
-
-    return bestVoice;
+    // Chỉ tìm giọng có chữ 'Online' hoặc 'Natural' đặc trưng của Edge
+    return voices.find(v => 
+        v.lang.startsWith(langCode) && 
+        (v.name.includes("Online") || v.name.includes("Natural"))
+    );
 }
+   window.speak = function(text, lang = 'en-US', onEnd) {
+    // 1. Dọn dẹp tất cả yêu cầu cũ đang treo (Cực kỳ quan trọng trên Firefox/Edge)
+    window.speechSynthesis.cancel();
+
+    // 2. Kiểm tra nếu trình duyệt đang bị "treo" TTS
+    if (window.speechSynthesis.speaking) {
+        console.warn("TTS đang bận, thử lại sau 100ms");
+        setTimeout(() => window.speak(text, lang, onEnd), 100);
+        return;
+    }
+
+    const langCode = lang.split('-')[0];
+
+    // 3. Kiểm tra giọng Edge Native (Chỉ chạy nếu là Edge thật)
+    const edgeNativeVoice = getNativeEdgeVoice(langCode);
+    if (edgeNativeVoice) {
+        window.speakFallback(text, edgeNativeVoice, onEnd);
+        return;
+    }
+
+    // 4. Nếu là Firefox hoặc trình duyệt khác, ưu tiên dùng API Online 
+    // trừ khi người dùng ép dùng Native
+    if (config.voiceEngine !== 'native') {
+        // Gọi API Worker của bạn ở đây (giả sử tên hàm là window.speakOnline)
+        if (typeof window.speakOnline === 'function') {
+            window.speakOnline(text, lang, onEnd);
+            return;
+        }
+    }
+
+    // 5. Cuối cùng mới dùng Fallback (Giọng máy mặc định)
+    window.speakFallback(text, null, onEnd);
+};
 
 // Hàm phát URL âm thanh (Dùng cho Worker và Google)
 function playAudioUrl(url) {
@@ -5517,77 +5587,60 @@ function playAudioUrl(url) {
 }
 
 // Hàm đọc giọng máy dự phòng (Level cuối cùng)
-window.speakFallback = function(text, specificVoice, onEnd) {
-    stopGlobalAudio();
-    
-    const u = new SpeechSynthesisUtterance(text);
-    const langCode = TTS_LANG_MAP[currentLang] || 'en-US';
-    u.lang = langCode;
-    u.rate = 1.0; 
-    
-    // Nếu có giọng chỉ định (VD: Giọng Edge tìm thấy ở bước 1) thì dùng
-    if (specificVoice) {
-        u.voice = specificVoice;
+window.speakFallback = function(text, voice, onEnd) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    const voices = window.speechSynthesis.getVoices();
+
+    // Tự động tìm giọng tiếng Anh chất lượng tốt nhất có sẵn
+    if (!voice) {
+        utterance.voice = voices.find(v => v.lang.startsWith('en') && v.name.includes('Google')) || 
+                         voices.find(v => v.lang.startsWith('en') && v.name.includes('Natural')) ||
+                         voices.find(v => v.lang.startsWith('en')) || 
+                         voices[0];
     } else {
-        // Nếu không, tìm giọng tốt nhất có thể trong máy
-        const voices = window.speechSynthesis.getVoices();
-        // Cố gắng tìm giọng không phải Google (thường giọng Google Native trên Android hơi chán)
-        const bestVoice = voices.find(v => v.lang === u.lang && !v.name.includes("Google")) || 
-                          voices.find(v => v.lang === u.lang);
-        if(bestVoice) u.voice = bestVoice;
+        utterance.voice = voice;
     }
 
-    u.onend = () => { if(onEnd) onEnd(); };
-    u.onerror = (e) => { 
-        console.error("Native TTS Error:", e); 
-        if(onEnd) onEnd(); 
-    };
-    
-    window.speechSynthesis.speak(u);
-}
+    utterance.rate = config.speed || 1;
+    utterance.pitch = 1;
+    utterance.volume = 1;
 
+    utterance.onend = () => { if (onEnd) onEnd(); };
+    
+    utterance.onerror = (e) => {
+        // Chỉ log lỗi thực sự, bỏ qua lỗi bị hủy do chuyển câu nhanh
+        if (e.error !== 'interrupted' && e.error !== 'canceled') {
+            console.error("TTS Native Error:", e.error);
+        }
+        if (onEnd) onEnd();
+    };
+
+    window.speechSynthesis.speak(utterance);
+};
 // --- HÀM CHÍNH: QUẢN LÝ LUỒNG ĐỌC (MASTER FUNCTION) ---
 window.speakText = async function(text, onEnd) {
     stopGlobalAudio();
-
-    if (config.muted) {
-        if (onEnd) setTimeout(onEnd, 500);
+    
+    if (config.mute) {
+        if(onEnd) onEnd();
         return;
     }
 
     const langCode = TTS_LANG_MAP[currentLang] || 'en-US';
 
-    // --- ƯU TIÊN 1: KIỂM TRA GIỌNG EDGE NATIVE (OFFLINE/DIRECT) ---
-    // Hàm này giờ đã thông minh hơn, sẽ bắt được giọng nếu có
-    const edgeNativeVoice = getNativeEdgeVoice(langCode);
-    
-    if (edgeNativeVoice) {
-        console.log("🚀 Phát hiện giọng Edge/Microsoft Native: Chạy trực tiếp!");
-        window.speakFallback(text, edgeNativeVoice, onEnd);
-        return;
-    }
-
-    // Lưu ý cho Android: 
-    // Edge trên Android KHÔNG cho phép web truy cập giọng "Microsoft Online" qua Javascript.
-    // Nó chỉ trả về giọng Google/Samsung. Nên nếu bạn dùng Android, code sẽ tự động 
-    // nhảy xuống bước gọi API Worker bên dưới để có giọng hay nhất.
-
-    // Nếu cấu hình ép dùng 'native' (giọng máy bất kỳ) thì bỏ qua online
-    if (config.voiceEngine === 'native') {
-        window.speakFallback(text, null, onEnd);
-        return;
-    }
-
-    // --- ƯU TIÊN 2 & 3: GỌI ONLINE (WORKER -> GOOGLE) ---
     try {
+        // --- LEVEL 1: ONLINE TTS (WORKER AZURE -> GOOGLE) ---
+        // Đã loại bỏ Edge Native theo yêu cầu
+        console.log("☁️ Starting Cloud TTS (Azure/Google)...");
         await processOnlineTTS(text, langCode);
-        if (onEnd) setTimeout(onEnd, 100);
+        if(onEnd) onEnd();
+
     } catch (e) {
-        console.warn("⚠️ Tất cả API Online thất bại. Dùng giọng máy dự phòng.", e);
+        console.warn("⚠️ Online TTS Failed. Falling back to Native Machine...", e);
+        // --- LEVEL 2: NATIVE MACHINE (LAST RESORT) ---
         window.speakFallback(text, null, onEnd);
     }
 };
-
 // Hàm xử lý luồng Online (Azure Worker -> Google)
 async function processOnlineTTS(text, langCode) {
     const shortLang = langCode.split('-')[0];

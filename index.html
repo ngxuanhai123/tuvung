@@ -2360,7 +2360,26 @@ async function preloadUpcomingTopics() {
         }
     }
 }
+// --- HÀM TẢI TOÀN BỘ JSON CÙNG LÚC ---
+async function downloadAllTopics() {
+    if (!allTopicsMetadata || allTopicsMetadata.length === 0) return;
+    
+    // Lọc ra những chủ đề chưa có trong bộ nhớ (allTopics)
+    const missingTopics = allTopicsMetadata.filter(meta => !allTopics[meta.name]);
+    if (missingTopics.length === 0) return;
 
+    showToast(`Đang tải offline ${missingTopics.length} chủ đề...`, "info");
+    
+    try {
+        // Promise.all sẽ kích hoạt tải tất cả các file JSON song song
+        await Promise.all(missingTopics.map(meta => loadTopicData(meta.name)));
+        showToast("Đã tải xong toàn bộ dữ liệu!", "success");
+        if(typeof renderDashboard === 'function') renderDashboard();
+    } catch (e) {
+        console.error("Lỗi khi tải dữ liệu tổng:", e);
+        showToast("Có lỗi khi tải một số dữ liệu!", "error");
+    }
+}
 // --- INITIALIZATION ---
 window.initApp = function() {
     // TRIAL LOGIC: Increment trial count on page access (initApp)
@@ -2376,12 +2395,10 @@ window.initApp = function() {
     applyTheme(); // Applies dark mode, eco mode, brightness
     updateConfigUI();
     updateLangUI();
-    window.fetchTopics().then(() => {
-        // Tự động tải dữ liệu chủ đề hiện tại sau khi có danh sách
-        if (currentTopicKey && !allTopics[currentTopicKey]) {
-            loadTopicData(currentTopicKey);
-        }
-    });
+  window.fetchTopics().then(() => {
+    // Thay vì tải 1 cái, ta gọi hàm tải toàn bộ đã viết ở Bước 1
+    downloadAllTopics();
+});
     document.getElementById('dashTime').innerText = formatTime(accumulatedTime);
     
     // Reset session points on load
@@ -4449,17 +4466,7 @@ window.startGame = async function(mode) {
     } else {
         // Các game khác: cần tải TẤT CẢ chủ đề
         const missingTopics = allTopicsMetadata.filter(meta => !allTopics[meta.name]);
-        if(missingTopics.length > 0) {
-            showToast(`Đang tải ${missingTopics.length} chủ đề...`, "info");
-            
-            // Tải tuần tự từng chủ đề (an toàn hơn Promise.all)
-            for (const meta of missingTopics) {
-                await loadTopicData(meta.name);
-            }
-            
-            showToast("Tải xong! Bắt đầu game...", "success");
-        }
-        
+      await downloadAllTopics();
         // Kiểm tra lại có đủ dữ liệu không
         const loadedCount = Object.keys(allTopics).length;
         if (loadedCount === 0) {

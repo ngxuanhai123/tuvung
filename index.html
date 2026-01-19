@@ -3005,36 +3005,43 @@ window.startSmartSession = async function(isExtra = false) {
     // Kể cả chưa đến hạn cũng lấy cho đủ danh sách
     const batchReview = allLearnedWords.slice(0, config.reviewLimit);
 
-// --- 7. LOGIC "ÉP" ÔN TRƯỚC - HỌC SAU (STRICT REVIEW FIRST) ---
+// --- 7. LOGIC "ÉP" ÔN TRƯỚC - HỌC SAU (CHỈ ÉP TỪ LEVEL THẤP) ---
     
     let maxNewToAdd = 0;
     
-    // Đếm số lượng bài cần ôn đang có trong hàng đợi
-    const pendingReviewCount = batchReview.length;
+    // CẤU HÌNH: Cấp độ được coi là "chưa thuộc kỹ". 
+    // Level < 3 nghĩa là từ đó chưa qua được mốc 7 ngày (còn hay quên).
+    const URGENT_LEVEL_THRESHOLD = 3; 
 
-    // 🔴 QUY TẮC CỨNG: Nếu còn bất kỳ bài ôn nào (pendingReviewCount > 0)
-    // -> BẮT BUỘC maxNewToAdd = 0 (Không cho học từ mới)
-    if (pendingReviewCount > 0) {
+    // Lọc ra những từ THỰC SỰ cần ôn gấp (Level thấp)
+    const urgentReviews = batchReview.filter(w => {
+        const k = getWordKey(w);
+        const data = srsData[k];
+        // Chỉ tính là "Gấp" nếu Level nhỏ hơn ngưỡng quy định
+        return data && data.level < URGENT_LEVEL_THRESHOLD;
+    });
+
+    const urgentCount = urgentReviews.length;
+
+    // 🔴 QUY TẮC MỚI: Chỉ chặn nếu còn bài ôn CẤP ĐỘ THẤP
+    if (urgentCount > 0) {
         maxNewToAdd = 0;
         
-        // Thông báo rõ ràng cho người dùng biết tại sao
-        // Chỉ hiện thông báo nếu họ vẫn còn quota từ mới (để tránh nhầm với việc hết quota)
         if (remainingQuota > 0) {
-            // Dùng setTimeout để Toast hiện sau khi Overlay mở ra
             setTimeout(() => {
-                showToast(`🔒 ôn tập chút trước khi học mới nha!`, "warning");
+                showToast(`🔒 Bạn còn ${urgentCount} từ chưa vững (Level < ${URGENT_LEVEL_THRESHOLD}). Ôn cho chắc đã nhé!`, "warning");
             }, 500);
         }
     } 
     else {
-        // 🟢 ĐÃ SẠCH BÀI ÔN -> CHO PHÉP HỌC TỪ MỚI
+        // 🟢 Nếu chỉ còn bài ôn Level cao (đã nhớ dai), cho phép học bài mới
+        // Các bài ôn Level cao vẫn sẽ được trộn vào (ở bước 10) để ôn kèm.
         
-        // Logic cũ: Lấy theo giới hạn ngày hoặc quota còn lại
         maxNewToAdd = Math.min(config.newLimit, remainingQuota);
 
-        // Logic học thêm (Force) khi hết quota (nếu bấm nút "Học thêm bài nữa")
+        // Logic học thêm (Force) khi hết quota
         if (maxNewToAdd === 0 && isExtra) {
-            maxNewToAdd = 5; // Cho phép học thêm 5 từ nếu muốn
+            maxNewToAdd = 5; 
             showToast("Học tốt nhaaaa!", "info");
         }
     }

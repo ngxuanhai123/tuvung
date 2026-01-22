@@ -3830,6 +3830,11 @@ function renderSpelling() {
         }
     }
 
+    /* FIX LỖI: 
+       1. Thêm name="no-autofill-..." ngẫu nhiên để tránh browser nhớ history.
+       2. autocomplete="new-password": Chặn triệt để gợi ý từ bàn phím.
+       3. inputmode="text": Đảm bảo hiện bàn phím chữ bình thường.
+    */
     document.getElementById('gameContent').innerHTML = `
         <div class="glass-panel animate__animated animate__fadeInDown" style="padding:20px; width:95%; text-align:center;">
             <div style="font-size:1.8rem; font-weight:800; color:#fff; text-shadow:0 0 10px rgba(255,255,255,0.4); margin-bottom:5px;">
@@ -3843,8 +3848,13 @@ function renderSpelling() {
         </div>
         
         <input type="text" id="spellingInput" 
-               style="opacity:0; position:absolute; pointer-events:none; top:0; left:0; height:0;" 
-               autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">
+               name="spelling_field_${Date.now()}"
+               style="opacity:0; position:absolute; pointer-events:none; top:0; left:0; height:1px; width:1px;" 
+               autocomplete="new-password" 
+               autocorrect="off" 
+               autocapitalize="off" 
+               spellcheck="false"
+               inputmode="text">
 
         <div style="display:flex; gap:15px; margin-top:20px; align-items:center;">
              <button class="btn-speak-round" onclick="window.speakWord()"><i class="fas fa-volume-up"></i></button>
@@ -3859,18 +3869,33 @@ function renderSpelling() {
     
     // Add specific listener for this mode
     document.addEventListener('click', window.spellingFocusHandler);
-    inp.focus();
+    
+    // Timeout nhỏ để đảm bảo input render xong mới focus (fix lỗi keyboard trên iOS)
+    setTimeout(() => inp.focus(), 50);
 
     checkSpellingChar(''); 
 
     inp.addEventListener('input', (e) => {
         if(isProcessing) return;
-        const val = e.target.value;
-        if(val.length > 0) {
-            const char = val[val.length - 1]; 
-            checkSpellingChar(char);
-            e.target.value = ''; 
+        
+        /* FIX LỖI NHẬP LIỆU:
+           Ưu tiên lấy e.data (ký tự vừa gõ) thay vì e.target.value (toàn bộ nội dung).
+           Điều này giúp tránh việc bàn phím tự điền nguyên 1 từ dài ngoằng.
+        */
+        let char = e.data;
+        
+        // Fallback: Nếu trình duyệt không hỗ trợ e.data, lấy ký tự cuối cùng của value
+        if (!char && e.target.value.length > 0) {
+            char = e.target.value.slice(-1);
         }
+
+        // Chỉ xử lý nếu có ký tự (bỏ qua trường hợp xoá hoặc lỗi)
+        if (char && char.length === 1) {
+            checkSpellingChar(char);
+        }
+        
+        // Xoá ngay lập tức để reset trạng thái bàn phím
+        e.target.value = ''; 
     });
 }
 

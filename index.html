@@ -4188,33 +4188,75 @@ window.checkSentence = function(correctSentence) {
 }
 // --- END SENTENCE MODE ---
 
+// --- ĐIỀN TỪ (FILL IN THE BLANK) - ĐÃ FIX LỖI AUTO-FILL ---
 function renderFill() {
     window.activeGameType = 'fill';
     isProcessing = false;
-    window.currentHintCount = 0; // Explicit Reset
+    window.currentHintCount = 0; // Reset số lần gợi ý
 
     const w = sessionQueue[sessionIndex];
+    
+    // Tạo câu ví dụ (ẩn từ chính đi)
     const sentence = w.example || `The word is ${w.english}`;
+    // Regex thay thế từ tiếng Anh bằng dấu gạch dưới (không phân biệt hoa thường)
     const hidden = sentence.replace(new RegExp(w.english, 'gi'), '_____');
+    
+    // Xử lý ký tự đặc biệt (như dấu nháy đơn) để không lỗi JS
     const safeWord = w.english.replace(/'/g, "\\'");
     
+    // KỸ THUẬT CHỐNG AUTO-FILL: Tạo tên field ngẫu nhiên
+    // Giúp trình duyệt không nhận ra đây là trường cũ để điền bậy
+    const randomName = 'field_' + Math.random().toString(36).substring(7);
+
     document.getElementById('gameContent').innerHTML = `
         <div class="glass-panel animate__animated animate__zoomIn" style="padding:30px; width:95%; text-align:center; margin-bottom:25px;">
             <div style="font-size:1.4rem; margin-bottom:15px; line-height:1.5; font-weight:600; text-shadow:0 1px 2px rgba(0,0,0,0.5);">${hidden}</div>
             <div style="opacity:0.9; font-size:1rem; color:#60a5fa; font-weight:600;">Gợi ý: ${w.vietnamese}</div>
         </div>
+        
         <div style="width:95%; display:flex; gap:10px;">
-            <input type="text" id="fillInp" class="input-glass" style="margin-bottom:0;" placeholder="Nhập từ vựng..." autocomplete="off" 
+            <input type="text" 
+                   id="fillInp" 
+                   name="${randomName}" 
+                   class="input-glass" 
+                   style="margin-bottom:0;" 
+                   placeholder="Nhập từ vựng..." 
+                   value=""
+                   autocomplete="off" 
+                   autocorrect="off" 
+                   autocapitalize="off" 
+                   spellcheck="false"
+                   data-lpignore="true" 
                    oninput="window.checkAutoFill(this, '${safeWord}')"
                    onkeypress="if(event.key==='Enter') window.checkFill('${safeWord}')">
-            <button class="btn-hint" onclick="window.showHint('${safeWord}')"><i class="fas fa-lightbulb"></i></button>
+            
+            <button class="btn-hint" onclick="window.showHint('${safeWord}')" title="Gợi ý"><i class="fas fa-lightbulb"></i></button>
         </div>
+        
         <div style="width:95%; margin-top:15px;">
              <button class="btn-primary" onclick="window.checkFill('${safeWord}')">KIỂM TRA</button>
         </div>
+        
         <button class="btn-speak-round" style="margin-top:20px; width:50px; height:50px; font-size:1.2rem;" onclick="window.speakWord()"><i class="fas fa-volume-up"></i></button>
     `;
-    setTimeout(() => document.getElementById('fillInp').focus(), 100);
+
+    // --- LOGIC CƯỠNG CHẾ XÓA DỮ LIỆU RÁC ---
+    const inp = document.getElementById('fillInp');
+    if(inp) {
+        // 1. Xoá ngay lập tức
+        inp.value = ''; 
+        inp.setAttribute('value', '');
+
+        // 2. Focus vào ô nhập
+        // Dùng setTimeout để đảm bảo sau khi render xong mới focus và xoá lần nữa
+        setTimeout(() => {
+            const el = document.getElementById('fillInp');
+            if(el) {
+                el.value = ''; // Xoá lần 2 (chống trình duyệt mobile tự điền sau render)
+                el.focus();
+            }
+        }, 150);
+    }
 }
 
 // --- UPDATED SMART HINT LOGIC ---

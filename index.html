@@ -2739,9 +2739,10 @@ async function loadTopicData(filename) {
     // 3. Nếu không có cache hoặc cache cũ -> Tải mới từ GitHub
     try {
         console.log(`[Network] Downloading ${filename}...`);
-        // Bỏ tham số ?t=Date.now() để tận dụng cache của trình duyệt/CDN nếu có
-        const url = meta.download_url; 
-        const res = await fetch(url);
+        
+        // SỬA Ở ĐÂY: Ép trình duyệt tải mới hoàn toàn khi đã xác định là có bản cập nhật
+        const url = meta.download_url + "?t=" + Date.now(); 
+        const res = await fetch(url, { cache: "no-store" });
         if (!res.ok) throw new Error("HTTP Error");
         
         const data = await res.json();
@@ -2815,8 +2816,9 @@ window.fetchTopics = async function(manual = false) {
     }
     
     try {
-        const api = `https://api.github.com/repos/${ghUser}/${ghRepo}/contents/`;
-        const res = await fetch(api);
+        // SỬA Ở ĐÂY: Thêm timestamp để trình duyệt luôn gọi API danh sách mới nhất
+        const api = `https://api.github.com/repos/${ghUser}/${ghRepo}/contents/?t=${Date.now()}`;
+        const res = await fetch(api, { cache: "no-store" });
         if(!res.ok) throw new Error("Kết nối thất bại");
         
         const files = await res.json();

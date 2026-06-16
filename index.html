@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="referrer" content="no-referrer">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Hihi Vocabulary</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;600;700&family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
@@ -24,6 +24,10 @@
     --card-text-main: #1e293b;
     --card-text-sub: #475569;
     --safe-area-bottom: env(safe-area-inset-bottom, 20px);
+    --page-bg-static: linear-gradient(135deg, #38bdf8 0%, #22c55e 48%, #f97316 100%);
+    --eco-panel-bg: rgba(255, 255, 255, 0.22);
+    --eco-tab-bg: rgba(255, 255, 255, 0.28);
+    --eco-strong-bg: rgba(255, 255, 255, 0.18);
   }
 
   body.dark-mode {
@@ -31,6 +35,10 @@
     --glass-border: rgba(255, 255, 255, 0.1);
     --card-text-main: #f1f5f9;
     --card-text-sub: #cbd5e1;
+    --page-bg-static: #0f172a;
+    --eco-panel-bg: rgba(30, 41, 59, 0.98);
+    --eco-tab-bg: #0f172a;
+    --eco-strong-bg: rgba(30, 41, 59, 0.98);
   }
 
   /* --- ECO MODE STYLES --- */
@@ -49,9 +57,9 @@
       box-shadow: none !important;
   }
   
-  body.eco-mode .glass-panel { background: rgba(30, 41, 59, 0.98); border: 1px solid #334155; }
-  body.eco-mode .streak-panel { background: rgba(30, 41, 59, 0.98); }
-  body.eco-mode .tab-bar { background: #0f172a; border-top: 1px solid #334155; }
+  body.eco-mode .glass-panel { background: var(--eco-panel-bg); border: 1px solid var(--glass-border); }
+  body.eco-mode .streak-panel { background: var(--eco-panel-bg); }
+  body.eco-mode .tab-bar { background: var(--eco-tab-bg); border-top: 1px solid var(--glass-border); }
   body.eco-mode .btn-primary { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); }
   
   #brightness-overlay {
@@ -61,14 +69,22 @@
   }
 
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+  button, .tab-item, .mode-btn, .stat-card, .repo-btn, .match-card { touch-action: manipulation; }
+  input, textarea, select, [contenteditable="true"] {
+    user-select: text;
+    -webkit-user-select: text;
+    font-size: 16px;
+  }
+  img { max-width: 100%; }
 
   body {
     font-family: var(--font-main);
-    background: #0f172a;
+    background: var(--page-bg-static);
     color: var(--text-color);
     min-height: 100dvh; /* Mobile fix */
     display: flex; flex-direction: column; align-items: center;
-    padding-bottom: calc(90px + var(--safe-area-bottom));
+    padding-bottom: calc(100px + var(--safe-area-bottom));
     overflow-x: hidden;
     overflow-y: auto; /* Enable scroll */
     position: relative;
@@ -237,10 +253,10 @@
   .scene { 
       width: 100%; 
       /* Updated height and margin as requested */
-      height: clamp(380px, 65dvh, 700px); 
+      height: clamp(320px, 58dvh, 640px); 
+      max-height: calc(100dvh - 190px);
       perspective: 1500px; 
-      margin: 2dvh 0; 
-      margin-bottom: 40px; /* Added margin-bottom */
+      margin: 2dvh 0 24px; 
   }
   .card { width: 100%; height: 100%; position: relative; transition: transform 0.6s cubic-bezier(0.2, 0.8, 0.2, 1); transform-style: preserve-3d; cursor: pointer; }
   .card.is-flipped { transform: rotateY(180deg); }
@@ -314,6 +330,8 @@
     flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; 
     width: 100%; perspective: 1000px;
     margin: auto 0; /* Center vertically */
+    min-height: 0;
+    padding-bottom: max(12px, env(safe-area-inset-bottom, 0px));
   }
   
   .progress-track {
@@ -327,7 +345,7 @@
   }
 
   /* Control Buttons */
-  .control-row { display: flex; justify-content: center; gap: 15px; margin-top: auto; width: 100%; padding-bottom: 20px; }
+  .control-row { display: flex; justify-content: center; align-items: center; gap: 15px; margin-top: auto; width: 100%; padding-bottom: 20px; }
   
   .action-btn {
     flex: 1; height: 70px; border-radius: 22px; border: none; font-size: 1.1rem; font-weight: 700;
@@ -336,6 +354,10 @@
     backdrop-filter: blur(5px);
     box-shadow: 0 5px 15px rgba(0,0,0,0.2);
     text-shadow: 0 1px 2px rgba(0,0,0,0.3);
+    min-width: 0;
+    padding: 0 12px;
+    line-height: 1.15;
+    text-align: center;
   }
   
   .btn-wrong { background: rgba(239, 68, 68, 0.9); border: 1px solid rgba(255,100,100,0.3); }
@@ -369,15 +391,14 @@
 
   /* Tab Bar */
   .tab-bar {
-    position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%);
-    width: 95%; max-width: 450px; height: 70px;
+    position: fixed; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); left: 50%; transform: translateX(-50%);
+    width: min(95%, 450px); height: 70px;
     background: rgba(15, 23, 42, 0.9);
     backdrop-filter: blur(25px); -webkit-backdrop-filter: blur(25px);
     border: 1px solid rgba(255,255,255,0.2); border-radius: 40px;
     display: flex; justify-content: space-around; align-items: center; z-index: 1000;
     box-shadow: 0 15px 40px rgba(0,0,0,0.5);
     /* Safe Area for iPhone Home Indicator */
-    padding-bottom: env(safe-area-inset-bottom, 0px);
   }
   .tab-item {
     flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -385,6 +406,7 @@
     height: 100%;
   }
   .tab-item i { font-size: 1.5rem; margin-bottom: 5px; transition: 0.3s; }
+  .tab-item span { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .tab-item.active { color: #38bdf8; }
   .tab-item.active i { transform: translateY(-5px); text-shadow: 0 0 10px rgba(56, 189, 248, 0.8); }
 
@@ -410,6 +432,7 @@
     font-weight: 600; z-index: 3000; transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     display: flex; align-items: center; gap: 12px; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.2);
     white-space: nowrap; box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+    max-width: calc(100vw - 32px);
   }
   #toast.show { transform: translateX(-50%) translateY(20px); }
 
@@ -639,6 +662,7 @@
       background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
       display: flex; align-items: center; justify-content: center;
       cursor: pointer; color: white; transition: 0.3s;
+      position: relative; z-index: 10;
   }
   .theme-toggle-top:active { transform: scale(0.9); }
 
@@ -699,9 +723,19 @@
 
   /* --- RESPONSIVE ADJUSTMENTS --- */
   @media (max-width: 600px) {
+    body { padding-bottom: calc(96px + env(safe-area-inset-bottom, 20px)); }
+    header { margin: 14px 0 8px 0; padding: 0 14px; }
     .word-en { margin-bottom: 2px; }
     .header-content h1 { font-size: 1.5rem; }
-    .action-btn { height: 60px; font-size: 0.9rem; }
+    .scene { height: clamp(300px, 52dvh, 460px); max-height: calc(100dvh - 180px); margin: 8px 0 16px; }
+    .card__face { padding: 16px; border-radius: 22px; }
+    .word-en { font-size: clamp(1.8rem, 9vw, 2.6rem); }
+    .word-vn { font-size: clamp(1.35rem, 7vw, 2rem); }
+    .flashcard-img { max-height: 150px; }
+    #gameOverlay { padding: max(12px, env(safe-area-inset-top, 0px)) 12px calc(12px + env(safe-area-inset-bottom, 0px)); }
+    #gameContent { justify-content: flex-start; margin: 0; }
+    .control-row { gap: 8px; padding-bottom: 8px; }
+    .action-btn { min-height: 54px; height: auto; font-size: 0.9rem; padding: 10px 8px; border-radius: 16px; }
     .btn-speak-round { width: 55px; height: 55px; font-size: 1.4rem; }
     .stats-grid { gap: 8px; }
     .stat-card { padding: 10px 5px; }
@@ -710,6 +744,11 @@
     .mode-btn span { font-size: 0.8rem; }
     .view-container { width: 96%; }
     .char-slot { width: 30px; height: 40px; font-size: 1.2rem; }
+    .leaderboard-row { grid-template-columns: 26px 38px minmax(0, 1fr) auto; gap: 8px; padding: 10px; }
+    .lb-meta { flex-wrap: wrap; }
+    .podium-container { gap: 4px; padding-left: 0; padding-right: 0; }
+    .podium-stage { width: clamp(68px, 26vw, 80px); }
+    #toast { padding: 12px 16px; border-radius: 18px; white-space: normal; justify-content: center; text-align: center; }
   }
 
   @media (max-width: 380px) {
@@ -873,6 +912,49 @@
 #bg-music-vol { -webkit-appearance: none; background: rgba(255,255,255,0.2); border-radius: 2px; }
 #bg-music-vol::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: #fff; border-radius: 50%; cursor: pointer; }
 </style>
+<script>
+  (function() {
+    function readStoredBool(key, fallback) {
+      const value = localStorage.getItem(key);
+      if (value === null) return fallback;
+      return value === 'true';
+    }
+
+    function paintTheme() {
+      if (!document.body) return;
+      const darkMode = readStoredBool('fp_aurora_dark', false);
+      const ecoMode = localStorage.getItem('fp_aurora_eco') !== 'false';
+      const brightness = parseInt(localStorage.getItem('fp_aurora_brightness') || '100', 10);
+      const safeBrightness = Number.isFinite(brightness) ? Math.min(100, Math.max(20, brightness)) : 100;
+      const overlay = document.getElementById('brightness-overlay');
+      const themeBtn = document.getElementById('themeBtn');
+
+      document.body.classList.toggle('dark-mode', darkMode);
+      document.body.classList.toggle('eco-mode', ecoMode);
+      document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
+
+      if (overlay) overlay.style.opacity = (100 - safeBrightness) / 100;
+      if (themeBtn) {
+        themeBtn.innerHTML = darkMode
+          ? '<i class="fas fa-sun" style="color:#fcd34d"></i>'
+          : '<i class="fas fa-moon" style="color:#fff"></i>';
+      }
+    }
+
+    window.applyBasicTheme = paintTheme;
+    window.toggleTheme = function() {
+      const nextDark = !readStoredBool('fp_aurora_dark', false);
+      localStorage.setItem('fp_aurora_dark', String(nextDark));
+      paintTheme();
+    };
+
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', paintTheme);
+    } else {
+      paintTheme();
+    }
+  })();
+</script>
 </head>
 <body>
 
@@ -1163,9 +1245,9 @@
         <hr style="border:0; border-top:1px solid var(--glass-border); margin: 25px 0;">
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px;">
-            <span><i class="fas fa-robot" style="color:#a855f7;"></i> Dữ liệu AI Offline</span>
+            <span><i class="fas fa-robot" style="color:#a855f7;"></i> Dữ liệu Offline & AI</span>
             <button class="btn-primary" style="width: auto; padding: 8px 16px; font-size: 0.8rem; background: rgba(168, 85, 247, 0.2); border-color: rgba(168, 85, 247, 0.5);" onclick="window.clearAICache()">
-                <i class="fas fa-broom"></i> Xoá Cache
+                <i class="fas fa-broom"></i> Xoá Cache Offline
             </button>
         </div>
 
@@ -1277,7 +1359,7 @@
 
     <div style="position:relative; z-index:2; flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; width:100%; max-width:400px; padding:20px; margin: 0 auto;">
         
-        <div style="width:280px; height:280px; border-radius:20px; box-shadow:0 20px 50px rgba(0,0,0,0.5); overflow:hidden; margin-bottom:40px; position:relative; background:#1e293b;">
+        <div id="listen-artwork-wrap" style="width:280px; height:280px; border-radius:20px; box-shadow:0 20px 50px rgba(0,0,0,0.5); overflow:hidden; margin-bottom:40px; position:relative; background:#1e293b;">
             <img id="listen-img" src="" style="width:100%; height:100%; object-fit:cover; transition:transform 10s ease;">
         </div>
 
@@ -1387,7 +1469,47 @@ let lastProcessTime = 0;
 let unsubscribeLeaderboard = null; 
 let currentLbTab = 'week';
 let calendarCursor = new Date();
+let snowIntervalId = null;
 const imageCache = {}; // Cache for images to prevent reload
+
+const DEFAULT_EDGE_VOICES = {
+    en: 'Microsoft Server Speech Text to Speech Voice (en-US, ChristopherNeural)',
+    vi: 'Microsoft Server Speech Text to Speech Voice (vi-VN, NamMinhNeural)',
+    id: 'Microsoft Server Speech Text to Speech Voice (id-ID, ArdiNeural)'
+};
+const DEFAULT_GAME_MODES = {
+    flashcard: true,
+    quiz: true,
+    fill: true,
+    sentence: true,
+    spelling: true,
+    matching: true
+};
+
+function cloneFallback(fallback) {
+    if (Array.isArray(fallback)) return [...fallback];
+    if (fallback && typeof fallback === 'object') return { ...fallback };
+    return fallback;
+}
+
+function safeParseJSON(raw, fallback, label = 'stored data') {
+    if (raw === null || raw === undefined || raw === '') return cloneFallback(fallback);
+    if (typeof raw !== 'string') return raw;
+    try {
+        const parsed = JSON.parse(raw);
+        return parsed ?? cloneFallback(fallback);
+    } catch (e) {
+        console.warn(`Could not parse ${label}; using defaults.`, e);
+        return cloneFallback(fallback);
+    }
+}
+
+function safeConfetti(options) {
+    if (config.ecoMode) return;
+    if (typeof window.confetti === 'function') {
+        window.confetti(options);
+    }
+}
 // ✅ Xử lý lỗi JSON.parse để tránh crash
 let aiCache = {};
 try {
@@ -1445,9 +1567,10 @@ window.currentHintCount = 0;    // Counter for hint usage penalty
 let currentLang = localStorage.getItem('fp_aurora_lang') || 'en';
 
 // DAILY TRACKING NOW LANGUAGE SPECIFIC
-let dailyTracking = JSON.parse(
-    localStorage.getItem(`fp_aurora_daily_${currentLang}`) || 
-    '{"date":"", "count":0, "learnedWords":[]}'
+let dailyTracking = safeParseJSON(
+    localStorage.getItem(`fp_aurora_daily_${currentLang}`),
+    { date: "", count: 0, learnedWords: [] },
+    `daily_${currentLang}`
 );
 
 // ✅ BẮT BUỘC: Khởi tạo learnedWords cho cả data mới và cũ
@@ -1462,7 +1585,7 @@ dailyTracking.count = dailyTracking.learnedWords.length;
 
   let scoreHistory = {}; // 
 // STREAK HISTORY TRACKING (Shared or language specific? Let's make it shared for simplicity, showing general activity)
-let streakHistory = JSON.parse(localStorage.getItem('fp_aurora_streak_history') || '[]');
+let streakHistory = safeParseJSON(localStorage.getItem('fp_aurora_streak_history'), [], 'streak history');
 
 let trialCount = parseInt(localStorage.getItem('fp_aurora_trial_access') || '0');
 // Calendar view mode state
@@ -1614,8 +1737,23 @@ const LANG_CONFIG = {
     }
 };
 
+if (!LANG_CONFIG[currentLang]) {
+    currentLang = 'en';
+    localStorage.setItem('fp_aurora_lang', currentLang);
+    dailyTracking = safeParseJSON(
+        localStorage.getItem(`fp_aurora_daily_${currentLang}`),
+        { date: "", count: 0, learnedWords: [] },
+        `daily_${currentLang}`
+    );
+    if (!dailyTracking.learnedWords || !Array.isArray(dailyTracking.learnedWords)) {
+        dailyTracking.learnedWords = [];
+    }
+    dailyTracking.count = dailyTracking.learnedWords.length;
+}
+
 // Repo state mainly for English
 let currentRepoType = localStorage.getItem('fp_aurora_repo_type_en') || 'standard'; 
+if (!['standard', 'advanced'].includes(currentRepoType)) currentRepoType = 'standard';
 
 // --- DATA KEY HELPERS ---
 function getDataKey(prefix) {
@@ -1706,7 +1844,7 @@ async function syncDataFromServer() {
             
             // Load lịch sử chi tiết từ server về
             if (data[historyKey]) {
-                scoreHistory = JSON.parse(data[historyKey]);
+                scoreHistory = safeParseJSON(data[historyKey], {}, historyKey);
                 localStorage.setItem(`fp_aurora_score_history_${currentLang}`, data[historyKey]);
             } else {
                 // Nếu server chưa có history (người dùng cũ), thử fallback về điểm tổng hiện có
@@ -1764,7 +1902,7 @@ async function syncDataFromServer() {
             
             // Sync Streak History
             if (data.streakHistory) {
-                const serverHistory = JSON.parse(data.streakHistory || '[]');
+                const serverHistory = safeParseJSON(data.streakHistory, [], 'server streak history');
                 const localSet = new Set([...streakHistory, ...serverHistory]);
                 streakHistory = Array.from(localSet).sort();
                 localStorage.setItem('fp_aurora_streak_history', JSON.stringify(streakHistory));
@@ -1776,11 +1914,11 @@ async function syncDataFromServer() {
             const topicKey = `currentTopicKey_${currentLang}`;
 
             if(data[srsKey]) {
-                srsData = JSON.parse(data[srsKey]);
+                srsData = safeParseJSON(data[srsKey], {}, srsKey);
                 localStorage.setItem(getDataKey('fp_aurora_srs'), data[srsKey]);
             }
             if(data[masterKey]) {
-                masteredWords = JSON.parse(data[masterKey]);
+                masteredWords = safeParseJSON(data[masterKey], {}, masterKey);
                 localStorage.setItem(getDataKey('fp_aurora_mastered'), data[masterKey]);
             }
             if(data[topicKey]) {
@@ -1790,7 +1928,7 @@ async function syncDataFromServer() {
 
             // Sync Config
             if(data.config) {
-                config = data.config;
+                config = normalizeConfig(data.config);
                 // Merge fallback defaults
                 if (config.ecoMode === undefined) config.ecoMode = true;
                 if (config.brightness === undefined) config.brightness = 100;
@@ -2090,13 +2228,14 @@ window.initLeaderboardListener = () => {
    APP LOGIC & AUDIO ENGINE
    ------------------------------------------------------------------------- */
 
-const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+const AudioContextCtor = window.AudioContext || window.webkitAudioContext;
+const audioCtx = AudioContextCtor ? new AudioContextCtor() : null;
 let masterGain = null;
 let audioUnlocked = false; // Flag to track status
 
 // UPDATED: Async playSound to ensure context is awake
 async function unlockAudio() {
-    if (audioCtx.state === 'suspended') {
+    if (audioCtx && audioCtx.state === 'suspended') {
         try {
             await audioCtx.resume();
         } catch(e) { console.warn("Resume failed", e); }
@@ -2127,6 +2266,7 @@ document.addEventListener('touchstart', unlockAudio, { once: true });
 document.addEventListener('click', unlockAudio, { once: true });
 
 function initAudio() {
+    if(!audioCtx) return;
     if(!masterGain) {
         masterGain = audioCtx.createGain();
         masterGain.connect(audioCtx.destination);
@@ -2137,6 +2277,7 @@ const SFX = { CORRECT: 'correct', WRONG: 'wrong', FLIP: 'flip', WIN: 'win', POP:
 
 function playTone(freq, type, duration, startTime, vol=0.1) {
     if(config.muted) return;
+    if(!audioCtx || !masterGain) return;
     try {
         const osc = audioCtx.createOscillator();
         const gain = audioCtx.createGain();
@@ -2154,6 +2295,7 @@ function playTone(freq, type, duration, startTime, vol=0.1) {
 async function playSound(sfx) {
     if(config.muted) return;
     if(!config.sfxEnabled) return; 
+    if(!audioCtx) return;
     
     // Check resume immediately before playing
     if(audioCtx.state === 'suspended') {
@@ -2191,8 +2333,8 @@ let allTopics = {}; // Acts as Cache now: {filename: {name: '...', words: []}}
 let allTopicsMetadata = []; // New: Stores the file list [{name: 'Topic.json', download_url: '...'}, ...]
 // State is now dependent on currentLang
 let currentTopicKey = localStorage.getItem(getDataKey('fp_aurora_topic')) || '';
-let srsData = JSON.parse(localStorage.getItem(getDataKey('fp_aurora_srs')) || '{}'); 
-let masteredWords = JSON.parse(localStorage.getItem(getDataKey('fp_aurora_mastered')) || '{}');
+let srsData = safeParseJSON(localStorage.getItem(getDataKey('fp_aurora_srs')), {}, 'srs data'); 
+let masteredWords = safeParseJSON(localStorage.getItem(getDataKey('fp_aurora_mastered')), {}, 'mastered words');
 // Load context specific points
 let accumulatedPoints = parseInt(localStorage.getItem(`fp_aurora_points_${currentLang}`) || 0);
 // Volatile points for session tracking (Week/Month) - normally should load from server but simplified here
@@ -2209,13 +2351,36 @@ let config = {
     voiceEngine: localStorage.getItem('fp_aurora_voice_engine') || 'google',
     sfxEnabled: localStorage.getItem('fp_aurora_sfx') !== 'false', // Default true
     // THÊM DÒNG NÀY:
-    edgeVoices: JSON.parse(localStorage.getItem('fp_aurora_edge_voices') || JSON.stringify({
-        en: 'Microsoft Server Speech Text to Speech Voice (en-US, ChristopherNeural)',
-        vi: 'Microsoft Server Speech Text to Speech Voice (vi-VN, NamMinhNeural)',
-        id: 'Microsoft Server Speech Text to Speech Voice (id-ID, ArdiNeural)'
-    })),
-    activeGameModes: JSON.parse(localStorage.getItem('fp_aurora_game_modes') || '{"flashcard":true,"quiz":true,"fill":true,"sentence":true,"spelling":true,"matching":true}')
+    edgeVoices: safeParseJSON(localStorage.getItem('fp_aurora_edge_voices'), DEFAULT_EDGE_VOICES, 'edge voices'),
+    activeGameModes: safeParseJSON(localStorage.getItem('fp_aurora_game_modes'), DEFAULT_GAME_MODES, 'game modes')
 };
+
+function normalizeConfig(raw = {}) {
+    const cfg = raw && typeof raw === 'object' ? raw : {};
+    const readBool = (value, fallback) => {
+        if (value === undefined || value === null) return fallback;
+        return value === true || value === 'true';
+    };
+    const readNumber = (value, fallback, min, max) => {
+        const parsed = parseInt(value, 10);
+        if (!Number.isFinite(parsed)) return fallback;
+        return Math.min(max, Math.max(min, parsed));
+    };
+
+    return {
+        newLimit: readNumber(cfg.newLimit, 5, 0, 15),
+        reviewLimit: readNumber(cfg.reviewLimit, 20, 5, 50),
+        darkMode: readBool(cfg.darkMode, false),
+        muted: readBool(cfg.muted, false),
+        ecoMode: readBool(cfg.ecoMode, true),
+        brightness: readNumber(cfg.brightness, 100, 20, 100),
+        voiceEngine: cfg.voiceEngine === 'native' ? 'native' : 'google',
+        sfxEnabled: readBool(cfg.sfxEnabled, true),
+        edgeVoices: { ...DEFAULT_EDGE_VOICES, ...(cfg.edgeVoices || {}) },
+        activeGameModes: { ...DEFAULT_GAME_MODES, ...(cfg.activeGameModes || {}) }
+    };
+}
+config = normalizeConfig(config);
 
 let sessionQueue = []; 
 let sessionIndex = 0;
@@ -2243,7 +2408,7 @@ window.flipCard = function() {
     }
 };
 let selectedVoice = null;
-const translationCache = JSON.parse(localStorage.getItem('fp_aurora_trans_cache') || '{}');
+const translationCache = safeParseJSON(localStorage.getItem('fp_aurora_trans_cache'), {}, 'translation cache');
 
 // --- RESOURCE CLEANUP HELPER ---
 window.spellingFocusHandler = function(e) {
@@ -2372,7 +2537,12 @@ async function downloadAllTopics() {
     
     try {
         // Promise.all sẽ kích hoạt tải tất cả các file JSON song song
-        await Promise.all(missingTopics.map(meta => loadTopicData(meta.name)));
+        const batchSize = 4;
+        for (let i = 0; i < missingTopics.length; i += batchSize) {
+            const batch = missingTopics.slice(i, i + batchSize);
+            await Promise.all(batch.map(meta => loadTopicData(meta.name)));
+            await new Promise(resolve => setTimeout(resolve, 0));
+        }
         showToast("Đã tải xong toàn bộ dữ liệu!", "success");
         if(typeof renderDashboard === 'function') renderDashboard();
     } catch (e) {
@@ -2405,7 +2575,7 @@ window.initApp = function() {
     sessionPoints = 0;
     updateUserPointsUI();
     
-    if (window.speechSynthesis.onvoiceschanged !== undefined) {
+    if (window.speechSynthesis && window.speechSynthesis.onvoiceschanged !== undefined) {
         window.speechSynthesis.onvoiceschanged = setupVoice;
     }
     setTimeout(setupVoice, 1000);
@@ -2415,12 +2585,13 @@ window.initApp = function() {
 
 function updateLangUI() {
     document.querySelectorAll('.lang-opt').forEach(el => el.classList.remove('active'));
-    document.getElementById(`lang-${currentLang}`).classList.add('active');
+    document.getElementById(`lang-${currentLang}`)?.classList.add('active');
     
     // Update repo info display inputs
     const langCfg = LANG_CONFIG[currentLang];
     if(currentLang === 'en') {
-        const repoInfo = langCfg.repos[currentRepoType];
+        const repoInfo = langCfg.repos[currentRepoType] || langCfg.repos[langCfg.defaultRepo || 'standard'];
+        currentRepoType = repoInfo === langCfg.repos.advanced ? 'advanced' : 'standard';
         document.getElementById('gh-repo').value = repoInfo.name;
     } else {
         document.getElementById('gh-repo').value = langCfg.repo;
@@ -2441,7 +2612,7 @@ window.switchLanguage = async function(lang) {
     updateLangUI();
     
     // Load lại Lịch sử điểm của ngôn ngữ mới
-    scoreHistory = JSON.parse(localStorage.getItem(`fp_aurora_score_history_${currentLang}`) || '{}');
+    scoreHistory = safeParseJSON(localStorage.getItem(`fp_aurora_score_history_${currentLang}`), {}, `score_history_${currentLang}`);
     
     // Tính lại điểm hiển thị ngay lập tức
     const stats = calculateAggregatedStats(scoreHistory);
@@ -2453,7 +2624,11 @@ window.switchLanguage = async function(lang) {
     updateUserPointsUI();
     
     // RELOAD DAILY TRACKING
-    dailyTracking = JSON.parse(localStorage.getItem(`fp_aurora_daily_${currentLang}`) || '{"date":"", "count":0, "learnedWords":[]}');
+    dailyTracking = safeParseJSON(
+        localStorage.getItem(`fp_aurora_daily_${currentLang}`),
+        { date: "", count: 0, learnedWords: [] },
+        `daily_${currentLang}`
+    );
     checkDailyLimit();
 
     // Reload TTS
@@ -2497,7 +2672,8 @@ window.setRepo = function(type) {
 }
 
 function startSnow() {
-    const snowInterval = setInterval(() => {
+    if (snowIntervalId) return;
+    snowIntervalId = setInterval(() => {
         if(config.ecoMode) return; // Disable generation in Eco mode
         const snowflake = document.createElement('div');
         snowflake.innerHTML = '❄';
@@ -2546,6 +2722,7 @@ function createParticles() {
 window.navTo = function(viewId) {
     document.querySelectorAll('.view-container').forEach(el => el.style.display = 'none');
     const target = document.getElementById(viewId);
+    if(!target) return;
     target.style.display = 'block';
     target.classList.remove('animate__fadeIn');
     void target.offsetWidth; 
@@ -2800,7 +2977,8 @@ window.fetchTopics = async function(manual = false) {
     const langCfg = LANG_CONFIG[currentLang];
     
     if(currentLang === 'en') {
-        const repoInfo = langCfg.repos[currentRepoType];
+        const repoInfo = langCfg.repos[currentRepoType] || langCfg.repos[langCfg.defaultRepo || 'standard'];
+        currentRepoType = repoInfo === langCfg.repos.advanced ? 'advanced' : 'standard';
         ghUser = repoInfo.user;
         ghRepo = repoInfo.name;
     } else {
@@ -2863,7 +3041,13 @@ window.fetchTopics = async function(manual = false) {
         const cached = localStorage.getItem(`fp_aurora_topics_cache_${currentLang}`);
         if (cached) {
             console.log("GitHub API Limit reached. Using cached topics.");
-            const files = JSON.parse(cached);
+            const files = safeParseJSON(cached, [], `topics_cache_${currentLang}`);
+            if (!Array.isArray(files) || files.length === 0) {
+                localStorage.removeItem(`fp_aurora_topics_cache_${currentLang}`);
+                status.innerText = "Offline Mode / Error";
+                if(manual) showToast("Cache chá»§ Ä‘á» bá»‹ lá»—i, hÃ£y thá»­ Ä‘á»“ng bá»™ láº¡i.", "error");
+                return;
+            }
             let jsonFiles = files.filter(f => f.name.endsWith('.json'));
             const collator = new Intl.Collator(undefined, {numeric: true, sensitivity: 'base'});
             jsonFiles.sort((a, b) => collator.compare(a.name, b.name));
@@ -2934,7 +3118,7 @@ window.startSmartSession = async function(isExtra = false) {
     cleanupGameResources();
 
     // FIX: Đảm bảo AudioContext luôn chạy
-    if(audioCtx.state === 'suspended') { try { await audioCtx.resume(); } catch(e) {} }
+    if(audioCtx && audioCtx.state === 'suspended') { try { await audioCtx.resume(); } catch(e) {} }
 
     // --- 1. Kiểm tra dữ liệu & Đăng nhập ---
     if (!allTopicsMetadata || allTopicsMetadata.length === 0) {
@@ -3091,7 +3275,7 @@ window.startSmartSession = async function(isExtra = false) {
     
     // --- 9. Kiểm tra xem có trống không ---
     if(batchNew.length === 0 && batchReview.length === 0) {
-        if(!config.ecoMode) confetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
+        safeConfetti({ particleCount: 150, spread: 70, origin: { y: 0.6 } });
         playSound(SFX.WIN);
         showToast("Tuyệt vời! Bạn đã hoàn thành tất cả!", "success");
         return;
@@ -3178,7 +3362,7 @@ window.processResult = function(isCorrect, skipNext = false) {
         window.sessionCorrectStreak = (window.sessionCorrectStreak || 0) + 1;
         
         playSound(SFX.CORRECT);
-        if(!config.ecoMode) confetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, scalar: 0.7 });
+        safeConfetti({ particleCount: 30, spread: 50, origin: { y: 0.7 }, scalar: 0.7 });
         addPoints(10);
         
         // Daily Tracking
@@ -3249,7 +3433,7 @@ window.processResult = function(isCorrect, skipNext = false) {
             
             showToast(`🏆 TUYỆT VỜI! Đã thuộc lòng: ${w.english}`, "success");
             playSound(SFX.WIN);
-            if(!config.ecoMode) confetti({ particleCount: 100, spread: 70 });
+            safeConfetti({ particleCount: 100, spread: 70 });
 
         } else {
             // --> CHƯA ĐỦ ĐIỀU KIỆN, LƯU SRS BÌNH THƯỜNG
@@ -3338,7 +3522,7 @@ function openGameOverlay() {
 window.closeGame = function() {
     cleanupGameResources(); // Important cleanup
     document.getElementById('gameOverlay').style.display = 'none';
-    window.speechSynthesis.cancel();
+    if(window.speechSynthesis) window.speechSynthesis.cancel();
     stopTimer(); 
     saveProgressToCloud(); 
     renderDashboard();
@@ -3427,7 +3611,7 @@ window.nextStep = function() {
         }, config.ecoMode ? 100 : 350);
     } else {
         playSound(SFX.WIN);
-        if(!config.ecoMode) confetti({ particleCount: 300, spread: 100, origin: { y: 0.6 } });
+        safeConfetti({ particleCount: 300, spread: 100, origin: { y: 0.6 } });
         renderSessionEnd();
     }
 }
@@ -4524,7 +4708,7 @@ window.startGame = async function(mode) {
     }
     
     // 2. Kích hoạt AudioContext (Fix lỗi mất tiếng trên iOS/Chrome)
-    if(audioCtx.state === 'suspended') {
+    if(audioCtx && audioCtx.state === 'suspended') {
         try { await audioCtx.resume(); } catch(e) {}
     }
 
@@ -5068,6 +5252,10 @@ window.resetProgress = function() {
 }
 
 function setupVoice() {
+    if (!window.speechSynthesis) {
+        selectedVoice = null;
+        return;
+    }
     const voices = window.speechSynthesis.getVoices();
     const targetLang = LANG_CONFIG[currentLang].tts;
     // Try to find exact match for current language
@@ -5079,12 +5267,20 @@ function setupVoice() {
 function applyTheme() {
     document.body.classList.toggle('dark-mode', config.darkMode);
     document.body.classList.toggle('eco-mode', config.ecoMode);
-    document.getElementById('brightness-overlay').style.opacity = (100 - config.brightness) / 100;
-    document.getElementById('themeBtn').innerHTML = config.darkMode ? '<i class="fas fa-sun" style="color:#fcd34d"></i>' : '<i class="fas fa-moon" style="color:#fff"></i>';
+    document.documentElement.style.colorScheme = config.darkMode ? 'dark' : 'light';
+    const overlay = document.getElementById('brightness-overlay');
+    const themeBtn = document.getElementById('themeBtn');
+    if(overlay) overlay.style.opacity = (100 - config.brightness) / 100;
+    if(themeBtn) {
+        themeBtn.innerHTML = config.darkMode ? '<i class="fas fa-sun" style="color:#fcd34d"></i>' : '<i class="fas fa-moon" style="color:#fff"></i>';
+    }
 }
 window.toggleTheme = function() { config.darkMode = !config.darkMode; localStorage.setItem('fp_aurora_dark', config.darkMode); applyTheme(); playSound(SFX.POP); saveProgressToCloud(); }
 window.toggleMute = function() { config.muted = !config.muted; localStorage.setItem('fp_aurora_muted', config.muted); updateMuteIcon(); saveProgressToCloud(); }
-function updateMuteIcon() { document.getElementById('muteIcon').className = config.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up'; }
+function updateMuteIcon() {
+    const icon = document.getElementById('muteIcon');
+    if(icon) icon.className = config.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+}
 window.testVoice = async function(lang) {
     // Fake trạng thái đang nghe để Audio không bị ngắt
     if (typeof listenState !== 'undefined') listenState.isPlaying = true;
@@ -5129,7 +5325,7 @@ window.saveConfig = function() {
     // ----------------------------------------
 
     // 2. Kích hoạt lại AudioContext nếu vừa bật SFX (giữ nguyên)
-    if (config.sfxEnabled && audioCtx.state === 'suspended') {
+    if (config.sfxEnabled && audioCtx && audioCtx.state === 'suspended') {
         audioCtx.resume().then(() => {
             const osc = audioCtx.createOscillator();
             const gain = audioCtx.createGain();
@@ -5290,6 +5486,363 @@ window.startGlobalReview = function() {
     window.startSmartSession(false);
 }
 // Bắt lỗi toàn cục
+/* --- OPTIMIZED STUDY / REVIEW / CLEANUP OVERRIDES --- */
+function clampInt(value, fallback, min, max) {
+    const parsed = parseInt(value, 10);
+    if (!Number.isFinite(parsed)) return fallback;
+    return Math.min(max, Math.max(min, parsed));
+}
+
+function getKnownWordBuckets() {
+    const now = Date.now();
+    const seen = new Set();
+    const due = [];
+    const weak = [];
+    const early = [];
+
+    Object.values(allTopics).forEach(topic => {
+        if (!topic || !Array.isArray(topic.words)) return;
+        topic.words.forEach(w => {
+            const key = getWordKey(w);
+            const data = srsData[key];
+            if (!data || masteredWords[key] || seen.has(key)) return;
+            seen.add(key);
+
+            if ((data.nextReview || 0) <= now) {
+                due.push(w);
+            } else if (data.isHard || (data.consecutiveWrongs || 0) > 0 || (data.level || 0) <= 2) {
+                weak.push(w);
+            } else {
+                early.push(w);
+            }
+        });
+    });
+
+    const score = (w) => {
+        const data = srsData[getWordKey(w)] || {};
+        const hardBoost = data.isHard ? -3 * 24 * 3600 * 1000 : 0;
+        const wrongBoost = -((data.consecutiveWrongs || 0) * 6 * 3600 * 1000);
+        const levelBoost = (data.level || 0) * 60 * 1000;
+        return (data.nextReview || 0) + hardBoost + wrongBoost + levelBoost;
+    };
+
+    [due, weak, early].forEach(list => list.sort((a, b) => score(a) - score(b)));
+    return { due, weak, early };
+}
+
+async function collectNewWordsSmart(maxCount) {
+    if (maxCount <= 0 || !allTopicsMetadata.length) return [];
+
+    const selected = [];
+    const selectedKeys = new Set();
+    const startIdx = Math.max(0, allTopicsMetadata.findIndex(f => f.name === currentTopicKey));
+    const orderedMeta = allTopicsMetadata.slice(startIdx);
+    let firstSourceKey = null;
+    let currentTopicHadNew = false;
+
+    for (const meta of orderedMeta) {
+        if (selected.length >= maxCount) break;
+        if (!allTopics[meta.name]) {
+            await loadTopicData(meta.name);
+        }
+
+        const topic = allTopics[meta.name];
+        if (!topic || !Array.isArray(topic.words)) continue;
+
+        for (const w of topic.words) {
+            if (selected.length >= maxCount) break;
+            const key = getWordKey(w);
+            if (masteredWords[key] || srsData[key] || selectedKeys.has(key)) continue;
+            selected.push(w);
+            selectedKeys.add(key);
+            if (!firstSourceKey) firstSourceKey = meta.name;
+            if (meta.name === currentTopicKey) currentTopicHadNew = true;
+        }
+    }
+
+    if (!currentTopicHadNew && firstSourceKey && firstSourceKey !== currentTopicKey) {
+        currentTopicKey = firstSourceKey;
+        localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
+        renderDashboard();
+    }
+
+    return selected;
+}
+
+function interleaveStudyQueue(reviewWords, newWords) {
+    const queue = [];
+    const reviews = [...reviewWords];
+    const news = [...newWords];
+    const reviewHeavy = reviews.length >= news.length;
+
+    while (reviews.length || news.length) {
+        if (reviewHeavy) {
+            if (reviews.length) queue.push(reviews.shift());
+            if (reviews.length) queue.push(reviews.shift());
+            if (news.length) queue.push(news.shift());
+        } else {
+            if (news.length) queue.push(news.shift());
+            if (reviews.length) queue.push(reviews.shift());
+        }
+    }
+
+    return queue;
+}
+
+function renderSmartMode(mode) {
+    if (mode === 'flashcard') renderFlashcard();
+    else if (mode === 'quiz') setupQuiz();
+    else if (mode === 'fill') renderFill();
+    else if (mode === 'sentence') renderSentence();
+    else if (mode === 'spelling') renderSpelling();
+    else if (mode === 'matching') setupMatching();
+    else renderFlashcard();
+}
+
+window.startSmartSession = async function(isExtra = false, options = {}) {
+    cleanupGameResources();
+
+    if(audioCtx && audioCtx.state === 'suspended') {
+        try { await audioCtx.resume(); } catch(e) {}
+    }
+
+    if (!allTopicsMetadata || allTopicsMetadata.length === 0) {
+        showToast("Dữ liệu chưa tải xong. Thử lại sau một chút nhé.", "error");
+        return;
+    }
+
+    if(!currentUser && trialCount > 3) {
+        showToast("Hết phiên dùng thử. Vui lòng đăng nhập!", "error");
+        document.getElementById('requireLoginMsg').style.display = 'block';
+        document.getElementById('dashboardContent').style.display = 'none';
+        return;
+    }
+
+    const reviewOnly = options.reviewOnly === true;
+    window.isSessionActive = true;
+    window.isGlobalReviewSession = reviewOnly;
+    window.isReviewOnlySession = reviewOnly;
+    window.sessionCorrectStreak = 0;
+    sessionPoints = 0;
+    sessionQueue = [];
+    sessionIndex = 0;
+    lastInjectIndex = -1;
+
+    config.newLimit = clampInt(localStorage.getItem('fp_aurora_cfg_new'), config.newLimit || 5, 0, 15);
+    config.reviewLimit = clampInt(localStorage.getItem('fp_aurora_cfg_review'), config.reviewLimit || 20, 5, 50);
+
+    if (!currentTopicKey && allTopicsMetadata.length > 0) {
+        currentTopicKey = allTopicsMetadata[0].name;
+        localStorage.setItem(getDataKey('fp_aurora_topic'), currentTopicKey);
+    }
+
+    if (currentTopicKey && !allTopics[currentTopicKey]) {
+        showToast("Đang tải chủ đề...", "info");
+        await loadTopicData(currentTopicKey);
+    }
+
+    if (reviewOnly) {
+        await downloadAllTopics();
+    }
+
+    checkDailyLimit();
+    const now = Date.now();
+    const buckets = getKnownWordBuckets();
+    const reviewLimit = config.reviewLimit;
+
+    let batchReview = buckets.due.slice(0, reviewLimit);
+    if (batchReview.length < reviewLimit) {
+        const fillPool = reviewOnly ? [...buckets.weak, ...buckets.early] : buckets.weak.slice(0, buckets.due.length ? 3 : 4);
+        for (const w of fillPool) {
+            if (batchReview.length >= reviewLimit) break;
+            const key = getWordKey(w);
+            if (!batchReview.some(x => getWordKey(x) === key)) batchReview.push(w);
+        }
+    }
+
+    let maxNewToAdd = 0;
+    if (!reviewOnly) {
+        const remainingQuota = Math.max(0, config.newLimit - (dailyTracking.count || 0));
+        if (isExtra) {
+            maxNewToAdd = 5;
+        } else if (remainingQuota > 0) {
+            const dueBacklog = buckets.due.length;
+            if (dueBacklog >= reviewLimit) {
+                maxNewToAdd = 0;
+                showToast(`Còn ${dueBacklog} từ cần ôn. Mình ưu tiên ôn trước nhé.`, "info");
+            } else if (dueBacklog > 0) {
+                maxNewToAdd = Math.min(remainingQuota, Math.max(1, Math.ceil(config.newLimit / 2)));
+            } else {
+                maxNewToAdd = Math.min(remainingQuota, config.newLimit);
+            }
+        }
+    }
+
+    const batchNew = await collectNewWordsSmart(maxNewToAdd);
+    const queue = interleaveStudyQueue(batchReview, batchNew);
+
+    if (queue.length === 0) {
+        window.isSessionActive = false;
+        if (reviewOnly) {
+            showToast("Hiện không có từ nào để ôn. Bạn có thể học thêm từ mới.", "success");
+        } else {
+            showToast("Hôm nay ổn rồi. Bạn có thể học thêm nếu muốn.", "success");
+        }
+        safeConfetti({ particleCount: 120, spread: 70, origin: { y: 0.6 } });
+        playSound(SFX.WIN);
+        renderDashboard();
+        return;
+    }
+
+    const dueInBatch = batchReview.filter(w => (srsData[getWordKey(w)]?.nextReview || 0) <= now).length;
+    const warmupCount = batchReview.length - dueInBatch;
+    let msg = `Bắt đầu: ${batchNew.length} từ mới, ${dueInBatch} từ cần ôn`;
+    if (warmupCount > 0) msg += `, ${warmupCount} từ luyện lại`;
+
+    showToast(msg, "info");
+    playSound(SFX.POP);
+
+    sessionQueue = queue;
+    currentMode = 'smart';
+    window.isReviewOnlySession = batchNew.length === 0;
+
+    openGameOverlay();
+    preloadImages();
+    decideSmartRender();
+};
+
+window.decideSmartRender = function() {
+    const w = sessionQueue[sessionIndex];
+    if (!w) return;
+
+    const key = getWordKey(w);
+    const data = srsData[key];
+    const isNew = !data || (data.level || 0) === 0;
+    const modes = { ...DEFAULT_GAME_MODES, ...(config.activeGameModes || {}) };
+    const remaining = sessionQueue.length - sessionIndex;
+
+    if (isNew) {
+        renderFlashcard();
+        return;
+    }
+
+    const available = [];
+    if (modes.flashcard) available.push('flashcard');
+    if (modes.quiz) available.push('quiz');
+    if (modes.fill) available.push('fill');
+    if (modes.sentence) available.push('sentence');
+    if (modes.spelling) available.push('spelling');
+    if (modes.matching && remaining >= 4) available.push('matching');
+
+    if (available.length === 0) {
+        renderFlashcard();
+        return;
+    }
+
+    const passed = Array.isArray(data.passedModes) ? data.passedModes : [];
+    const notYetPassed = available.filter(mode => mode !== 'flashcard' && !passed.includes(mode));
+    let preferred = [];
+
+    if (notYetPassed.length > 0) {
+        preferred = notYetPassed;
+    } else if (data.isHard || (data.consecutiveWrongs || 0) > 0 || (data.level || 0) <= 1) {
+        preferred = ['quiz', 'spelling', 'flashcard'].filter(mode => available.includes(mode));
+    } else if ((data.level || 0) <= 3) {
+        preferred = ['fill', 'spelling', 'quiz', 'sentence'].filter(mode => available.includes(mode));
+    } else {
+        preferred = ['sentence', 'spelling', 'fill', 'matching', 'quiz'].filter(mode => available.includes(mode));
+    }
+
+    const pool = preferred.length ? preferred : available;
+    renderSmartMode(pool[Math.floor(Math.random() * pool.length)]);
+};
+
+window.startGlobalReview = async function() {
+    await window.startSmartSession(false, { reviewOnly: true });
+};
+
+window.clearAICache = async function() {
+    if(!confirm("Xoá cache offline/AI/dịch/ảnh đã lưu? Tiến độ học sẽ được giữ nguyên.")) return;
+
+    try {
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (
+                key === 'fp_aurora_ai_cache' ||
+                key === 'fp_aurora_trans_cache' ||
+                key === `fp_aurora_topics_cache_${currentLang}` ||
+                key.startsWith(`fp_aurora_topic_content_${currentLang}_`)
+            ) {
+                keysToRemove.push(key);
+            }
+        }
+
+        keysToRemove.forEach(key => localStorage.removeItem(key));
+        Object.keys(aiCache).forEach(key => delete aiCache[key]);
+        Object.keys(translationCache).forEach(key => delete translationCache[key]);
+        Object.keys(imageCache).forEach(key => delete imageCache[key]);
+        allTopics = {};
+        allTopicsMetadata = [];
+
+        showToast(`Đã xoá ${keysToRemove.length} mục cache. Đang tải lại danh sách...`, "success");
+        playSound(SFX.POP);
+        await window.fetchTopics(true);
+        renderDashboard();
+    } catch (e) {
+        console.error(e);
+        showToast("Lỗi khi xoá cache", "error");
+    }
+};
+
+window.resetProgress = async function() {
+    if(!confirm("Xoá toàn bộ tiến độ học của ngôn ngữ hiện tại? Cache và cài đặt vẫn được giữ lại.")) return;
+
+    cleanupGameResources();
+    stopGlobalAudio();
+    stopTimer();
+    window.isSessionActive = false;
+    window.isGlobalReviewSession = false;
+    window.isReviewOnlySession = false;
+
+    const today = getTodayDateString();
+    srsData = {};
+    masteredWords = {};
+    scoreHistory = {};
+    dailyTracking = { date: today, count: 0, learnedWords: [] };
+    streakHistory = [];
+    sessionPoints = 0;
+    accumulatedPoints = 0;
+    weekPoints = 0;
+    monthPoints = 0;
+    accumulatedTime = 0;
+    weekTime = 0;
+    monthTime = 0;
+    sessionQueue = [];
+    sessionIndex = 0;
+
+    localStorage.setItem(getDataKey('fp_aurora_srs'), JSON.stringify(srsData));
+    localStorage.setItem(getDataKey('fp_aurora_mastered'), JSON.stringify(masteredWords));
+    localStorage.setItem(`fp_aurora_score_history_${currentLang}`, JSON.stringify(scoreHistory));
+    localStorage.setItem(`fp_aurora_daily_${currentLang}`, JSON.stringify(dailyTracking));
+    localStorage.setItem(`fp_aurora_points_${currentLang}`, '0');
+    localStorage.setItem('fp_aurora_streak_history', JSON.stringify(streakHistory));
+    localStorage.setItem('fp_aurora_time', '0');
+    localStorage.setItem('fp_aurora_time_week', '0');
+    localStorage.setItem('fp_aurora_time_month', '0');
+
+    const gameOverlay = document.getElementById('gameOverlay');
+    const wordListOverlay = document.getElementById('wordListOverlay');
+    if(gameOverlay) gameOverlay.style.display = 'none';
+    if(wordListOverlay) wordListOverlay.style.display = 'none';
+
+    await saveProgressToCloud(true);
+    updateUserPointsUI();
+    renderDashboard();
+    showToast("Đã xoá toàn bộ tiến độ học.", "success");
+    playSound(SFX.POP);
+};
+
 window.onerror = function(msg, url, line) {
     console.error("Lỗi hệ thống: " + msg);
 };
@@ -5408,7 +5961,7 @@ window.startListeningMode = async function() {
     overlay.classList.add('animate__animated', 'animate__fadeIn');
     
     // Unlock Audio Context & Setup Media Session
-    if(audioCtx.state === 'suspended') try { await audioCtx.resume(); } catch(e){}
+    if(audioCtx && audioCtx.state === 'suspended') try { await audioCtx.resume(); } catch(e){}
     setupMediaSession();
     
     playListenLoop();
@@ -5416,12 +5969,24 @@ window.startListeningMode = async function() {
 
 // Hàm thiết lập Media Session (Để hiện thông báo ngoài màn hình khóa)
 function setupMediaSession() {
-    if ('mediaSession' in navigator) {
+    if (!('mediaSession' in navigator)) return;
+    try {
         navigator.mediaSession.setActionHandler('play', () => window.toggleListenState());
         navigator.mediaSession.setActionHandler('pause', () => window.toggleListenState());
         navigator.mediaSession.setActionHandler('previoustrack', () => window.prevListen());
         navigator.mediaSession.setActionHandler('nexttrack', () => window.nextListen());
         navigator.mediaSession.playbackState = "playing";
+    } catch (e) {
+        console.warn("Media Session setup skipped", e);
+    }
+}
+
+function setMediaPlaybackState(state) {
+    if (!('mediaSession' in navigator)) return;
+    try {
+        navigator.mediaSession.playbackState = state;
+    } catch (e) {
+        console.warn("Media playback state skipped", e);
     }
 }
 
@@ -5442,9 +6007,7 @@ window.closeListeningMode = function() {
     stopGlobalAudio();
     document.getElementById('listeningOverlay').style.display = 'none';
     
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.playbackState = "none";
-    }
+    setMediaPlaybackState("none");
 };
 
 window.toggleListenState = function() {
@@ -5455,12 +6018,12 @@ window.toggleListenState = function() {
     if(listenState.isPlaying) {
         btn.innerHTML = '<i class="fas fa-pause"></i>';
         visualizer.style.opacity = '1';
-        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "playing";
+        setMediaPlaybackState("playing");
         playListenLoop();
     } else {
         btn.innerHTML = '<i class="fas fa-play"></i>';
         visualizer.style.opacity = '0';
-        if ('mediaSession' in navigator) navigator.mediaSession.playbackState = "paused";
+        setMediaPlaybackState("paused");
         stopGlobalAudio();
         clearTimeout(listenState.timer);
     }
@@ -5508,15 +6071,19 @@ async function playListenLoop() {
     if(bgImg) bgImg.style.backgroundImage = `url('${imgUrl}')`;
 
     // --- Cập nhật Màn hình khóa (Media Session) ---
-    if ('mediaSession' in navigator) {
-        navigator.mediaSession.metadata = new MediaMetadata({
-            title: w.english,
-            artist: w.vietnamese,
-            album: 'Hihi Vocabulary Passive',
-            artwork: [
-                { src: imgUrl, sizes: '512x512', type: 'image/jpeg' }
-            ]
-        });
+    if ('mediaSession' in navigator && 'MediaMetadata' in window) {
+        try {
+            navigator.mediaSession.metadata = new MediaMetadata({
+                title: w.english,
+                artist: w.vietnamese,
+                album: 'Hihi Vocabulary Passive',
+                artwork: [
+                    { src: imgUrl, sizes: '512x512', type: 'image/jpeg' }
+                ]
+            });
+        } catch (e) {
+            console.warn("Media metadata skipped", e);
+        }
     }
 
     try {
@@ -5552,6 +6119,10 @@ async function playListenLoop() {
 
 // Hàm phụ trợ cho giọng máy Native
 function speakNativeFallback(text, langCode, onEnd) {
+    if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
+        if (onEnd) onEnd();
+        return;
+    }
     window.speechSynthesis.cancel();
     const u = new SpeechSynthesisUtterance(text);
     
@@ -5601,6 +6172,7 @@ const TTS_LANG_MAP = {
 
 // Hàm tìm giọng Edge Native (Sửa đổi để bắt dính hơn)
 function getNativeEdgeVoice(langCode) {
+    if (!window.speechSynthesis) return null;
     const voices = window.speechSynthesis.getVoices();
     // Kiểm tra xem có phải trình duyệt Edge thật không
     const isEdgeBrowser = /Edg\//.test(navigator.userAgent);
@@ -5614,6 +6186,14 @@ function getNativeEdgeVoice(langCode) {
     );
 }
    window.speak = function(text, lang = 'en-US', onEnd) {
+    if (!window.speechSynthesis) {
+        if (typeof window.speakOnline === 'function' && config.voiceEngine !== 'native') {
+            window.speakOnline(text, lang, onEnd);
+        } else if (onEnd) {
+            onEnd();
+        }
+        return;
+    }
     // 1. Dọn dẹp tất cả yêu cầu cũ đang treo (Cực kỳ quan trọng trên Firefox/Edge)
     window.speechSynthesis.cancel();
 
@@ -5679,6 +6259,10 @@ function playAudioUrl(url) {
 
 // Hàm đọc giọng máy dự phòng (Level cuối cùng)
 window.speakFallback = function(text, voice, onEnd) {
+    if (!window.speechSynthesis || typeof SpeechSynthesisUtterance === 'undefined') {
+        if (onEnd) onEnd();
+        return;
+    }
     const utterance = new SpeechSynthesisUtterance(text);
     const voices = window.speechSynthesis.getVoices();
 
@@ -5712,7 +6296,7 @@ window.speakFallback = function(text, voice, onEnd) {
 window.speakText = async function(text, onEnd) {
     stopGlobalAudio();
     
-    if (config.mute) {
+    if (config.muted) {
         if(onEnd) onEnd();
         return;
     }
@@ -5825,7 +6409,7 @@ window.speakWord = function(e, onEnd) {
 
 <style>
     .floating-home-btn {
-        position: fixed; bottom: 120px; left: 20px; z-index: 1000;
+        position: fixed; bottom: calc(96px + env(safe-area-inset-bottom, 0px)); left: 20px; z-index: 1000;
         display: flex; align-items: center; gap: 10px;
         padding: 10px 20px;
         background: rgba(255, 255, 255, 0.1);
@@ -5843,9 +6427,32 @@ window.speakWord = function(e, onEnd) {
     }
     .floating-home-btn svg { width: 24px; height: 24px; transition: transform 0.3s ease; }
     .floating-home-btn:hover svg { transform: scale(1.1); }
+    #listeningOverlay {
+        height: 100dvh !important;
+        min-height: 100dvh;
+        overflow-y: auto !important;
+        overscroll-behavior: contain;
+        padding-bottom: env(safe-area-inset-bottom, 0px);
+    }
+    #listen-artwork-wrap {
+        width: clamp(190px, 72vw, 280px) !important;
+        height: clamp(190px, 42dvh, 280px) !important;
+        margin-bottom: clamp(18px, 5dvh, 40px) !important;
+    }
+    #music-panel {
+        max-width: calc(100vw - 30px) !important;
+    }
     @media (max-width: 640px) {
         .floating-home-btn span { display: none; }
-        .floating-home-btn { padding: 12px; border-radius: 50%; }
+        .floating-home-btn { left: 14px; padding: 12px; border-radius: 50%; }
+    }
+    @media (max-height: 700px) {
+        #listen-artwork-wrap {
+            width: clamp(170px, 54vw, 230px) !important;
+            height: clamp(170px, 34dvh, 230px) !important;
+        }
+        #listen-word { font-size: 1.75rem !important; }
+        #listen-meaning { font-size: 1rem !important; }
     }
 </style>
 </body>

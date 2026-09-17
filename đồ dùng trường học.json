@@ -1,1 +1,185 @@
-
+{
+  "name": "Đồ Dùng Trường Học (School Supplies)",
+  "words": [
+    {
+      "english": "notebook",
+      "ipa": "/ˈnoʊt.bʊk/",
+      "vietnamese": "vở, sổ tay",
+      "example": "I write my notes in a notebook every day."
+    },
+    {
+      "english": "pen",
+      "ipa": "/pɛn/",
+      "vietnamese": "bút mực",
+      "example": "Can I borrow your pen for a moment?"
+    },
+    {
+      "english": "pencil",
+      "ipa": "/ˈpɛn.səl/",
+      "vietnamese": "bút chì",
+      "example": "She always draws with a sharp pencil."
+    },
+    {
+      "english": "eraser",
+      "ipa": "/ɪˈreɪ.zər/",
+      "vietnamese": "cục tẩy",
+      "example": "I need an eraser to fix my mistake."
+    },
+    {
+      "english": "ruler",
+      "ipa": "/ˈruː.lər/",
+      "vietnamese": "thước kẻ",
+      "example": "Use a ruler to draw a straight line."
+    },
+    {
+      "english": "scissors",
+      "ipa": "/ˈsɪz.ərz/",
+      "vietnamese": "kéo",
+      "example": "Be careful with the scissors when cutting paper."
+    },
+    {
+      "english": "glue",
+      "ipa": "/ɡluː/",
+      "vietnamese": "keo dán",
+      "example": "Stick the pictures with glue in your scrapbook."
+    },
+    {
+      "english": "stapler",
+      "ipa": "/ˈsteɪ.plər/",
+      "vietnamese": "bấm dập ghim",
+      "example": "Use the stapler to fasten these papers together."
+    },
+    {
+      "english": "folder",
+      "ipa": "/ˈfoʊl.dər/",
+      "vietnamese": "bìa hồ sơ, ngăn kéo",
+      "example": "Put your assignments in the folder."
+    },
+    {
+      "english": "backpack (schoolbag)",
+      "ipa": "/ˈbæk.pæk/ - /ˈskuːl.bæɡ/",
+      "vietnamese": "ba lô, túi sách",
+      "example": "My backpack is heavy with books."
+    },
+    {
+      "english": "calculator",
+      "ipa": "/ˈkæl.kjə.leɪ.tər/",
+      "vietnamese": "máy tính bỏ túi",
+      "example": "You can use a calculator during the math test."
+    },
+    {
+      "english": "textbook",
+      "ipa": "/ˈtɛkst.bʊk/",
+      "vietnamese": "sách giáo khoa",
+      "example": "Read chapter two in your textbook tonight."
+    },
+    {
+      "english": "dictionary",
+      "ipa": "/dɪkˈʃɛn.er.i/",
+      "vietnamese": "từ điển",
+      "example": "Look up the word in your dictionary."
+    },
+    {
+      "english": "highlighter",
+      "ipa": "/ˈhaɪ.laɪ.tər/",
+      "vietnamese": "bút đánh dấu",
+      "example": "Use a highlighter to mark the important words."
+    },
+    {
+      "english": "protractor",
+      "ipa": "/proʊˈtræk.tər/",
+      "vietnamese": "thước đo góc",
+      "example": "Measure the angle with a protractor."
+    },
+    {
+      "english": "compass (drawing)",
+      "ipa": "/ˈkʌm.pəs/",
+      "vietnamese": "compa",
+      "example": "Draw a perfect circle using a compass."
+    },
+    {
+      "english": "crayon",
+      "ipa": "/ˈkreɪ.ɒn/",
+      "vietnamese": "bút sáp màu",
+      "example": "The children colored the picture with crayons."
+    },
+    {
+      "english": "marker",
+      "ipa": "/ˈmɑːr.kər/",
+      "vietnamese": "bút dạ bảng",
+      "example": "Write on the whiteboard with a marker."
+    },
+    {
+      "english": "eraser",
+      "ipa": "/ɪˈreɪ.zər/",
+      "vietnamese": "cục tẩy",
+      "example": "The eraser is used to remove pencil marks."
+    },
+    {
+      "english": "compass (navigation)",
+      "ipa": "/ˈkʌm.pəs/",
+      "vietnamese": "la bàn",
+      "example": "We used a compass to find north."
+    },
+    {
+      "english": "ruler",
+      "ipa": "/ˈruː.lər/",
+      "vietnamese": "thước đo",
+      "example": "This ruler is 30 centimeters long."
+    },
+    {
+      "english": "sharpener",
+      "ipa": "/ˈʃɑːr.pə.nər/",
+      "vietnamese": "gọt bút chì",
+      "example": "The pencil needs to be sharpened."
+    },
+    {
+      "english": "correction fluid (white-out)",
+      "ipa": "/kəˈrɛk.ʃən ˈfluː.ɪd/",
+      "vietnamese": "bút sửa, nước sửa",
+      "example": "She used correction fluid to fix the typo."
+    },
+    {
+      "english": "paper clip",
+      "ipa": "/ˈpeɪ.pər klɪp/",
+      "vietnamese": "kẹp giấy",
+      "example": "Use a paper clip to hold the sheets together."
+    },
+    {
+      "english": "desk",
+      "ipa": "/dɛsk/",
+      "vietnamese": "bàn học",
+      "example": "Sit at your desk and start working."
+    },
+    {
+      "english": "chair",
+      "ipa": "/tʃɛr/",
+      "vietnamese": "ghế ngồi",
+      "example": "Please take a seat on the chair."
+    },
+    {
+      "english": "whiteboard",
+      "ipa": "/ˈwaɪt.bɔːrd/",
+      "vietnamese": "bảng trắng",
+      "example": "The teacher writes on the whiteboard."
+    },
+    {
+      "english": "globe",
+      "ipa": "/ɡloʊb/",
+      "vietnamese": "quả địa cầu",
+      "example": "We learned about continents using the globe."
+    },
+    {
+      "english": "flash drive (USB)",
+      "ipa": "/flæʃ draɪv/",
+      "vietnamese": "USB",
+      "example": "Save your project on a flash drive."
+    },
+    {
+      "english": "laptop",
+      "ipa": "/ˈlæp.tɒp/",
+      "vietnamese": "máy tính xách tay",
+      "example": "Bring your laptop to class tomorrow."
+    }
+  ]
+}

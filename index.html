@@ -1,12 +1,12 @@
-<!DOCTYPE html>
-<html lang="vi">
+﻿<!DOCTYPE html>
+<html lang="vi" data-theme="dark">
 <head>
 <meta charset="UTF-8">
 <meta name="referrer" content="no-referrer">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Hihi Vocabulary</title>
 <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@300;400;600;700&family=Poppins:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
@@ -20,11 +20,11 @@
     --error-color: #ff5252;
     --text-color: #ffffff;
     --radius: 28px;
-    --font-main: 'Poppins', sans-serif;
+    --font-main: 'Be Vietnam Pro', sans-serif;
     --card-text-main: #1e293b;
     --card-text-sub: #475569;
     --safe-area-bottom: env(safe-area-inset-bottom, 20px);
-    --page-bg-static: linear-gradient(135deg, #38bdf8 0%, #22c55e 48%, #f97316 100%);
+    --page-bg-static: #f1f5f9;
     --eco-panel-bg: rgba(255, 255, 255, 0.22);
     --eco-tab-bg: rgba(255, 255, 255, 0.28);
     --eco-strong-bg: rgba(255, 255, 255, 0.18);
@@ -911,7 +911,44 @@
 .track-item.active .track-playing-icon { display: block; animation: bounce 1s infinite; }
 #bg-music-vol { -webkit-appearance: none; background: rgba(255,255,255,0.2); border-radius: 2px; }
 #bg-music-vol::-webkit-slider-thumb { -webkit-appearance: none; width: 12px; height: 12px; background: #fff; border-radius: 50%; cursor: pointer; }
-</style>
+
+/* === HiHi Home Button === */
+.hihi-home-btn {
+  position: fixed; top: 12px; left: 12px; z-index: 9999;
+  width: 42px; height: 42px; border-radius: 14px;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.1);
+  color: #cbd5e1; font-size: 1.15rem; text-decoration: none;
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  transition: all 0.2s; box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+.hihi-home-btn:hover { background: rgba(255,255,255,0.25); transform: scale(1.08); color: #f1f5f9; }
+[data-theme="light"] .hihi-home-btn {
+  background: rgba(0,0,0,0.06); border-color: rgba(0,0,0,0.08); color: #334155;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+[data-theme="light"] .hihi-home-btn:hover { background: rgba(0,0,0,0.12); color: #0f172a; }
+
+/* === HiHi Orbs Background === */
+@keyframes hihiFloat { 0%{transform:translate(0,0) scale(1)} 100%{transform:translate(50px,50px) scale(1.1)} }
+
+/* === HiHi Light Mode === */
+[data-theme="light"] {
+  --bg-color: #f1f5f9;
+  --card-bg: rgba(255, 255, 255, 0.7);
+  --card-border: rgba(0, 0, 0, 0.08);
+  --text-color: #334155;
+  --heading-color: #0f172a;
+  --nav-bg: rgba(241, 245, 249, 0.85);
+  --glass-bg: rgba(255, 255, 255, 0.65);
+  --glass-border: rgba(0, 0, 0, 0.08);
+}
+[data-theme="light"] body { background: #f1f5f9; }
+[data-theme="light"] .aurora-bg, [data-theme="light"] .hihi-bg {
+  background: radial-gradient(circle at 50% 50%, #e2e8f0 0%, #f1f5f9 100%) !important;
+}
+[data-theme="light"] .orb-1, [data-theme="light"] .hihi-orb:first-of-type { background: #93c5fd !important; opacity: 0.3 !important; }
+[data-theme="light"] .orb-2, [data-theme="light"] .hihi-orb:last-of-type { background: #67e8f9 !important; opacity: 0.3 !important; }</style>
 <script>
   (function() {
     function readStoredBool(key, fallback) {
@@ -957,9 +994,12 @@
 </script>
 </head>
 <body>
+<a href="https://ngxuanhai123.github.io/" class="hihi-home-btn" title="Trang ch&#7911; HiHi Study"><i class="fas fa-home"></i></a>
 
 <div id="brightness-overlay"></div>
-<div class="aurora-bg"></div>
+<div class="aurora-bg">
+<div class="hihi-orb" style="position:fixed;border-radius:50%;filter:blur(80px);opacity:0.4;animation:hihiFloat 20s infinite alternate;z-index:-1;top:-10%;left:-10%;width:50vw;height:50vw;background:#1e3a8a;"></div>
+<div class="hihi-orb" style="position:fixed;border-radius:50%;filter:blur(80px);opacity:0.4;animation:hihiFloat 20s infinite alternate;animation-delay:-5s;z-index:-1;bottom:-10%;right:-10%;width:50vw;height:50vw;background:#0f4c75;"></div></div>
 <div id="particles"></div>
 
 <header>
@@ -6455,5 +6495,10 @@ window.speakWord = function(e, onEnd) {
         #listen-meaning { font-size: 1rem !important; }
     }
 </style>
-</body>
+
+<script>
+function toggleTheme(){var h=document.documentElement,n=h.getAttribute('data-theme')==='light'?'dark':'light';h.setAttribute('data-theme',n);localStorage.setItem('hihi-theme',n);var i=document.getElementById('themeIcon');if(i)i.className=n==='light'?'fas fa-sun':'fas fa-moon';document.body.style.background=n==='light'?'#f1f5f9':'#0f172a';}
+(function(){var s=localStorage.getItem('hihi-theme')||'dark';document.documentElement.setAttribute('data-theme',s);})();
+window.addEventListener('DOMContentLoaded',function(){var s=document.documentElement.getAttribute('data-theme')||'dark';var i=document.getElementById('themeIcon');if(i)i.className=s==='light'?'fas fa-sun':'fas fa-moon';if(s==='light')document.body.style.background='#f1f5f9';});
+</script></body>
 </html>

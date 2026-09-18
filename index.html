@@ -1562,6 +1562,37 @@ body {
   padding-right: 4px;
 }
 
+/* HiHi Topic Picker Language Filter Pills */
+.hihi-topic-lang-pill {
+  padding: 5px 12px;
+  border-radius: 9999px;
+  font-size: 0.76rem;
+  font-weight: 600;
+  white-space: nowrap;
+  border: 1px solid rgba(255,255,255,0.12);
+  background: rgba(255,255,255,0.05);
+  color: var(--hihi-nav-text, #94a3b8);
+  cursor: pointer;
+  transition: all 0.2s;
+  flex-shrink: 0;
+}
+[data-theme="light"] .hihi-topic-lang-pill, html.light .hihi-topic-lang-pill {
+  border-color: rgba(0,0,0,0.1);
+  background: rgba(0,0,0,0.04);
+  color: #475569;
+}
+.hihi-topic-lang-pill:hover {
+  background: rgba(56,189,248,0.15);
+  border-color: rgba(56,189,248,0.4);
+  color: #38bdf8;
+}
+.hihi-topic-lang-pill.active {
+  background: #38bdf8 !important;
+  color: #0f172a !important;
+  border-color: #38bdf8 !important;
+  box-shadow: 0 2px 8px rgba(56,189,248,0.3);
+}
+
 /* Leaderboard Specific Styles */
 
 /* HiHi Leaderboard Period & Month Filters */
@@ -2070,10 +2101,25 @@ window.hihiAuthLogout = window.hihiAuthLogout || function() {
       <button class="hihi-suite-modal-close" onclick="hihiCloseTopicPicker()">&times;</button>
     </div>
     <div class="hihi-suite-modal-body">
-      <p style="font-size:0.8rem;color:var(--hihi-nav-text,#94a3b8);margin-bottom:12px;">
-        Chọn chủ đề từ kho dữ liệu 57+ bộ từ vựng dùng chung để bắt đầu luyện tập:
+      <p style="font-size:0.8rem;color:var(--hihi-nav-text,#94a3b8);margin-bottom:10px;">
+        Chọn chủ đề từ kho dữ liệu dùng chung (hoặc lọc theo ngôn ngữ bạn đang học):
       </p>
-      <input type="text" id="hihiTopicSearchInput" class="hihi-admin-input" placeholder="🔍 Tìm kiếm chủ đề từ vựng..." oninput="hihiFilterTopicList(this.value)" style="margin-bottom:12px;">
+
+      <!-- THANH LỌC NGÔN NGỮ CHỦ ĐỀ -->
+      <div id="hihiTopicLangFilterBar" style="display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:10px;scrollbar-width:thin;">
+        <button type="button" class="hihi-topic-lang-pill active" data-lang="all" onclick="hihiSetTopicPickerLang('all', this)">Tất cả</button>
+        <button type="button" class="hihi-topic-lang-pill" data-lang="en" onclick="hihiSetTopicPickerLang('en', this)">🇺🇸 Tiếng Anh</button>
+        <button type="button" class="hihi-topic-lang-pill" data-lang="id" onclick="hihiSetTopicPickerLang('id', this)">🇮🇩 Tiếng Indo</button>
+        <button type="button" class="hihi-topic-lang-pill" data-lang="ja" onclick="hihiSetTopicPickerLang('ja', this)">🇯🇵 Tiếng Nhật</button>
+        <button type="button" class="hihi-topic-lang-pill" data-lang="ko" onclick="hihiSetTopicPickerLang('ko', this)">🇰🇷 Tiếng Hàn</button>
+        <button type="button" class="hihi-topic-lang-pill" data-lang="zh" onclick="hihiSetTopicPickerLang('zh', this)">🇨🇳 Tiếng Trung</button>
+        <button type="button" class="hihi-topic-lang-pill" data-lang="fr" onclick="hihiSetTopicPickerLang('fr', this)">🇫🇷 Tiếng Pháp</button>
+        <button type="button" class="hihi-topic-lang-pill" data-lang="de" onclick="hihiSetTopicPickerLang('de', this)">🇩🇪 Tiếng Đức</button>
+        <button type="button" class="hihi-topic-lang-pill" data-lang="es" onclick="hihiSetTopicPickerLang('es', this)">🇪🇸 Tiếng TBN</button>
+        <button type="button" class="hihi-topic-lang-pill" data-lang="vi" onclick="hihiSetTopicPickerLang('vi', this)">🇻🇳 Tiếng Việt</button>
+      </div>
+
+      <input type="text" id="hihiTopicSearchInput" class="hihi-admin-input" placeholder="🔍 Tìm kiếm chủ đề từ vựng..." oninput="hihiFilterTopicList()" style="margin-bottom:12px;">
       <div id="hihiTopicListContainer" style="display:grid;grid-template-columns:1fr;gap:8px;max-height:360px;overflow-y:auto;">
         <div style="text-align:center;padding:20px;color:var(--hihi-nav-text,#94a3b8);"><i class="fas fa-spinner fa-spin"></i> Đang tải danh sách chủ đề từ GitHub...</div>
       </div>
@@ -8721,6 +8767,9 @@ window.hihiFetchAllTopics = async function() {
           download_url: `https://raw.githubusercontent.com/ngxuanhai123/tuvung/main/${encodedFile}`,
           fallback_url: `https://ngxuanhai123.github.io/tuvung/${encodedFile}`,
           isCustom: false,
+          lang: 'en',
+          langName: 'Tiếng Anh',
+          flag: '🇺🇸',
           category: '57 Chủ đề thông dụng'
         });
       }
@@ -8747,6 +8796,9 @@ window.hihiFetchAllTopics = async function() {
           download_url: `https://raw.githubusercontent.com/ngxuanhai123/3000tv/main/${encodedFile}`,
           fallback_url: `https://ngxuanhai123.github.io/3000tv/${encodedFile}`,
           isCustom: false,
+          lang: 'en',
+          langName: 'Tiếng Anh',
+          flag: '🇺🇸',
           category: 'Oxford 3000 từ'
         });
       }
@@ -8755,7 +8807,37 @@ window.hihiFetchAllTopics = async function() {
     console.warn("Lỗi nạp manifest 3000tv:", e);
   }
 
-  // 3. Nạp các chủ đề do Admin tạo trên Firestore (Hỗ trợ Đa Ngôn Ngữ)
+  // 3. Nạp 21 chủ đề từ vựng tiếng Indonesia từ kho indo
+  try {
+    const indoManifestUrls = [
+      "./vocab_manifest_indo.json",
+      "../indo/vocab_manifest.json",
+      "https://ngxuanhai123.github.io/indo/vocab_manifest.json",
+      "https://raw.githubusercontent.com/ngxuanhai123/indo/main/vocab_manifest.json"
+    ];
+    const manifestIndo = await fetchManifestWithFallback(indoManifestUrls);
+    if (manifestIndo && Array.isArray(manifestIndo.topics)) {
+      for (const t of manifestIndo.topics) {
+        const encodedFile = encodeURIComponent(t.file);
+        topics.push({
+          id: 'indo_' + t.file,
+          name: `🇮🇩 ${t.name} (${t.wordCount || 0} từ)`,
+          file: t.file,
+          download_url: `https://raw.githubusercontent.com/ngxuanhai123/indo/main/${encodedFile}`,
+          fallback_url: `https://ngxuanhai123.github.io/indo/${encodedFile}`,
+          isCustom: false,
+          lang: 'id',
+          langName: 'Tiếng Indo',
+          flag: '🇮🇩',
+          category: '21 Chủ đề Tiếng Indo'
+        });
+      }
+    }
+  } catch(e) {
+    console.warn("Lỗi nạp manifest indo:", e);
+  }
+
+  // 4. Nạp các chủ đề do Admin tạo trên Firestore (Hỗ trợ Đa Ngôn Ngữ)
   try {
     const snap = await getDocs(collection(db, "hihi_custom_topics"));
     snap.forEach((d) => {
@@ -8782,15 +8864,50 @@ window.hihiFetchAllTopics = async function() {
   return topics;
 };
 
-window.hihiOpenTopicPicker = async function(onSelectCallback) {
+window.hihiCurrentPickerLang = 'all';
+
+window.hihiSetTopicPickerLang = function(lang, btnEl) {
+  window.hihiCurrentPickerLang = lang || 'all';
+  const bar = document.getElementById("hihiTopicLangFilterBar");
+  if (bar) {
+    bar.querySelectorAll(".hihi-topic-lang-pill").forEach(p => {
+      if (p.getAttribute("data-lang") === window.hihiCurrentPickerLang) {
+        p.classList.add("active");
+      } else {
+        p.classList.remove("active");
+      }
+    });
+  }
+  hihiFilterTopicList();
+};
+
+window.hihiOpenTopicPicker = async function(onSelectCallback, defaultLang) {
   window.hihiOnTopicSelect = onSelectCallback;
   const m = document.getElementById("hihiTopicPickerModal");
   if (m) m.classList.add("active");
   const container = document.getElementById("hihiTopicListContainer");
   if (container) container.innerHTML = "<div style='text-align:center;padding:20px;color:#94a3b8;'><i class='fas fa-spinner fa-spin'></i> Đang tải danh sách chủ đề...</div>";
 
+  // Pre-select language filter pill
+  let targetLang = defaultLang;
+  if (targetLang && typeof LANG_NAME_TO_CODE !== 'undefined' && LANG_NAME_TO_CODE[targetLang]) {
+    targetLang = LANG_NAME_TO_CODE[targetLang];
+  }
+  window.hihiCurrentPickerLang = targetLang || 'all';
+
+  const bar = document.getElementById("hihiTopicLangFilterBar");
+  if (bar) {
+    bar.querySelectorAll(".hihi-topic-lang-pill").forEach(p => {
+      if (p.getAttribute("data-lang") === window.hihiCurrentPickerLang) {
+        p.classList.add("active");
+      } else {
+        p.classList.remove("active");
+      }
+    });
+  }
+
   const topics = await window.hihiFetchAllTopics();
-  hihiRenderTopicCards(topics);
+  hihiFilterTopicList();
 };
 
 window.hihiCloseTopicPicker = function(e) {
@@ -8803,23 +8920,43 @@ function hihiRenderTopicCards(list) {
   const container = document.getElementById("hihiTopicListContainer");
   if (!container) return;
   if (!list || list.length === 0) {
-    container.innerHTML = "<div style='text-align:center;padding:20px;color:#94a3b8;'>Không tìm thấy chủ đề phù hợp.</div>";
+    const langLabel = (window.hihiCurrentPickerLang && window.hihiCurrentPickerLang !== 'all') 
+      ? `cho ngôn ngữ này` : '';
+    container.innerHTML = `<div style='text-align:center;padding:24px 10px;color:#94a3b8;'>
+      <div style="font-size:1.5rem;margin-bottom:8px;">🔍</div>
+      Không tìm thấy chủ đề phù hợp ${langLabel}.
+      <div style="margin-top:10px;"><button type="button" onclick="hihiSetTopicPickerLang('all')" style="font-size:0.75rem;padding:5px 12px;border-radius:6px;background:#38bdf8;color:#0f172a;font-weight:bold;border:none;cursor:pointer;">Xem tất cả chủ đề</button></div>
+    </div>`;
     return;
   }
-  container.innerHTML = list.map(t => `
+  container.innerHTML = list.map(t => {
+    const flag = t.flag || (HIHI_LANGUAGES[t.lang]?.flag) || '🇺🇸';
+    const langName = t.langName || (HIHI_LANGUAGES[t.lang]?.name) || 'Tiếng Anh';
+    return `
     <div onclick="hihiSelectTopic('${t.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-radius:10px;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);cursor:pointer;transition:all 0.2s;" onmouseover="this.style.background='rgba(56,189,248,0.1)';this.style.borderColor='#38bdf8';" onmouseout="this.style.background='rgba(255,255,255,0.04)';this.style.borderColor='rgba(255,255,255,0.08)';">
       <div>
         <div style="font-weight:600;font-size:0.88rem;color:var(--hihi-card-text,#f1f5f9);">${t.name}</div>
-        <div style="font-size:0.72rem;color:#94a3b8;"><span style="display:inline-block;padding:1px 6px;border-radius:4px;background:rgba(56,189,248,0.15);color:#38bdf8;font-weight:600;margin-right:6px;">${t.category || "Chủ đề"}</span>${t.isCustom ? "⭐ Tùy chỉnh" : "📚 Kho từ vựng GitHub"}</div>
+        <div style="font-size:0.72rem;color:#94a3b8;margin-top:2px;">
+          <span style="display:inline-block;padding:1px 6px;border-radius:4px;background:rgba(56,189,248,0.15);color:#38bdf8;font-weight:600;margin-right:6px;">${flag} ${langName}</span>
+          <span style="display:inline-block;padding:1px 6px;border-radius:4px;background:rgba(255,255,255,0.08);color:#cbd5e1;font-weight:500;margin-right:6px;">${t.category || "Chủ đề"}</span>
+          ${t.isCustom ? "⭐ Tùy chỉnh" : "📚 Kho GitHub"}
+        </div>
       </div>
       <i class="fas fa-chevron-right" style="color:#94a3b8;font-size:0.8rem;"></i>
     </div>
-  `).join("");
+  `;}).join("");
 }
 
-window.hihiFilterTopicList = function(keyword) {
-  const kw = keyword.toLowerCase().trim();
-  const filtered = window.hihiAllSharedTopics.filter(t => t.name.toLowerCase().includes(kw));
+window.hihiFilterTopicList = function() {
+  const kw = (document.getElementById("hihiTopicSearchInput")?.value || "").toLowerCase().trim();
+  const lang = window.hihiCurrentPickerLang || 'all';
+  const list = window.hihiAllSharedTopics || [];
+  const filtered = list.filter(t => {
+    const matchKw = !kw || (t.name && t.name.toLowerCase().includes(kw)) || (t.category && t.category.toLowerCase().includes(kw));
+    const topicLang = t.lang || 'en';
+    const matchLang = (lang === 'all') || (topicLang === lang);
+    return matchKw && matchLang;
+  });
   hihiRenderTopicCards(filtered);
 };
 
@@ -8849,6 +8986,7 @@ window.hihiSelectTopic = async function(topicId) {
     }
   }
 
+  const topicLang = topic.lang || "en";
   const words = rawWords.map(item => {
     const w = item.word || item.english || item.term || "";
     const m = item.meaning || item.vietnamese || item.definition || "";
@@ -8862,13 +9000,13 @@ window.hihiSelectTopic = async function(topicId) {
       english: w,
       vietnamese: m,
       ipa: p,
-      lang: item.lang || topic.lang || "en"
+      lang: item.lang || topicLang
     };
   });
 
   hihiCloseTopicPicker();
   if (typeof window.hihiOnTopicSelect === "function") {
-    window.hihiOnTopicSelect(topic.name, words);
+    window.hihiOnTopicSelect(topic.name, words, topicLang, topic);
   }
 };
 </script>

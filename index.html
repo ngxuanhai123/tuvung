@@ -4205,10 +4205,22 @@ window.fetchTopics = async function(manual = false) {
     try {
         // SỬA Ở ĐÂY: Thêm timestamp để trình duyệt luôn gọi API danh sách mới nhất
         const api = `https://api.github.com/repos/${ghUser}/${ghRepo}/contents/?t=${Date.now()}`;
-        const res = await fetch(api, { cache: "no-store" });
-        if(!res.ok) throw new Error("Kết nối thất bại");
-        
-        const files = await res.json();
+        let files = [];
+        try {
+            const res = await fetch(api, { cache: "no-store" });
+            if(res.ok) {
+                files = await res.json();
+            } else {
+                throw new Error("API rate limited");
+            }
+        } catch(apiErr) {
+            console.warn("GitHub API rate limit exceeded, falling back to static manifest pool...");
+            const shared = typeof window.hihiFetchAllTopics === "function" ? await window.hihiFetchAllTopics() : [];
+            files = shared.filter(t => !t.isCustom).map(t => ({
+                name: t.file || t.id.replace('tuvung_', '').replace('3000tv_', ''),
+                download_url: t.download_url
+            }));
+        }
         
         // UPDATED: Save to LocalStorage Cache
         localStorage.setItem(`fp_aurora_topics_cache_${currentLang}`, JSON.stringify(files));
@@ -8670,34 +8682,78 @@ window.hihiFetchAllTopics = async function() {
   const cached = sessionStorage.getItem("hihi_cached_topics");
   if (cached) {
     try {
-      window.hihiAllSharedTopics = JSON.parse(cached);
-      return window.hihiAllSharedTopics;
+      const parsed = JSON.parse(cached);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        window.hihiAllSharedTopics = parsed;
+        return window.hihiAllSharedTopics;
+      }
     } catch(e) {}
   }
 
   const topics = [];
 
-  // 1. Nạp 57 chủ đề từ vựng tiếng Anh giao tiếp từ tuvung
+  async function fetchManifestWithFallback(urls) {
+    for (const u of urls) {
+      try {
+        const res = await fetch(u, { cache: "no-cache" });
+        if (res.ok) return await res.json();
+      } catch(e) {}
+    }
+    return null;
+  }
+
+  // 1. Nạp 57 chủ đề từ vựng tiếng Anh giao tiếp từ tuvung (Thử nhiều nguồn mirror để không bao giờ lỗi)
   try {
-    const fastRes = await fetch("https://raw.githubusercontent.com/ngxuanhai123/tuvung/main/vocab_manifest.json");
-    if (fastRes.ok) {
-      const manifest = await fastRes.json();
+    const tuvungManifestUrls = [
+      "./vocab_manifest.json",
+      "../tuvung/vocab_manifest.json",
+      "https://ngxuanhai123.github.io/tuvung/vocab_manifest.json",
+      "https://raw.githubusercontent.com/ngxuanhai123/tuvung/main/vocab_manifest.json"
+    ];
+    const manifest = await fetchManifestWithFallback(tuvungManifestUrls);
+    if (manifest && Array.isArray(manifest.topics)) {
       for (const t of manifest.topics) {
-        topics.push({ id: 'tuvung_' + t.file, name: t.name, download_url: t.url, isCustom: false, category: '57 Chủ đề thông dụng' });
+        const encodedFile = encodeURIComponent(t.file);
+        topics.push({
+          id: 'tuvung_' + t.file,
+          name: t.name,
+          file: t.file,
+          download_url: `https://raw.githubusercontent.com/ngxuanhai123/tuvung/main/${encodedFile}`,
+          fallback_url: `https://ngxuanhai123.github.io/tuvung/${encodedFile}`,
+          isCustom: false,
+          category: '57 Chủ đề thông dụng'
+        });
       }
     }
-  } catch(e) {}
+  } catch(e) {
+    console.warn("Lỗi nạp manifest tuvung:", e);
+  }
 
   // 2. Nạp kho 3000 từ vựng Oxford (24 chữ cái A-Y) từ 3000tv
   try {
-    const res3000 = await fetch("https://raw.githubusercontent.com/ngxuanhai123/3000tv/main/vocab_manifest.json");
-    if (res3000.ok) {
-      const manifest3000 = await res3000.json();
+    const oxfordManifestUrls = [
+      "../3000tv/vocab_manifest.json",
+      "https://ngxuanhai123.github.io/3000tv/vocab_manifest.json",
+      "https://raw.githubusercontent.com/ngxuanhai123/3000tv/main/vocab_manifest.json"
+    ];
+    const manifest3000 = await fetchManifestWithFallback(oxfordManifestUrls);
+    if (manifest3000 && Array.isArray(manifest3000.letters)) {
       for (const l of manifest3000.letters) {
-        topics.push({ id: '3000tv_' + l.file, name: `${l.name} (${l.wordCount} từ)`, download_url: l.url, isCustom: false, category: 'Oxford 3000 từ' });
+        const encodedFile = encodeURIComponent(l.file);
+        topics.push({
+          id: '3000tv_' + l.file,
+          name: `${l.name} (${l.wordCount || 0} từ)`,
+          file: l.file,
+          download_url: `https://raw.githubusercontent.com/ngxuanhai123/3000tv/main/${encodedFile}`,
+          fallback_url: `https://ngxuanhai123.github.io/3000tv/${encodedFile}`,
+          isCustom: false,
+          category: 'Oxford 3000 từ'
+        });
       }
     }
-  } catch(e) {}
+  } catch(e) {
+    console.warn("Lỗi nạp manifest 3000tv:", e);
+  }
 
   // 3. Nạp các chủ đề do Admin tạo trên Firestore (Hỗ trợ Đa Ngôn Ngữ)
   try {
@@ -8717,7 +8773,9 @@ window.hihiFetchAllTopics = async function() {
         category: `⭐ ${langName}`
       });
     });
-  } catch(e) {}
+  } catch(e) {
+    console.warn("Lỗi nạp custom topics từ Firestore:", e);
+  }
 
   window.hihiAllSharedTopics = topics;
   try { sessionStorage.setItem("hihi_cached_topics", JSON.stringify(topics)); } catch(e) {}
@@ -8768,19 +8826,45 @@ window.hihiFilterTopicList = function(keyword) {
 window.hihiSelectTopic = async function(topicId) {
   const topic = window.hihiAllSharedTopics.find(t => t.id === topicId);
   if (!topic) return;
-  let words = [];
+  let rawWords = [];
   if (topic.isCustom && topic.words) {
-    words = topic.words;
-  } else if (topic.download_url) {
-    try {
-      const res = await fetch(topic.download_url);
-      const data = await res.json();
-      words = data.words || (Array.isArray(data) ? data : []);
-    } catch(e) {
-      alert("Lỗi tải từ vựng: " + e.message);
+    rawWords = topic.words;
+  } else {
+    const fetchUrls = [topic.download_url, topic.fallback_url].filter(Boolean);
+    let loaded = false;
+    for (const url of fetchUrls) {
+      try {
+        const res = await fetch(url);
+        if (res.ok) {
+          const data = await res.json();
+          rawWords = data.words || (Array.isArray(data) ? data : []);
+          loaded = true;
+          break;
+        }
+      } catch(e) {}
+    }
+    if (!loaded || rawWords.length === 0) {
+      alert("Không thể tải từ vựng từ máy chủ. Vui lòng kiểm tra kết nối mạng!");
       return;
     }
   }
+
+  const words = rawWords.map(item => {
+    const w = item.word || item.english || item.term || "";
+    const m = item.meaning || item.vietnamese || item.definition || "";
+    const p = item.phonetic || item.ipa || item.pronunciation || "";
+    const e = item.example || item.sentence || "";
+    return {
+      word: w,
+      meaning: m,
+      phonetic: p,
+      example: e,
+      english: w,
+      vietnamese: m,
+      ipa: p,
+      lang: item.lang || topic.lang || "en"
+    };
+  });
 
   hihiCloseTopicPicker();
   if (typeof window.hihiOnTopicSelect === "function") {

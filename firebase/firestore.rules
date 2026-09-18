@@ -1,0 +1,28 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 1. BẢNG XẾP HẠNG TỔNG HỢP HIHI STUDY
+    // Mọi người đều có thể xem bảng xếp hạng
+    // Chỉ người dùng đã đăng nhập mới được ghi nhận điểm cho chính tài khoản của mình
+    match /hihi_leaderboard/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid
+                   && request.resource.data.total_score is number
+                   && request.resource.data.total_score >= 0;
+    }
+
+    // 2. BẢNG XẾP HẠNG CŨ CỦA TỪ VỰNG (Giữ tương thích ngược)
+    match /leaderboard/{uid} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.uid == uid;
+    }
+
+    // 3. CHỦ ĐỀ TỪ VỰNG TÙY CHỈNH (CUSTOM TOPICS)
+    // Mọi người đều có thể tải về học
+    // Chỉ Admin haingxua@gmail.com mới có quyền tạo, sửa và xóa chủ đề
+    match /hihi_custom_topics/{topicId} {
+      allow read: if true;
+      allow write: if request.auth != null && request.auth.token.email == "haingxua@gmail.com";
+    }
+  }
+}

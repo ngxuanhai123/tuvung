@@ -1,0 +1,13 @@
+{
+  "rules": {
+    "leaderboard": {
+      "$month": {
+        "$uid": {
+          ".read": true,
+          ".write": "auth != null && auth.uid === $uid && newData.child('score').val() <= 10000 && newData.child('score').val() >= 0",
+          ".validate": "newData.hasChildren(['score', 'displayName'])"
+        }
+      }
+    }
+  }
+}

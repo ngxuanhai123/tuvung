@@ -2705,10 +2705,41 @@ const PEXELS_LOCALE_MAP = {
 };
 
 let currentUser = null;
+let currentLang = localStorage.getItem('fp_aurora_lang') || 'en';
+
+// --- USER-SCOPED DATA HELPERS (Chống lẫn lộn dữ liệu giữa các tài khoản & khách) ---
+function getCurrentUserUid() {
+    const u = (typeof auth !== 'undefined' && auth && auth.currentUser) || currentUser;
+    return (u && u.uid) ? u.uid : 'guest';
+}
+
+function getDataKey(prefix, lang = currentLang) {
+    const uid = getCurrentUserUid();
+    return `${prefix}_${lang}_${uid}`;
+}
+
+function getUserKey(prefix) {
+    const uid = getCurrentUserUid();
+    return `${prefix}_${uid}`;
+}
+
+function getScopedStorageItem(scopedKey, legacyKey) {
+    const val = localStorage.getItem(scopedKey);
+    if (val !== null && val !== undefined) return val;
+    if (legacyKey) {
+        const legVal = localStorage.getItem(legacyKey);
+        if (legVal !== null && legVal !== undefined) {
+            try { localStorage.setItem(scopedKey, legVal); } catch(e) {}
+            return legVal;
+        }
+    }
+    return null;
+}
+
 let studyTimer = null;
-let accumulatedTime = parseInt(localStorage.getItem('fp_aurora_time') || 0);
-let weekTime = parseInt(localStorage.getItem('fp_aurora_time_week') || 0);   // Thời gian tuần
-let monthTime = parseInt(localStorage.getItem('fp_aurora_time_month') || 0); // Thời gian tháng
+let accumulatedTime = parseInt(getScopedStorageItem(getUserKey('fp_aurora_time'), 'fp_aurora_time') || 0);
+let weekTime = parseInt(getScopedStorageItem(getUserKey('fp_aurora_time_week'), 'fp_aurora_time_week') || 0);   // Thời gian tuần
+let monthTime = parseInt(getScopedStorageItem(getUserKey('fp_aurora_time_month'), 'fp_aurora_time_month') || 0); // Thời gian tháng
 let currentImageRequest = null;
 let lastInjectIndex = -1;
 let lastProcessTime = 0;
@@ -2809,12 +2840,9 @@ window.isSessionActive = false; // Flag for offline-first sync optimization
 window.currentHintCount = 0;    // Counter for hint usage penalty
 
 // --- NEW GLOBALS ---
-// Language config is loaded before dailyTracking to ensure correct key
-let currentLang = localStorage.getItem('fp_aurora_lang') || 'en';
-
-// DAILY TRACKING NOW LANGUAGE SPECIFIC
+// DAILY TRACKING NOW LANGUAGE & USER SPECIFIC
 let dailyTracking = safeParseJSON(
-    localStorage.getItem(`fp_aurora_daily_${currentLang}`),
+    getScopedStorageItem(getDataKey('fp_aurora_daily'), `fp_aurora_daily_${currentLang}`),
     { date: "", count: 0, learnedWords: [] },
     `daily_${currentLang}`
 );
@@ -2829,9 +2857,13 @@ if (!dailyTracking.learnedWords || !Array.isArray(dailyTracking.learnedWords)) {
 // Đây là dòng quan trọng nhất giúp sửa lỗi hiển thị sai số lượng
 dailyTracking.count = dailyTracking.learnedWords.length;
 
-  let scoreHistory = {}; // 
-// STREAK HISTORY TRACKING (Shared or language specific? Let's make it shared for simplicity, showing general activity)
-let streakHistory = safeParseJSON(localStorage.getItem('fp_aurora_streak_history'), [], 'streak history');
+let scoreHistory = {}; // 
+// STREAK HISTORY TRACKING (Scoped theo tài khoản)
+let streakHistory = safeParseJSON(
+    getScopedStorageItem(getUserKey('fp_aurora_streak_history'), 'fp_aurora_streak_history'),
+    [],
+    'streak history'
+);
 
 let trialCount = parseInt(localStorage.getItem('fp_aurora_trial_access') || '0');
 // Calendar view mode state
@@ -2849,10 +2881,10 @@ function checkDailyLimit() {
         // Reset khi sang ngày mới
         dailyTracking = { 
             date: today, 
-            count: 0,
-            learnedWords: []
+            count: 0, 
+            learnedWords: [] 
         };
-        localStorage.setItem(`fp_aurora_daily_${currentLang}`, JSON.stringify(dailyTracking));
+        localStorage.setItem(getDataKey('fp_aurora_daily'), JSON.stringify(dailyTracking));
     }
     
     // ✅ Đảm bảo có trường learnedWords (cho data cũ)
@@ -2987,7 +3019,7 @@ if (!LANG_CONFIG[currentLang]) {
     currentLang = 'en';
     localStorage.setItem('fp_aurora_lang', currentLang);
     dailyTracking = safeParseJSON(
-        localStorage.getItem(`fp_aurora_daily_${currentLang}`),
+        getScopedStorageItem(getDataKey('fp_aurora_daily'), `fp_aurora_daily_${currentLang}`),
         { date: "", count: 0, learnedWords: [] },
         `daily_${currentLang}`
     );
@@ -3000,11 +3032,6 @@ if (!LANG_CONFIG[currentLang]) {
 // Repo state mainly for English
 let currentRepoType = localStorage.getItem('fp_aurora_repo_type_en') || 'standard'; 
 if (!['standard', 'advanced'].includes(currentRepoType)) currentRepoType = 'standard';
-
-// --- DATA KEY HELPERS ---
-function getDataKey(prefix) {
-    return prefix + '_' + currentLang;
-}
 
 // --- FIREBASE FUNCTIONS ---
 window.loginGoogle = () => {
@@ -3029,12 +3056,17 @@ window.logoutGoogle = () => {
         }
         signOut(auth).then(() => {
             showToast("Đã đăng xuất");
-            accumulatedPoints = 0; 
-            weekPoints = 0;
-            monthPoints = 0;
-            sessionPoints = 0;
-            updateUserPointsUI();
-            // Let onAuthStateChanged handle UI
+            currentUser = null;
+            if (typeof loadUserProgressState === 'function') {
+                loadUserProgressState();
+            } else {
+                accumulatedPoints = 0; 
+                weekPoints = 0;
+                monthPoints = 0;
+                sessionPoints = 0;
+                updateUserPointsUI();
+            }
+            renderDashboard();
         });
     }
 };
@@ -3064,12 +3096,18 @@ onAuthStateChanged(auth, async (user) => {
             profile.style.display = 'flex';
             document.getElementById('userImg').src = user.photoURL;
             document.getElementById('userName').innerText = user.displayName;
+            if (typeof loadUserProgressState === 'function') {
+                loadUserProgressState();
+            }
             await syncDataFromServer();
             saveProgressToCloud(); 
         } else {
             // Guest Mode
             btn.style.display = 'block';
             profile.style.display = 'none';
+            if (typeof loadUserProgressState === 'function') {
+                loadUserProgressState();
+            }
         }
         renderDashboard(); // Update dashboard logic
     } else {
@@ -3099,7 +3137,7 @@ async function syncDataFromServer() {
             // Load lịch sử chi tiết từ server về
             if (data[historyKey]) {
                 scoreHistory = safeParseJSON(data[historyKey], {}, historyKey);
-                localStorage.setItem(`fp_aurora_score_history_${currentLang}`, data[historyKey]);
+                localStorage.setItem(getDataKey('fp_aurora_score_history'), data[historyKey]);
             } else {
                 // Nếu server chưa có history (người dùng cũ), thử fallback về điểm tổng hiện có
                 // Hoặc khởi tạo rỗng để bắt đầu ghi từ hôm nay
@@ -3123,7 +3161,7 @@ async function syncDataFromServer() {
                 accumulatedPoints = data[scoreKey];
             }
             
-            localStorage.setItem(`fp_aurora_points_${currentLang}`, accumulatedPoints);
+            localStorage.setItem(getDataKey('fp_aurora_points'), accumulatedPoints);
 
             // -----------------------------------------------------------
             // 2. XỬ LÝ THỜI GIAN (TIME) - GIỮ NGUYÊN LOGIC CŨ CỦA BẠN
@@ -3146,9 +3184,9 @@ async function syncDataFromServer() {
 
             if (data.studyTime > accumulatedTime) accumulatedTime = data.studyTime;
             
-            localStorage.setItem('fp_aurora_time_week', weekTime);
-            localStorage.setItem('fp_aurora_time_month', monthTime);
-            localStorage.setItem('fp_aurora_time', accumulatedTime);
+            localStorage.setItem(getUserKey('fp_aurora_time_week'), weekTime);
+            localStorage.setItem(getUserKey('fp_aurora_time_month'), monthTime);
+            localStorage.setItem(getUserKey('fp_aurora_time'), accumulatedTime);
 
             // -----------------------------------------------------------
             // 3. CÁC DỮ LIỆU KHÁC (STREAK, SRS, CONFIG...) - GIỮ NGUYÊN
@@ -3159,7 +3197,7 @@ async function syncDataFromServer() {
                 const serverHistory = safeParseJSON(data.streakHistory, [], 'server streak history');
                 const localSet = new Set([...streakHistory, ...serverHistory]);
                 streakHistory = Array.from(localSet).sort();
-                localStorage.setItem('fp_aurora_streak_history', JSON.stringify(streakHistory));
+                localStorage.setItem(getUserKey('fp_aurora_streak_history'), JSON.stringify(streakHistory));
             }
 
             // Sync Language Specific Data
@@ -3244,13 +3282,15 @@ async function saveProgressToCloud(force = false) {
     weekPoints = stats.totalWeek;
     monthPoints = stats.totalMonth;
 
-    // 3. LƯU LOCALSTORAGE (Để dùng offline)
-    localStorage.setItem(`fp_aurora_score_history_${currentLang}`, JSON.stringify(scoreHistory));
-    localStorage.setItem(`fp_aurora_points_${currentLang}`, accumulatedPoints);
+    // 3. LƯU LOCALSTORAGE (Để dùng offline - Scoped theo tài khoản)
+    localStorage.setItem(getDataKey('fp_aurora_score_history'), JSON.stringify(scoreHistory));
+    localStorage.setItem(getDataKey('fp_aurora_points'), accumulatedPoints);
     
     // Lưu thêm Time vào LS
-    localStorage.setItem('fp_aurora_time_week', weekTime);
-    localStorage.setItem('fp_aurora_time_month', monthTime);
+    localStorage.setItem(getUserKey('fp_aurora_time'), accumulatedTime);
+    localStorage.setItem(getUserKey('fp_aurora_time_week'), weekTime);
+    localStorage.setItem(getUserKey('fp_aurora_time_month'), monthTime);
+    localStorage.setItem(getUserKey('fp_aurora_streak_history'), JSON.stringify(streakHistory));
 
     // Chuẩn bị Key để lưu lên Firebase
     const srsKey = `srsData_${currentLang}`;
@@ -3586,16 +3626,74 @@ async function playSound(sfx) {
 // --- GLOBAL STATE ---
 let allTopics = {}; // Acts as Cache now: {filename: {name: '...', words: []}}
 let allTopicsMetadata = []; // New: Stores the file list [{name: 'Topic.json', download_url: '...'}, ...]
-// State is now dependent on currentLang
-let currentTopicKey = localStorage.getItem(getDataKey('fp_aurora_topic')) || '';
-let srsData = safeParseJSON(localStorage.getItem(getDataKey('fp_aurora_srs')), {}, 'srs data'); 
-let masteredWords = safeParseJSON(localStorage.getItem(getDataKey('fp_aurora_mastered')), {}, 'mastered words');
-// Load context specific points
-let accumulatedPoints = parseInt(localStorage.getItem(`fp_aurora_points_${currentLang}`) || 0);
-// Volatile points for session tracking (Week/Month) - normally should load from server but simplified here
+let currentTopicKey = '';
+let srsData = {}; 
+let masteredWords = {};
+let accumulatedPoints = 0;
 let weekPoints = 0;
 let monthPoints = 0;
 let sessionPoints = 0;
+
+// --- HÀM NẠP TIẾN ĐỘ HỌC CỦA TÀI KHOẢN HIỆN TẠI ---
+function loadUserProgressState(lang = currentLang) {
+    // 1. SRS & Mastered
+    srsData = safeParseJSON(
+        getScopedStorageItem(getDataKey('fp_aurora_srs', lang), `fp_aurora_srs_${lang}`),
+        {},
+        'srs data'
+    );
+    masteredWords = safeParseJSON(
+        getScopedStorageItem(getDataKey('fp_aurora_mastered', lang), `fp_aurora_mastered_${lang}`),
+        {},
+        'mastered words'
+    );
+
+    // 2. Current Topic
+    currentTopicKey = getScopedStorageItem(getDataKey('fp_aurora_topic', lang), `fp_aurora_topic_${lang}`) || '';
+
+    // 3. Score History & Points
+    scoreHistory = safeParseJSON(
+        getScopedStorageItem(getDataKey('fp_aurora_score_history', lang), `fp_aurora_score_history_${lang}`),
+        {},
+        `score_history_${lang}`
+    );
+    const stats = calculateAggregatedStats(scoreHistory);
+    accumulatedPoints = stats.totalAllTime;
+    weekPoints = stats.totalWeek;
+    monthPoints = stats.totalMonth;
+    sessionPoints = 0;
+
+    // 4. Daily Tracking
+    dailyTracking = safeParseJSON(
+        getScopedStorageItem(getDataKey('fp_aurora_daily', lang), `fp_aurora_daily_${lang}`),
+        { date: "", count: 0, learnedWords: [] },
+        `daily_${lang}`
+    );
+    if (!dailyTracking.learnedWords || !Array.isArray(dailyTracking.learnedWords)) {
+        dailyTracking.learnedWords = [];
+    }
+    dailyTracking.count = dailyTracking.learnedWords.length;
+    checkDailyLimit();
+
+    // 5. Streak History
+    streakHistory = safeParseJSON(
+        getScopedStorageItem(getUserKey('fp_aurora_streak_history'), 'fp_aurora_streak_history'),
+        [],
+        'streak history'
+    );
+
+    // 6. Study Time
+    accumulatedTime = parseInt(getScopedStorageItem(getUserKey('fp_aurora_time'), 'fp_aurora_time') || 0);
+    weekTime = parseInt(getScopedStorageItem(getUserKey('fp_aurora_time_week'), 'fp_aurora_time_week') || 0);
+    monthTime = parseInt(getScopedStorageItem(getUserKey('fp_aurora_time_month'), 'fp_aurora_time_month') || 0);
+
+    if (typeof updateUserPointsUI === 'function') {
+        updateUserPointsUI();
+    }
+}
+
+// Khởi tạo tiến độ ban đầu
+loadUserProgressState(currentLang);
 let config = {
     newLimit: parseInt(localStorage.getItem('fp_aurora_cfg_new') || 5),
     reviewLimit: parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20),
@@ -3866,25 +3964,8 @@ window.switchLanguage = async function(lang) {
     
     updateLangUI();
     
-    // Load lại Lịch sử điểm của ngôn ngữ mới
-    scoreHistory = safeParseJSON(localStorage.getItem(`fp_aurora_score_history_${currentLang}`), {}, `score_history_${currentLang}`);
-    
-    // Tính lại điểm hiển thị ngay lập tức
-    const stats = calculateAggregatedStats(scoreHistory);
-    accumulatedPoints = stats.totalAllTime;
-    weekPoints = stats.totalWeek;
-    monthPoints = stats.totalMonth;
-    
-    sessionPoints = 0;
-    updateUserPointsUI();
-    
-    // RELOAD DAILY TRACKING
-    dailyTracking = safeParseJSON(
-        localStorage.getItem(`fp_aurora_daily_${currentLang}`),
-        { date: "", count: 0, learnedWords: [] },
-        `daily_${currentLang}`
-    );
-    checkDailyLimit();
+    // Nạp lại toàn bộ tiến độ của ngôn ngữ mới theo tài khoản hiện tại
+    loadUserProgressState(lang);
 
     // Reload TTS
     if(window.speechSynthesis) window.speechSynthesis.cancel();
@@ -3909,7 +3990,7 @@ window.switchLanguage = async function(lang) {
     
     // Render lại UI
     renderDashboard();
-}
+};
 
 // --- REPO SWITCHING LOGIC ---
 window.setRepo = function(type) {
@@ -4624,7 +4705,7 @@ window.processResult = function(isCorrect, skipNext = false) {
         const todayStr = new Date().toISOString().split('T')[0];
         if(!streakHistory.includes(todayStr)) {
             streakHistory.push(todayStr);
-            localStorage.setItem('fp_aurora_streak_history', JSON.stringify(streakHistory));
+            localStorage.setItem(getUserKey('fp_aurora_streak_history'), JSON.stringify(streakHistory));
         }
         window.sessionCorrectStreak = (window.sessionCorrectStreak || 0) + 1;
         
@@ -4639,7 +4720,7 @@ window.processResult = function(isCorrect, skipNext = false) {
             if (!dailyTracking.learnedWords.includes(key)) {
                 dailyTracking.learnedWords.push(key);
                 dailyTracking.count = dailyTracking.learnedWords.length;
-                localStorage.setItem(`fp_aurora_daily_${currentLang}`, JSON.stringify(dailyTracking));
+                localStorage.setItem(getDataKey('fp_aurora_daily'), JSON.stringify(dailyTracking));
             }
         }
         
@@ -4803,10 +4884,10 @@ function startTimer() {
         weekTime++;
         monthTime++;
 
-        // Lưu vào LocalStorage liên tục để không mất khi F5
-        localStorage.setItem('fp_aurora_time', accumulatedTime);
-        localStorage.setItem('fp_aurora_time_week', weekTime);
-        localStorage.setItem('fp_aurora_time_month', monthTime);
+        // Lưu vào LocalStorage liên tục để không mất khi F5 (Scoped theo tài khoản)
+        localStorage.setItem(getUserKey('fp_aurora_time'), accumulatedTime);
+        localStorage.setItem(getUserKey('fp_aurora_time_week'), weekTime);
+        localStorage.setItem(getUserKey('fp_aurora_time_month'), monthTime);
 
         if(accumulatedTime % 60 === 0) {
             addPoints(5); 
@@ -6495,29 +6576,6 @@ window.markMastered = function() {
     nextStep();
 }
 
-window.resetProgress = function() {
-    if(!confirm("CẢNH BÁO: Hành động này sẽ xoá TOÀN BỘ dữ liệu học tập của ngôn ngữ hiện tại, bao gồm từ đã thuộc và tiến độ ôn tập. Bạn có chắc chắn không?")) return;
-    
-    srsData = {};
-    masteredWords = {};
-    accumulatedPoints = 0;
-    accumulatedTime = 0;
-    
-    // UPDATED: Correctly reset trial count logic
-    trialCount = 0;
-    localStorage.setItem('fp_aurora_trial_access', '0');
-    
-    localStorage.removeItem(getDataKey('fp_aurora_srs'));
-    localStorage.removeItem(getDataKey('fp_aurora_mastered'));
-    localStorage.removeItem(`fp_aurora_points_${currentLang}`);
-    localStorage.removeItem('fp_aurora_time');
-    
-    saveProgressToCloud();
-    renderDashboard();
-    showToast("Đã xoá dữ liệu thành công", "success");
-    playSound(SFX.POP);
-}
-
 function setupVoice() {
     if (!window.speechSynthesis) {
         selectedVoice = null;
@@ -6672,33 +6730,8 @@ window.silentUpdateSRS = function(w) {
         if (!dailyTracking.learnedWords.includes(key)) {
             dailyTracking.learnedWords.push(key);
             dailyTracking.count = dailyTracking.learnedWords.length;
-            localStorage.setItem(`fp_aurora_daily_${currentLang}`, JSON.stringify(dailyTracking));
+            localStorage.setItem(getDataKey('fp_aurora_daily'), JSON.stringify(dailyTracking));
         }
-    }
-}
-  // --- HÀM XOÁ CACHE AI ---
-window.clearAICache = function() {
-    // 1. Hỏi xác nhận
-    if(!confirm("Bạn có chắc muốn xoá lịch sử trả lời của AI?\n(Các câu hỏi cũ sẽ cần tải lại từ đầu)")) return;
-
-    try {
-        // 2. Xoá khỏi LocalStorage
-        localStorage.removeItem('fp_aurora_ai_cache');
-
-        // 3. Xoá biến tạm trong RAM (vì aiCache là const nên ta xoá từng key bên trong)
-        if (typeof aiCache !== 'undefined') {
-            for (const key in aiCache) {
-                delete aiCache[key];
-            }
-        }
-
-        // 4. Thông báo
-        showToast("Đã dọn dẹp bộ nhớ đệm AI!", "success");
-        playSound(SFX.POP);
-        
-    } catch (e) {
-        console.error(e);
-        showToast("Lỗi khi xoá cache", "error");
     }
 }
 
@@ -7028,86 +7061,246 @@ window.startGlobalReview = async function() {
     await window.startSmartSession(false, { reviewOnly: true });
 };
 
+// --- HÀM XOÁ TOÀN BỘ CACHE OFFLINE (BẢO TOÀN TIẾN ĐỘ HỌC) ---
 window.clearAICache = async function() {
-    if(!confirm("Xoá cache offline/AI/dịch/ảnh đã lưu? Tiến độ học sẽ được giữ nguyên.")) return;
+    if(!confirm("Xoá toàn bộ cache offline (AI, bản dịch, danh sách & nội dung bài học, ảnh)?\n\nTiến độ học tập và điểm số của bạn sẽ được GIỮ NGUYÊN HOÀN TOÀN.")) return;
 
     try {
+        let removedCount = 0;
         const keysToRemove = [];
+
+        // 1. Quét LocalStorage tìm tất cả key cache (cho MỌI ngôn ngữ en, id, vi...)
         for (let i = 0; i < localStorage.length; i++) {
             const key = localStorage.key(i);
-            if (
+            if (!key) continue;
+
+            // Nhận diện các key cache
+            const isCacheKey = 
                 key === 'fp_aurora_ai_cache' ||
                 key === 'fp_aurora_trans_cache' ||
-                key === `fp_aurora_topics_cache_${currentLang}` ||
-                key.startsWith(`fp_aurora_topic_content_${currentLang}_`)
-            ) {
+                key.startsWith('fp_aurora_ai_cache') ||
+                key.startsWith('fp_aurora_trans_cache') ||
+                key.startsWith('fp_aurora_topics_cache_') ||
+                key.startsWith('fp_aurora_topic_content_') ||
+                key.startsWith('hihi_cached_topics') ||
+                key === 'allTopics' ||
+                key === 'imageCache';
+
+            // Đảm bảo không xoá nhầm bất kỳ key tiến độ học hoặc config nào
+            const isProtectedProgressOrConfig = 
+                key.startsWith('fp_aurora_srs') ||
+                key.startsWith('fp_aurora_mastered') ||
+                key.startsWith('fp_aurora_score_history') ||
+                key.startsWith('fp_aurora_daily') ||
+                key.startsWith('fp_aurora_points') ||
+                key.startsWith('fp_aurora_streak') ||
+                key.startsWith('fp_aurora_time') ||
+                key.startsWith('fp_aurora_dark') ||
+                key.startsWith('fp_aurora_muted') ||
+                key.startsWith('fp_aurora_eco') ||
+                key.startsWith('fp_aurora_brightness') ||
+                key.startsWith('fp_aurora_voice') ||
+                key.startsWith('fp_aurora_edge_voices') ||
+                key.startsWith('fp_aurora_sfx') ||
+                key.startsWith('fp_aurora_game_modes') ||
+                key.startsWith('fp_aurora_cfg_') ||
+                key.startsWith('fp_aurora_lang') ||
+                key.startsWith('fp_aurora_repo_type') ||
+                key.startsWith('fp_aurora_trial_access') ||
+                key.startsWith('hihi');
+
+            if (isCacheKey && !isProtectedProgressOrConfig) {
                 keysToRemove.push(key);
             }
         }
 
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-        Object.keys(aiCache).forEach(key => delete aiCache[key]);
-        Object.keys(translationCache).forEach(key => delete translationCache[key]);
-        Object.keys(imageCache).forEach(key => delete imageCache[key]);
+        keysToRemove.forEach(k => {
+            localStorage.removeItem(k);
+            removedCount++;
+        });
+
+        // 2. Xoá SessionStorage cache
+        try {
+            sessionStorage.removeItem("hihi_cached_topics");
+            sessionStorage.removeItem("hihi_lb_cache");
+            const sessionKeys = [];
+            for (let i = 0; i < sessionStorage.length; i++) {
+                const sk = sessionStorage.key(i);
+                if (sk && (sk.includes('topics_cache') || sk.includes('topic_content') || sk.includes('ai_cache'))) {
+                    sessionKeys.push(sk);
+                }
+            }
+            sessionKeys.forEach(sk => sessionStorage.removeItem(sk));
+        } catch(e) {}
+
+        // 3. Xoá CacheStorage / Service Worker cache nếu có
+        if ('caches' in window) {
+            try {
+                const cacheNames = await caches.keys();
+                await Promise.all(
+                    cacheNames.map(cName => {
+                        if (cName.includes('fp-aurora') || cName.includes('tuvung') || cName.includes('hihi')) {
+                            return caches.delete(cName);
+                        }
+                    })
+                );
+            } catch(e) {
+                console.warn("CacheStorage clear warning:", e);
+            }
+        }
+
+        // 4. Xoá RAM caches
+        if (typeof aiCache !== 'undefined' && aiCache) {
+            Object.keys(aiCache).forEach(key => delete aiCache[key]);
+        }
+        if (typeof translationCache !== 'undefined' && translationCache) {
+            Object.keys(translationCache).forEach(key => delete translationCache[key]);
+        }
+        if (typeof imageCache !== 'undefined' && imageCache) {
+            Object.keys(imageCache).forEach(key => delete imageCache[key]);
+        }
         allTopics = {};
         allTopicsMetadata = [];
+        window.hihiAllSharedTopics = [];
 
-        showToast(`Đã xoá ${keysToRemove.length} mục cache. Đang tải lại danh sách...`, "success");
+        showToast(`Đã dọn dẹp cache offline (${removedCount} mục). Đang nạp dữ liệu mới...`, "success");
         playSound(SFX.POP);
+
+        // Tải lại danh sách bài học mới nhất
         await window.fetchTopics(true);
         renderDashboard();
     } catch (e) {
-        console.error(e);
-        showToast("Lỗi khi xoá cache", "error");
+        console.error("clearAICache error:", e);
+        showToast("Lỗi khi xoá cache: " + e.message, "error");
     }
 };
 
+// --- HÀM XOÁ TOÀN BỘ TIẾN ĐỘ HỌC (CHỈ RIÊNG CHO TÀI KHOẢN ĐANG ĐĂNG NHẬP HOẶC KHÁCH) ---
 window.resetProgress = async function() {
-    if(!confirm("Xoá toàn bộ tiến độ học của ngôn ngữ hiện tại? Cache và cài đặt vẫn được giữ lại.")) return;
+    const user = (typeof auth !== 'undefined' && auth && auth.currentUser) || currentUser;
+    const uid = user ? user.uid : null;
+    const langLabel = (LANG_CONFIG && LANG_CONFIG[currentLang]?.label) || currentLang;
+    const accountName = user ? (user.displayName || user.email || "tài khoản hiện tại") : "Khách (Guest)";
 
-    cleanupGameResources();
-    stopGlobalAudio();
-    stopTimer();
-    window.isSessionActive = false;
-    window.isGlobalReviewSession = false;
-    window.isReviewOnlySession = false;
+    const confirmMsg = user 
+        ? `⚠️ CẢNH BÁO XOÁ TIẾN ĐỘ HỌC:\n\nBạn có chắc chắn muốn xoá TOÀN BỘ dữ liệu học tập của tài khoản "${accountName}" (ngôn ngữ: ${langLabel})?\n\n• Tiến độ học, từ đã thuộc, điểm số và chuỗi học của RIÊNG tài khoản này sẽ được đặt lại về 0.\n• Dữ liệu của tài khoản khác trên thiết bị này và cache offline sẽ KHÔNG bị ảnh hưởng.\n\nHành động này không thể hoàn tác!`
+        : `⚠️ CẢNH BÁO XOÁ TIẾN ĐỘ HỌC:\n\nBạn có chắc chắn muốn xoá dữ liệu học tập của Khách (Guest) trên trình duyệt này (ngôn ngữ: ${langLabel})?\n\n• Bạn hiện chưa đăng nhập. Chỉ dữ liệu tạm của Khách trên thiết bị này sẽ được đặt lại về 0.`;
 
-    const today = getTodayDateString();
-    srsData = {};
-    masteredWords = {};
-    scoreHistory = {};
-    dailyTracking = { date: today, count: 0, learnedWords: [] };
-    streakHistory = [];
-    sessionPoints = 0;
-    accumulatedPoints = 0;
-    weekPoints = 0;
-    monthPoints = 0;
-    accumulatedTime = 0;
-    weekTime = 0;
-    monthTime = 0;
-    sessionQueue = [];
-    sessionIndex = 0;
+    if (!confirm(confirmMsg)) return;
 
-    localStorage.setItem(getDataKey('fp_aurora_srs'), JSON.stringify(srsData));
-    localStorage.setItem(getDataKey('fp_aurora_mastered'), JSON.stringify(masteredWords));
-    localStorage.setItem(`fp_aurora_score_history_${currentLang}`, JSON.stringify(scoreHistory));
-    localStorage.setItem(`fp_aurora_daily_${currentLang}`, JSON.stringify(dailyTracking));
-    localStorage.setItem(`fp_aurora_points_${currentLang}`, '0');
-    localStorage.setItem('fp_aurora_streak_history', JSON.stringify(streakHistory));
-    localStorage.setItem('fp_aurora_time', '0');
-    localStorage.setItem('fp_aurora_time_week', '0');
-    localStorage.setItem('fp_aurora_time_month', '0');
+    try {
+        cleanupGameResources();
+        stopGlobalAudio();
+        stopTimer();
+        window.isSessionActive = false;
+        window.isGlobalReviewSession = false;
+        window.isReviewOnlySession = false;
 
-    const gameOverlay = document.getElementById('gameOverlay');
-    const wordListOverlay = document.getElementById('wordListOverlay');
-    if(gameOverlay) gameOverlay.style.display = 'none';
-    if(wordListOverlay) wordListOverlay.style.display = 'none';
+        const today = getTodayDateString();
+        srsData = {};
+        masteredWords = {};
+        scoreHistory = {};
+        dailyTracking = { date: today, count: 0, learnedWords: [] };
+        streakHistory = [];
+        sessionPoints = 0;
+        accumulatedPoints = 0;
+        weekPoints = 0;
+        monthPoints = 0;
+        accumulatedTime = 0;
+        weekTime = 0;
+        monthTime = 0;
+        sessionQueue = [];
+        sessionIndex = 0;
+        currentTopicKey = '';
 
-    await saveProgressToCloud(true);
-    updateUserPointsUI();
-    renderDashboard();
-    showToast("Đã xoá toàn bộ tiến độ học.", "success");
-    playSound(SFX.POP);
+        const currentUid = uid || 'guest';
+
+        // 1. Xoá/Reset các key localStorage dành RIÊNG cho user này (currentUid)
+        localStorage.setItem(getDataKey('fp_aurora_srs'), JSON.stringify(srsData));
+        localStorage.setItem(getDataKey('fp_aurora_mastered'), JSON.stringify(masteredWords));
+        localStorage.setItem(getDataKey('fp_aurora_score_history'), JSON.stringify(scoreHistory));
+        localStorage.setItem(getDataKey('fp_aurora_daily'), JSON.stringify(dailyTracking));
+        localStorage.setItem(getDataKey('fp_aurora_points'), '0');
+        localStorage.setItem(getDataKey('fp_aurora_topic'), '');
+
+        localStorage.setItem(getUserKey('fp_aurora_streak_history'), JSON.stringify(streakHistory));
+        localStorage.setItem(getUserKey('fp_aurora_time'), '0');
+        localStorage.setItem(getUserKey('fp_aurora_time_week'), '0');
+        localStorage.setItem(getUserKey('fp_aurora_time_month'), '0');
+
+        // Nếu là khách hoặc user mới migrate, dọn dẹp thêm key un-scoped legacy
+        if (!uid) {
+            localStorage.removeItem(`fp_aurora_srs_${currentLang}`);
+            localStorage.removeItem(`fp_aurora_mastered_${currentLang}`);
+            localStorage.removeItem(`fp_aurora_score_history_${currentLang}`);
+            localStorage.removeItem(`fp_aurora_daily_${currentLang}`);
+            localStorage.removeItem(`fp_aurora_points_${currentLang}`);
+            localStorage.removeItem(`fp_aurora_topic_${currentLang}`);
+            localStorage.removeItem('fp_aurora_streak_history');
+            localStorage.removeItem('fp_aurora_time');
+            localStorage.removeItem('fp_aurora_time_week');
+            localStorage.removeItem('fp_aurora_time_month');
+            localStorage.setItem('fp_aurora_trial_access', '0');
+            trialCount = 0;
+        }
+
+        // 2. Nếu ĐÃ ĐĂNG NHẬP: Reset dữ liệu học trên Firebase Firestore cho RIÊNG tài khoản này
+        if (uid && db) {
+            const srsKey = `srsData_${currentLang}`;
+            const masterKey = `masteredWords_${currentLang}`;
+            const topicKey = `currentTopicKey_${currentLang}`;
+            const scoreKey = `score_${currentLang}`;
+            const scoreWKey = `score_week_${currentLang}`;
+            const scoreMKey = `score_month_${currentLang}`;
+            const historyKey = `history_score_${currentLang}`;
+            const learnedCountKey = `learnedCount_${currentLang}`;
+
+            await setDoc(doc(db, "leaderboard", uid), {
+                displayName: user.displayName || "Học viên",
+                photoURL: user.photoURL || "",
+                email: user.email || "",
+                [scoreKey]: 0,
+                [scoreWKey]: 0,
+                [scoreMKey]: 0,
+                [historyKey]: "{}",
+                [srsKey]: "{}",
+                [masterKey]: "{}",
+                [learnedCountKey]: 0,
+                [topicKey]: "",
+                score: 0,
+                studyTime: 0,
+                time_week: 0,
+                time_month: 0,
+                streakHistory: "[]",
+                lastUpdated: Date.now()
+            }, { merge: true });
+
+            if (window.hihiUpdateScore) {
+                window.hihiUpdateScore("tuvung", 0);
+            }
+            try {
+                await setDoc(doc(db, "hihi_leaderboard", uid), {
+                    tuvung_score: 0,
+                    lastActive: Date.now()
+                }, { merge: true });
+            } catch(e) {
+                console.warn("Reset hihi_leaderboard score warning:", e);
+            }
+        }
+
+        const gameOverlay = document.getElementById('gameOverlay');
+        const wordListOverlay = document.getElementById('wordListOverlay');
+        if(gameOverlay) gameOverlay.style.display = 'none';
+        if(wordListOverlay) wordListOverlay.style.display = 'none';
+
+        updateUserPointsUI();
+        renderDashboard();
+        showToast(user ? `Đã xoá toàn bộ dữ liệu học của ${accountName}!` : "Đã xoá toàn bộ dữ liệu học của Khách!", "success");
+        playSound(SFX.POP);
+    } catch (e) {
+        console.error("resetProgress error:", e);
+        showToast("Lỗi khi xoá dữ liệu: " + e.message, "error");
+    }
 };
 
 window.onerror = function(msg, url, line) {

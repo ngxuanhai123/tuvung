@@ -5250,7 +5250,7 @@ window.askAI = async function() {
         // --- CẤU HÌNH GỌI WORKER GROQ ---
         // ⚠️ Thay URL này bằng link Worker Groq bạn vừa tạo ở bước trước
         // Ví dụ: https://groq-proxy.ten-ban.workers.dev
-        const workerUrl = "https://hihi.ngxuanhai123.workers.dev/"; 
+        const workerUrl = "https://ai-free.ngxuanhai123.workers.dev/chat"; 
         
         const response = await fetch(workerUrl, {
             method: 'POST',
@@ -7802,7 +7802,7 @@ async function processOnlineTTS(text, langCode) {
     // -----------------------------------------------------
     try {
         console.log(`☁️ Gọi Azure Worker: ${selectedVoice}`);
-        const workerUrl = "https://tts.ngxuanhai123.workers.dev";
+        throw new Error("Azure TTS đã loại bỏ");
 
         const response = await fetch(workerUrl, {
             method: "POST",

@@ -3,6 +3,8 @@
 <head>
     <!-- Real-time Error Monitoring & Sentry -->
     <script src="hihi-monitor.js"></script>
+    <script src="hihi-leaderboard.js" defer></script>
+
 
     <!-- HIHI STUDY PERFORMANCE PRECONNECT -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -3353,6 +3355,10 @@ window.switchLbTab = (tab) => {
 }
 
 window.initLeaderboardListener = () => {
+    if (window.hihiLeaderboard && typeof window.hihiLeaderboard.renderInline === 'function') {
+        window.hihiLeaderboard.renderInline('leaderboardList');
+        return;
+    }
     if (unsubscribeLeaderboard) {
         try { unsubscribeLeaderboard(); } catch(e) {}
         unsubscribeLeaderboard = null;

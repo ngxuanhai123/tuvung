@@ -4031,6 +4031,11 @@ window.navTo = function(viewId) {
     document.querySelectorAll('.tab-item').forEach(el => el.classList.remove('active'));
     document.querySelector(`.tab-item[data-target="${viewId}"]`)?.classList.add('active');
 
+        if (viewId !== 'view-leaderboard' && typeof unsubscribeLeaderboard === 'function') {
+        try { unsubscribeLeaderboard(); } catch(e) {}
+        unsubscribeLeaderboard = null;
+    }
+
     if(viewId === 'view-home') renderDashboard();
     if(viewId === 'view-topics') renderTopicList();
     if(viewId === 'view-leaderboard') {
@@ -8259,6 +8264,10 @@ window.hihiCloseLeaderboard = function(e) {
   if (e && e.target !== e.currentTarget && !e.target.classList.contains("hihi-suite-modal-close")) return;
   const m = document.getElementById("hihiLeaderboardModal");
   if (m) m.classList.remove("active");
+  if (typeof unsubscribeLeaderboard === 'function') {
+      try { unsubscribeLeaderboard(); } catch(err) {}
+      unsubscribeLeaderboard = null;
+  }
 };
 
 window.hihiRefreshLeaderboard = async function() {

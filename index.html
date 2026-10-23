@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="vi">
 <head>
     <!-- HIHI STUDY PERFORMANCE PRECONNECT -->
@@ -5217,22 +5217,45 @@ window.askAI = async function() {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 25000);
         
-        const response = await fetch(workerUrl, {
-            method: 'POST',
-            headers: { 
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${workerKey}`
-            },
-            body: JSON.stringify({
-                model: workerModel, 
-                messages: [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: userPrompt }
-                ],
-                temperature: 0.7
-            }),
-            signal: controller.signal
-        });
+        let response = null;
+        try {
+            response = await fetch(workerUrl, {
+                method: 'POST',
+                headers: { 
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${workerKey}`
+                },
+                body: JSON.stringify({
+                    model: workerModel, 
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userPrompt }
+                    ],
+                    temperature: 0.7
+                }),
+                signal: controller.signal
+            });
+        } catch (netErr) {
+            console.warn("Primary AI gateway error, trying fallback:", netErr);
+        }
+
+        if (!response || !response.ok) {
+            console.warn("Primary AI gateway not OK, switching to backup gateway...");
+            const fallbackUrl = "https://ai-free.ngxuanhai123.workers.dev/v1/chat/completions";
+            response = await fetch(fallbackUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    messages: [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: userPrompt }
+                    ],
+                    temperature: 0.7
+                }),
+                signal: controller.signal
+            });
+        }
+
         clearTimeout(timeoutId);
 
         if (!response.ok) {

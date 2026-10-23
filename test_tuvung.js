@@ -116,6 +116,17 @@ async function runTests() {
     recordResult('7. Gọi thử AI Gateway thực tế giải thích từ vựng', false, e.message);
   }
 
+  // TEST 8: Kiểm tra đồng bộ Bảng Xếp Hạng chung & SSO Auth
+  try {
+    const hasHihiLbQuery = html.includes('hihi_leaderboard');
+    const hasHihiAuth = html.includes('window.hihiAuth') && html.includes('tuvung-88e8d');
+    const hasUnifiedModal = html.includes('hihiLeaderboardModal') && html.includes('hihiOpenLeaderboard');
+    const passed = hasHihiLbQuery && hasHihiAuth && hasUnifiedModal;
+    recordResult('8. Đồng bộ Bảng Xếp Hạng toàn hệ sinh thái & Single Sign-On (SSO)', passed, passed ? 'Đã liên kết hihi_leaderboard & SSO tuvung-88e8d' : 'Chưa đồng bộ BXH chung');
+  } catch (e) {
+    recordResult('8. Đồng bộ Bảng Xếp Hạng toàn hệ sinh thái & Single Sign-On (SSO)', false, e.message);
+  }
+
   const passedCount = results.filter(r => r.passed).length;
   console.log('\n====================================================');
   console.log(`📊 KẾT QUẢ KIỂM THỬ: ${passedCount}/${results.length} bài test vượt qua`);

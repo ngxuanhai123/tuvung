@@ -2320,6 +2320,11 @@ window.hihiAuthLogout = window.hihiAuthLogout || function() {
           <div id="calendarContainer"></div>
       </div>
 
+      <div style="text-align:center; margin-bottom: 12px;">
+          <button class="hihi-btn-secondary" onclick="hihiOpenLeaderboard()" style="padding:6px 16px;border-radius:20px;border:1px solid rgba(251,191,36,0.5);color:#fbbf24;background:rgba(251,191,36,0.1);font-size:0.8rem;cursor:pointer;">
+              <i class="fas fa-trophy" style="color:#f59e0b;margin-right:6px;"></i> Xem Bảng Xếp Hạng Chi Tiết (HiHi Study)
+          </button>
+      </div>
       <div class="lb-tabs">
           <div class="lb-tab active" id="tab-week" onclick="window.switchLbTab('week')">Tuần này</div>
           <div class="lb-tab" id="tab-month" onclick="window.switchLbTab('month')">Tháng này</div>
@@ -3345,169 +3350,171 @@ window.switchLbTab = (tab) => {
 }
 
 window.initLeaderboardListener = () => {
-    if (unsubscribeLeaderboard) unsubscribeLeaderboard(); 
+    if (unsubscribeLeaderboard) {
+        try { unsubscribeLeaderboard(); } catch(e) {}
+        unsubscribeLeaderboard = null;
+    }
 
     const listDiv = document.getElementById('leaderboardList');
     const podiumDiv = document.getElementById('podiumContainer');
-    listDiv.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.7;"><i class="fas fa-spinner fa-spin"></i> Đang kết nối máy chủ...</div>';
+    listDiv.innerHTML = '<div style="text-align:center; padding:30px; opacity:0.7;"><i class="fas fa-spinner fa-spin"></i> Đang tải Bảng Vàng HiHi Study...</div>';
     
-    document.getElementById('lb-lang-label').innerText = LANG_CONFIG[currentLang].label;
-
-    // --- [SỬA] LOGIC CHỌN TRƯỜNG DỮ LIỆU ĐỂ HIỂN THỊ ---
-    let sortField = `score_${currentLang}`; // Mặc định Toàn thời gian
-    let timeField = 'studyTime';            // Mặc định lấy tổng giờ
-    
-    if(currentLbTab === 'week') {
-        sortField = `score_week_${currentLang}`;
-        timeField = 'time_week'; // Lấy giờ tuần
+    if (document.getElementById('lb-lang-label')) {
+        document.getElementById('lb-lang-label').innerText = (typeof LANG_CONFIG !== 'undefined' && LANG_CONFIG[currentLang]) ? LANG_CONFIG[currentLang].label : 'Chung';
     }
-    if(currentLbTab === 'month') {
-        sortField = `score_month_${currentLang}`;
-        timeField = 'time_month'; // Lấy giờ tháng
-    }
-    
-    const q = query(collection(db, "leaderboard"), orderBy(sortField, "desc"), limit(20));
 
-    unsubscribeLeaderboard = onSnapshot(q, (querySnapshot) => {
-        let users = [];
-        querySnapshot.forEach(doc => {
-            const d = doc.data();
-            const langScore = d[sortField] || 0;
-            // --- [SỬA] LẤY GIỜ THEO TIMEFIELD ---
-            const langTime = d[timeField] || 0;
+    // Xác định trường sắp xếp của bảng xếp hạng chung
+    let sortField = 'total_score';
+    if (currentLbTab === 'week') sortField = 'week_score';
+    if (currentLbTab === 'month') sortField = 'month_score';
 
-            // Only include if score > 0 or it's the current user
-            if(langScore > 0 || (currentUser && doc.id === currentUser.uid)) {
-                // Đẩy displayTime vào object user
-                users.push({ id: doc.id, ...d, displayScore: langScore, displayTime: langTime });
-            }
-        });
-        
-        users.sort((a,b) => b.displayScore - a.displayScore);
-
-        if (users.length === 0) {
-             listDiv.innerHTML = '<div style="text-align:center; padding:20px;">Chưa có dữ liệu cho bảng này.</div>';
-             podiumDiv.style.display = 'none';
-             return;
+    function renderUsersList(users) {
+        if (!users || users.length === 0) {
+            listDiv.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.7;">Chưa có dữ liệu cho bảng xếp hạng này.</div>';
+            podiumDiv.style.display = 'none';
+            return;
         }
 
-        // Render Podium (Giữ nguyên phần này)
+        // Render Podium Top 1, 2, 3
         let podiumHTML = '';
-        if(users.length > 0) {
-            podiumDiv.style.display = 'flex';
-            const order = [1, 0, 2];
-            order.forEach(idx => {
-                if(!users[idx]) return;
-                const u = users[idx];
-                const rank = idx + 1;
-                let avatarHTML = `<img src="${u.photoURL}" class="podium-avatar">`;
-                if(rank === 1) avatarHTML = `<i class="fas fa-crown crown-icon"></i>` + avatarHTML;
-                
-                podiumHTML += `
-                    <div class="podium-item rank-${rank}-stage animate__animated animate__fadeInUp">
-                        ${avatarHTML}
-                        <div class="podium-name">${u.displayName ? u.displayName.split(' ')[0] : 'User'}</div>
-                        <div class="podium-score">${u.displayScore.toLocaleString()} XP</div>
-                        <div class="podium-rank">${rank}</div>
-                    </div>
-                `;
-            });
-            podiumDiv.innerHTML = podiumHTML;
-        }
+        podiumDiv.style.display = 'flex';
+        const order = [1, 0, 2];
+        order.forEach(idx => {
+            if (!users[idx]) return;
+            const u = users[idx];
+            const rank = idx + 1;
+            let avatarHTML = `<img src="${u.photoURL || 'https://www.gravatar.com/avatar/?d=mp'}" class="podium-avatar">`;
+            if (rank === 1) avatarHTML = `<i class="fas fa-crown crown-icon"></i>` + avatarHTML;
+            
+            podiumHTML += `
+                <div class="podium-item rank-${rank}-stage animate__animated animate__fadeInUp">
+                    ${avatarHTML}
+                    <div class="podium-name">${u.displayName ? u.displayName.split(' ')[0] : 'Học viên'}</div>
+                    <div class="podium-score">${(u.displayScore || 0).toLocaleString()} XP</div>
+                    <div class="podium-rank">${rank}</div>
+                </div>
+            `;
+        });
+        podiumDiv.innerHTML = podiumHTML;
 
-        // Render List
+        // Render Rows
         let listHTML = '';
         let currentUserFound = false;
-        
+
         users.forEach((u, index) => {
             const rank = index + 1;
-            if(currentUser && u.id === currentUser.uid) currentUserFound = true;
-            
-            let extraStyle = '';
-            if(currentUser && u.id === currentUser.uid) {
-                extraStyle = 'background:rgba(59, 130, 246, 0.15); border-left: 3px solid #60a5fa;';
-            }
-            if(rank === 1) extraStyle += ' border-right: 3px solid #ffd700;';
-            if(rank === 2) extraStyle += ' border-right: 3px solid #c0c0c0;';
-            if(rank === 3) extraStyle += ' border-right: 3px solid #cd7f32;';
+            const isMe = currentUser && (u.id === currentUser.uid || u.uid === currentUser.uid);
+            if (isMe) currentUserFound = true;
 
-            const rankObj = getRankInfo(u[`score_${currentLang}`] || 0); 
-            const learnedCount = u[`learnedCount_${currentLang}`] || 0;
+            let extraStyle = '';
+            if (isMe) extraStyle = 'background:rgba(59, 130, 246, 0.15); border-left: 3px solid #60a5fa;';
+            if (rank === 1) extraStyle += ' border-right: 3px solid #ffd700;';
+            if (rank === 2) extraStyle += ' border-right: 3px solid #c0c0c0;';
+            if (rank === 3) extraStyle += ' border-right: 3px solid #cd7f32;';
+
+            const rankObj = (typeof getRankInfo === 'function') ? getRankInfo(u.total_score || u.displayScore || 0) : { color: '#38bdf8', bg: 'rgba(56,189,248,0.1)', icon: 'fas fa-graduation-cap', title: 'Học viên' };
+            const subBadges = `TV: ${u.tuvung_score || 0} • CT: ${u.chinhta_score || 0} • Dịch: ${u.dich_score || 0}`;
 
             listHTML += `
                 <div class="leaderboard-row animate__animated animate__fadeIn" style="${extraStyle}">
-                    <div class="rank-num" style="${rank<=3 ? 'color:#fbbf24; font-size:1.1rem;':''}">${rank}</div>
-                    <img src="${u.photoURL}" class="lb-avatar">
+                    <div class="rank-num" style="${rank <= 3 ? 'color:#fbbf24; font-size:1.1rem; font-weight:bold;' : ''}">${rank}</div>
+                    <img src="${u.photoURL || 'https://www.gravatar.com/avatar/?d=mp'}" class="lb-avatar">
                     <div class="lb-info">
-                        <div class="lb-name">${u.displayName}</div>
+                        <div class="lb-name">${u.displayName || 'Học viên'} ${isMe ? '<span style="color:#60a5fa;font-size:0.75rem;">(Bạn)</span>' : ''}</div>
                         <div class="lb-meta">
-                            <span class="rank-badge" style="color:${rankObj.color}; background:${rankObj.bg}; border-color:${rankObj.color}">
+                            <span class="rank-badge" style="color:${rankObj.color}; background:${rankObj.bg}; border: 1px solid ${rankObj.color}">
                                 <i class="${rankObj.icon}"></i> ${rankObj.title}
                             </span>
-                            <span style="font-size:0.65rem; opacity:0.7; margin-top:5px; margin-left:5px;">• ${learnedCount} từ</span>
+                            <span style="font-size:0.65rem; opacity:0.7; margin-left:6px;">• ${subBadges}</span>
                         </div>
                     </div>
                     <div class="lb-stats">
-                        <div class="lb-score">${u.displayScore.toLocaleString()}</div>
-                        <div class="lb-time">${formatTime(u.displayTime || 0)}</div>
+                        <div class="lb-score">${(u.displayScore || 0).toLocaleString()} XP</div>
+                        <div class="lb-time" style="font-size:0.65rem; opacity:0.6;">HiHi Study</div>
                     </div>
                 </div>
             `;
         });
 
-        // Nếu bạn không nằm trong Top 20, hiển thị dòng riêng của bạn ở dưới cùng
-        if(currentUser && !currentUserFound) {
-            let myScore = 0;
-            let myTime = 0;
-
-            // --- [SỬA] LẤY GIỜ CÁ NHÂN THEO TAB ---
-            if(currentLbTab === 'week') {
-                myScore = weekPoints + sessionPoints;
-                myTime = weekTime; // Biến toàn cục weekTime
-            }
-            else if(currentLbTab === 'month') {
-                myScore = monthPoints + sessionPoints;
-                myTime = monthTime; // Biến toàn cục monthTime
-            }
-            else {
-                myScore = accumulatedPoints + sessionPoints;
-                myTime = accumulatedTime; // Biến toàn cục tổng
-            }
-
-            if(myScore > 0) {
-                const rankObj = getRankInfo(accumulatedPoints + sessionPoints);
-                const learnedCount = Object.keys(masteredWords).length + Object.keys(srsData).length;
-                listHTML += `
-                    <div style="text-align:center; padding:10px; opacity:0.5;">...</div>
-                    <div class="leaderboard-row animate__animated animate__fadeIn" style="background:rgba(59, 130, 246, 0.15); border-left: 3px solid #60a5fa;">
-                        <div class="rank-num">-</div>
-                        <img src="${currentUser.photoURL}" class="lb-avatar">
-                        <div class="lb-info">
-                            <div class="lb-name">${currentUser.displayName} (Bạn)</div>
-                            <div class="lb-meta">
-                                <span class="rank-badge" style="color:${rankObj.color}; background:${rankObj.bg}; border-color:${rankObj.color}">
-                                    <i class="${rankObj.icon}"></i> ${rankObj.title}
-                                </span>
-                                <span style="font-size:0.65rem; opacity:0.7; margin-top:5px; margin-left:5px;">• ${learnedCount} từ</span>
-                            </div>
-                        </div>
-                        <div class="lb-stats">
-                            <div class="lb-score">${myScore.toLocaleString()}</div>
-                            <div class="lb-time">${formatTime(myTime)}</div>
+        // Nếu current user không trong top, hiển thị dòng riêng
+        if (currentUser && !currentUserFound) {
+            const myScore = (window.hihiCurrentUserData && window.hihiCurrentUserData[sortField]) || (accumulatedPoints + sessionPoints);
+            const rankObj = (typeof getRankInfo === 'function') ? getRankInfo(myScore) : { color: '#60a5fa', bg: 'rgba(96,165,250,0.1)', icon: 'fas fa-user', title: 'Bạn' };
+            listHTML += `
+                <div style="text-align:center; padding:10px; opacity:0.5;">...</div>
+                <div class="leaderboard-row animate__animated animate__fadeIn" style="background:rgba(59, 130, 246, 0.15); border-left: 3px solid #60a5fa;">
+                    <div class="rank-num">-</div>
+                    <img src="${currentUser.photoURL || 'https://www.gravatar.com/avatar/?d=mp'}" class="lb-avatar">
+                    <div class="lb-info">
+                        <div class="lb-name">${currentUser.displayName} <span style="color:#60a5fa;font-size:0.75rem;">(Bạn)</span></div>
+                        <div class="lb-meta">
+                            <span class="rank-badge" style="color:${rankObj.color}; background:${rankObj.bg}; border: 1px solid ${rankObj.color}">
+                                <i class="${rankObj.icon}"></i> ${rankObj.title}
+                            </span>
                         </div>
                     </div>
-                `;
-            }
+                    <div class="lb-stats">
+                        <div class="lb-score">${myScore.toLocaleString()} XP</div>
+                        <div class="lb-time" style="font-size:0.65rem; opacity:0.6;">HiHi Study</div>
+                    </div>
+                </div>
+            `;
         }
 
-        listDiv.innerHTML = listHTML || '<div style="text-align:center; padding:20px; opacity:0.6; font-size:0.8rem;">Chưa có thêm người chơi khác</div>';
+        listDiv.innerHTML = listHTML;
+    }
 
-    }, (error) => {
-        console.error("Realtime Error:", error);
-        listDiv.innerHTML = `<div style="text-align:center; color:#ff5252; font-size:0.8rem; padding:10px;">
-            Lỗi tải BXH. (Index: ${sortField})
-        </div>`;
-    });
+    // 1. Thử lấy từ hihi_leaderboard chung
+    try {
+        const qHihi = query(collection(db, "hihi_leaderboard"), orderBy(sortField, "desc"), limit(25));
+        unsubscribeLeaderboard = onSnapshot(qHihi, (snapshot) => {
+            let users = [];
+            snapshot.forEach(docSnap => {
+                const d = docSnap.data();
+                const score = d[sortField] || d.total_score || 0;
+                if (score > 0 || (currentUser && docSnap.id === currentUser.uid)) {
+                    users.push({ id: docSnap.id, uid: docSnap.id, ...d, displayScore: score });
+                }
+            });
+            users.sort((a, b) => b.displayScore - a.displayScore);
+            if (users.length > 0) {
+                renderUsersList(users);
+            } else {
+                fallbackOldLeaderboard();
+            }
+        }, (err) => {
+            console.warn("hihi_leaderboard onSnapshot warning, using fallback:", err);
+            fallbackOldLeaderboard();
+        });
+    } catch(err) {
+        fallbackOldLeaderboard();
+    }
+
+    function fallbackOldLeaderboard() {
+        let oldField = `score_${currentLang}`;
+        if (currentLbTab === 'week') oldField = `score_week_${currentLang}`;
+        if (currentLbTab === 'month') oldField = `score_month_${currentLang}`;
+
+        try {
+            const qOld = query(collection(db, "leaderboard"), orderBy(oldField, "desc"), limit(20));
+            unsubscribeLeaderboard = onSnapshot(qOld, (snap) => {
+                let users = [];
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const score = d[oldField] || d.score || 0;
+                    if (score > 0 || (currentUser && docSnap.id === currentUser.uid)) {
+                        users.push({ id: docSnap.id, uid: docSnap.id, ...d, displayScore: score });
+                    }
+                });
+                users.sort((a, b) => b.displayScore - a.displayScore);
+                renderUsersList(users);
+            }, (e) => {
+                listDiv.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.6;">Không thể tải bảng xếp hạng lúc này. Vui lòng thử lại sau.</div>';
+            });
+        } catch(e) {
+            listDiv.innerHTML = '<div style="text-align:center; padding:20px; opacity:0.6;">Chưa sẵn sàng kết nối.</div>';
+        }
+    }
 };
 
 /* -------------------------------------------------------------------------

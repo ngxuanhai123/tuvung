@@ -60,15 +60,15 @@ async function runTests() {
     recordResult('3. Kiểm tra lỗi escape literal \\n trong HTML', false, e.message);
   }
 
-  // TEST 4: Cấu hình AI Gateway mới (ai-no-free, claude-fable-5, Ai@123)
+  // TEST 4: Service Worker Cache Scope Isolation
   try {
-    const usesAiNoFree = html.includes('ai-no-free.ngxuanhai123.workers.dev');
-    const usesCorrectModel = html.includes('anhyeu00m/claude-fable-5') || html.includes('claude-fable-5');
-    const usesAuthKey = html.includes('Ai@123');
-    const passed = usesAiNoFree && usesCorrectModel && usesAuthKey;
-    recordResult('4. Cấu hình AI Gateway mới (ai-no-free, claude-fable-5, Ai@123)', passed, `ai-no-free: ${usesAiNoFree}, model: ${usesCorrectModel}, authKey: ${usesAuthKey}`);
+    const sw = fs.readFileSync(swPath, 'utf8');
+    const hasScopedCacheName = sw.includes('tuvung-') || sw.includes('hihi-tuvung');
+    const deletesOnlyOwnCache = sw.includes("CACHE_PREFIX") || sw.includes("startsWith('tuvung-')") || sw.includes("startsWith('hihi-tuvung')") || sw.includes("key !== CACHE_NAME && key.startsWith('tuvung')");
+    const passed = hasScopedCacheName && deletesOnlyOwnCache;
+    recordResult('4. Kiểm tra cô lập Service Worker cache', passed, passed ? 'Cache name và logic xóa cache đã được cô lập theo app' : 'SW xóa cache toàn domain hoặc dùng tên chung');
   } catch (e) {
-    recordResult('4. Cấu hình AI Gateway mới', false, e.message);
+    recordResult('4. Kiểm tra cô lập Service Worker cache', false, e.message);
   }
 
   // TEST 5: Kiểm tra cú pháp sạch của hàm askAI (không bị comment tutorial / duplicate function)
@@ -90,17 +90,16 @@ async function runTests() {
     recordResult('6. Tối ưu luồng TTS', false, e.message);
   }
 
-  // TEST 7: Kiểm tra kết nối AI Gateway thực tế cho askAI
+  // TEST 7: Kiểm tra kết nối AI Gateway thực tế cho askAI (sử dụng ai-free trực tiếp)
   try {
     const t0 = Date.now();
-    const res = await fetch('https://ai-no-free.ngxuanhai123.workers.dev/v1/chat/completions', {
+    const res = await fetch('https://ai-free.ngxuanhai123.workers.dev/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer Ai@123'
+        'X-Client': 'hihi-tuvung'
       },
       body: JSON.stringify({
-        model: 'anhyeu00m/claude-fable-5',
         messages: [
           { role: 'system', content: 'Bạn là gia sư AI giải thích từ vựng tiếng Anh.' },
           { role: 'user', content: 'Giải thích ngắn gọn từ "persistent" trong 1 câu.' }

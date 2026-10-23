@@ -1,14 +1,13 @@
-rules_version = '2';
+﻿rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
     // 1. BẢNG XẾP HẠNG TỔNG HỢP HIHI STUDY
     // Mọi người đều có thể xem bảng xếp hạng
-    // Chỉ người dùng đã đăng nhập mới được ghi nhận điểm cho chính tài khoản của mình
+    // Người dùng đăng nhập được ghi nhận điểm cho chính tài khoản của mình (hỗ trợ ghi toàn phần hoặc partial merge wpm/acc từ chinhta)
     match /hihi_leaderboard/{uid} {
       allow read: if true;
       allow write: if request.auth != null && request.auth.uid == uid
-                   && request.resource.data.total_score is number
-                   && request.resource.data.total_score >= 0;
+                   && (!('total_score' in request.resource.data) || (request.resource.data.total_score is number && request.resource.data.total_score >= 0));
     }
 
     // 2. BẢNG XẾP HẠNG CŨ CỦA TỪ VỰNG (Giữ tương thích ngược)

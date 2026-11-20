@@ -1,11 +1,12 @@
 ﻿// HiHi Study - Unified Service Worker (Offline Cache & Performance)
-const CACHE_NAME = 'hihi-tuvung-v1.5';
+const CACHE_NAME = 'hihi-tuvung-v2.0-neobrutalism';
 const CACHE_PREFIX = 'hihi-tuvung-';
 const STATIC_ASSETS = [
   './',
   './hihi-leaderboard.js',
   './hihi-monitor.js',
   './index.html',
+  './hihi-phiquiz.css',
   'https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css'
 ];

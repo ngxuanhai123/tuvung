@@ -65,12 +65,6 @@
   .aurora-bg,
   #particles,
   .snowflake { display: none !important; }
-  
-  #brightness-overlay {
-      position: fixed; top: 0; left: 0; width: 100vw; height: 100dvh;
-      background: black; opacity: 0; pointer-events: none; z-index: 99999;
-      transition: opacity 0.1s linear;
-  }
 
   * { box-sizing: border-box; margin: 0; padding: 0; outline: none; -webkit-tap-highlight-color: transparent; user-select: none; font-family: var(--font-main); }
   html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
@@ -918,19 +912,13 @@
       if (!document.body) return;
       const storedTheme = localStorage.getItem('hihi-theme');
       const darkMode = storedTheme ? (storedTheme === 'dark') : readStoredBool('fp_aurora_dark', false);
-      const ecoMode = localStorage.getItem('fp_aurora_eco') !== 'false';
-      const brightness = parseInt(localStorage.getItem('fp_aurora_brightness') || '100', 10);
-      const safeBrightness = Number.isFinite(brightness) ? Math.min(100, Math.max(20, brightness)) : 100;
-      const overlay = document.getElementById('brightness-overlay');
 
       document.documentElement.setAttribute('data-theme', darkMode ? 'dark' : 'light');
       document.documentElement.classList.toggle('dark', darkMode);
       document.documentElement.classList.toggle('light', !darkMode);
       document.body.classList.toggle('dark-mode', darkMode);
-      document.body.classList.toggle('eco-mode', ecoMode);
+      document.body.classList.remove('eco-mode');
       document.documentElement.style.colorScheme = darkMode ? 'dark' : 'light';
-
-      if (overlay) overlay.style.opacity = (100 - safeBrightness) / 100;
     }
 
     window.applyBasicTheme = paintTheme;
@@ -2268,7 +2256,6 @@ body {
 
 
 
-<div id="brightness-overlay"></div>
 <div class="aurora-bg"></div>
 <div id="particles"></div>
 
@@ -2537,21 +2524,6 @@ body {
             Bật nếu Edge bị lỗi. Tắt để dùng giọng máy (Native).
         </div>
 
-        <hr style="border:0; border-top:1px solid var(--glass-border); margin: 25px 0;">
-
-        <h4 style="margin-bottom:15px; color:var(--color-green-deep, #16a34a); font-weight:800;">Hệ thống</h4>
-
-        <div class="switch-container">
-            <span>Chế độ Tiết kiệm pin (Máy yếu)</span>
-            <input type="checkbox" id="cfgEco" class="toggle-switch" onchange="window.saveConfig()">
-        </div>
-
-        <div style="display:flex; justify-content:space-between; margin-bottom:5px;">
-            <small>Độ sáng màn hình</small>
-            <strong id="dispBrightness">100%</strong>
-        </div>
-        <input type="range" id="cfgBrightness" min="20" max="100" value="100" oninput="window.saveConfig()">
-        
         <hr style="border:0; border-top:2px solid var(--color-surface3); margin: 25px 0;">
 
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 15px; gap:10px; flex-wrap:wrap;">
@@ -2564,6 +2536,9 @@ body {
         <button class="btn-phiquiz sm" style="width:100%; height:50px; background:#fee2e2; border:2px solid var(--color-ink); color:#991b1b; font-size:0.9rem; font-weight:800; border-radius:14px;" onclick="window.resetProgress()">
             <i class="fas fa-trash-alt"></i> &nbsp; Xoá toàn bộ dữ liệu học
         </button>
+        <div id="resetAccountScopeNote" style="margin-top:8px; font-size:0.75rem; color:var(--color-muted); text-align:center; font-weight:600;">
+            Chỉ xoá dữ liệu học của tài khoản đang đăng nhập (không ảnh hưởng tài khoản khác).
+        </div>
 
         <div style="margin-top:20px; font-size:0.8rem; color:var(--color-muted); text-align:center;">
             Sound FX Engine v2.3 &bull; Realtime DB
@@ -2786,7 +2761,7 @@ function getUserKey(prefix) {
 function getScopedStorageItem(scopedKey, legacyKey) {
     const val = localStorage.getItem(scopedKey);
     if (val !== null && val !== undefined) return val;
-    if (legacyKey) {
+    if (legacyKey && scopedKey.endsWith('_guest')) {
         const legVal = localStorage.getItem(legacyKey);
         if (legVal !== null && legVal !== undefined) {
             try { localStorage.setItem(scopedKey, legVal); } catch(e) {}
@@ -3284,8 +3259,8 @@ async function syncDataFromServer() {
             if(data.config) {
                 config = normalizeConfig(data.config);
                 // Merge fallback defaults
-                if (config.ecoMode === undefined) config.ecoMode = true;
-                if (config.brightness === undefined) config.brightness = 100;
+                config.ecoMode = false;
+                config.brightness = 100;
                 if (config.voiceEngine === undefined) config.voiceEngine = 'google';
                 if (config.sfxEnabled === undefined) config.sfxEnabled = true;
                 if (config.activeGameModes === undefined) config.activeGameModes = {
@@ -3296,8 +3271,8 @@ async function syncDataFromServer() {
                 localStorage.setItem('fp_aurora_muted', config.muted);
                 localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
                 localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
-                localStorage.setItem('fp_aurora_eco', config.ecoMode);
-                localStorage.setItem('fp_aurora_brightness', config.brightness);
+                localStorage.setItem('fp_aurora_eco', 'false');
+                localStorage.setItem('fp_aurora_brightness', '100');
                 localStorage.setItem('fp_aurora_voice_engine', config.voiceEngine);
                 localStorage.setItem('fp_aurora_sfx', config.sfxEnabled);
                 localStorage.setItem('fp_aurora_game_modes', JSON.stringify(config.activeGameModes));
@@ -3767,8 +3742,8 @@ let config = {
     reviewLimit: parseInt(localStorage.getItem('fp_aurora_cfg_review') || 20),
     darkMode: (localStorage.getItem('hihi-theme') ? localStorage.getItem('hihi-theme') === 'dark' : localStorage.getItem('fp_aurora_dark') === 'true'),
     muted: localStorage.getItem('fp_aurora_muted') === 'true',
-    ecoMode: localStorage.getItem('fp_aurora_eco') !== 'false', // Default true if not explicitly 'false'
-    brightness: parseInt(localStorage.getItem('fp_aurora_brightness') || '100'),
+    ecoMode: false,
+    brightness: 100,
     voiceEngine: localStorage.getItem('fp_aurora_voice_engine') || 'google',
     sfxEnabled: localStorage.getItem('fp_aurora_sfx') !== 'false', // Default true
     // THÊM DÒNG NÀY:
@@ -3793,8 +3768,8 @@ function normalizeConfig(raw = {}) {
         reviewLimit: readNumber(cfg.reviewLimit, 20, 5, 50),
         darkMode: readBool(cfg.darkMode, false),
         muted: readBool(cfg.muted, false),
-        ecoMode: readBool(cfg.ecoMode, true),
-        brightness: readNumber(cfg.brightness, 100, 20, 100),
+        ecoMode: false,
+        brightness: 100,
         voiceEngine: cfg.voiceEngine === 'native' ? 'native' : 'google',
         sfxEnabled: readBool(cfg.sfxEnabled, true),
         edgeVoices: { ...DEFAULT_EDGE_VOICES, ...(cfg.edgeVoices || {}) },
@@ -4937,6 +4912,13 @@ function startTimer() {
             addPoints(5); 
         }
     }, 1000);
+}
+
+function stopTimer() {
+    if (studyTimer) {
+        clearInterval(studyTimer);
+        studyTimer = null;
+    }
 }
 
 function updateProgress() {
@@ -6628,10 +6610,8 @@ function applyTheme() {
     document.documentElement.classList.toggle('dark', config.darkMode);
     document.documentElement.classList.toggle('light', !config.darkMode);
     document.body.classList.toggle('dark-mode', config.darkMode);
-    document.body.classList.toggle('eco-mode', config.ecoMode);
+    document.body.classList.remove('eco-mode');
     document.documentElement.style.colorScheme = config.darkMode ? 'dark' : 'light';
-    const overlay = document.getElementById('brightness-overlay');
-    if(overlay) overlay.style.opacity = (100 - config.brightness) / 100;
     if (typeof window.applyHiHiTheme === 'function') {
         window.applyHiHiTheme(config.darkMode ? 'dark' : 'light');
     }
@@ -6685,8 +6665,8 @@ window.saveConfig = function() {
     // 1. Lưu các cấu hình cơ bản (giữ nguyên)
     config.newLimit = parseInt(document.getElementById('cfgNewLimit').value);
     config.reviewLimit = parseInt(document.getElementById('cfgReviewLimit').value);
-    config.ecoMode = document.getElementById('cfgEco').checked;
-    config.brightness = parseInt(document.getElementById('cfgBrightness').value);
+    config.ecoMode = false;
+    config.brightness = 100;
     config.voiceEngine = document.getElementById('cfgVoiceGoogle').checked ? 'google' : 'native';
     config.sfxEnabled = document.getElementById('cfgSfx').checked;
     
@@ -6716,8 +6696,8 @@ window.saveConfig = function() {
     // 3. Lưu các cấu hình khác vào LocalStorage (giữ nguyên)
     localStorage.setItem('fp_aurora_cfg_new', config.newLimit);
     localStorage.setItem('fp_aurora_cfg_review', config.reviewLimit);
-    localStorage.setItem('fp_aurora_eco', config.ecoMode);
-    localStorage.setItem('fp_aurora_brightness', config.brightness);
+    localStorage.setItem('fp_aurora_eco', 'false');
+    localStorage.setItem('fp_aurora_brightness', '100');
     localStorage.setItem('fp_aurora_voice_engine', config.voiceEngine);
     localStorage.setItem('fp_aurora_sfx', config.sfxEnabled);
 
@@ -6730,9 +6710,6 @@ function updateConfigUI() {
     document.getElementById('dispLimitNew').innerText = config.newLimit;
     document.getElementById('cfgReviewLimit').value = config.reviewLimit;
     document.getElementById('dispLimitReview').innerText = config.reviewLimit;
-    document.getElementById('cfgEco').checked = config.ecoMode;
-    document.getElementById('cfgBrightness').value = config.brightness;
-    document.getElementById('dispBrightness').innerText = config.brightness + '%';
     document.getElementById('cfgVoiceGoogle').checked = (config.voiceEngine === 'google');
     document.getElementById('cfgSfx').checked = config.sfxEnabled;
     // --- [MỚI] Cập nhật Dropdown giọng đọc ---
@@ -7228,14 +7205,13 @@ window.clearAICache = async function() {
 
 // --- HÀM XOÁ TOÀN BỘ TIẾN ĐỘ HỌC (CHỈ RIÊNG CHO TÀI KHOẢN ĐANG ĐĂNG NHẬP HOẶC KHÁCH) ---
 window.resetProgress = async function() {
-    const user = (typeof auth !== 'undefined' && auth && auth.currentUser) || currentUser;
-    const uid = user ? user.uid : null;
-    const langLabel = (LANG_CONFIG && LANG_CONFIG[currentLang]?.label) || currentLang;
+    const user = (typeof auth !== 'undefined' && auth && auth.currentUser) || currentUser || window.hihiCurrentUser || null;
+    const uid = (user && user.uid) ? user.uid : null;
     const accountName = user ? (user.displayName || user.email || "tài khoản hiện tại") : "Khách (Guest)";
 
-    const confirmMsg = user 
-        ? `⚠️ CẢNH BÁO XOÁ TIẾN ĐỘ HỌC:\n\nBạn có chắc chắn muốn xoá TOÀN BỘ dữ liệu học tập của tài khoản "${accountName}" (ngôn ngữ: ${langLabel})?\n\n• Tiến độ học, từ đã thuộc, điểm số và chuỗi học của RIÊNG tài khoản này sẽ được đặt lại về 0.\n• Dữ liệu của tài khoản khác trên thiết bị này và cache offline sẽ KHÔNG bị ảnh hưởng.\n\nHành động này không thể hoàn tác!`
-        : `⚠️ CẢNH BÁO XOÁ TIẾN ĐỘ HỌC:\n\nBạn có chắc chắn muốn xoá dữ liệu học tập của Khách (Guest) trên trình duyệt này (ngôn ngữ: ${langLabel})?\n\n• Bạn hiện chưa đăng nhập. Chỉ dữ liệu tạm của Khách trên thiết bị này sẽ được đặt lại về 0.`;
+    const confirmMsg = uid
+        ? `⚠️ CẢNH BÁO XOÁ TIẾN ĐỘ HỌC:\n\nBạn có chắc chắn muốn xoá TOÀN BỘ dữ liệu học tập của RIÊNG tài khoản "${accountName}"?\n\n• Tiến độ học (tất cả ngôn ngữ), từ đã thuộc, điểm số và chuỗi học của riêng tài khoản này sẽ được đặt lại về 0.\n• Điểm ở các ứng dụng HiHi khác (Chính tả, Dịch) và dữ liệu của tài khoản khác trên hệ thống sẽ KHÔNG bị ảnh hưởng.\n\nHành động này không thể hoàn tác!`
+        : `⚠️ CẢNH BÁO XOÁ TIẾN ĐỘ HỌC:\n\nBạn có chắc chắn muốn xoá dữ liệu học tập của Khách (Guest) trên trình duyệt này?\n\n• Bạn hiện chưa đăng nhập. Chỉ dữ liệu tạm của Khách trên thiết bị này sẽ được đặt lại về 0, không ảnh hưởng tới bất kỳ tài khoản đã đăng nhập nào khác.`;
 
     if (!confirm(confirmMsg)) return;
 
@@ -7264,29 +7240,34 @@ window.resetProgress = async function() {
         sessionIndex = 0;
         currentTopicKey = '';
 
-        const currentUid = uid || 'guest';
+        const targetScopeUid = uid || 'guest';
+        const langs = Object.keys((typeof LANG_CONFIG !== 'undefined' && LANG_CONFIG) ? LANG_CONFIG : { en: true, id: true });
 
-        // 1. Xoá/Reset các key localStorage dành RIÊNG cho user này (currentUid)
-        localStorage.setItem(getDataKey('fp_aurora_srs'), JSON.stringify(srsData));
-        localStorage.setItem(getDataKey('fp_aurora_mastered'), JSON.stringify(masteredWords));
-        localStorage.setItem(getDataKey('fp_aurora_score_history'), JSON.stringify(scoreHistory));
-        localStorage.setItem(getDataKey('fp_aurora_daily'), JSON.stringify(dailyTracking));
-        localStorage.setItem(getDataKey('fp_aurora_points'), '0');
-        localStorage.setItem(getDataKey('fp_aurora_topic'), '');
+        // 1. Chỉ xoá/reset các key localStorage gắn với đúng UID đang đăng nhập (hoặc 'guest') cho mọi ngôn ngữ
+        langs.forEach((lang) => {
+            localStorage.setItem(`fp_aurora_srs_${lang}_${targetScopeUid}`, '{}');
+            localStorage.setItem(`fp_aurora_mastered_${lang}_${targetScopeUid}`, '{}');
+            localStorage.setItem(`fp_aurora_score_history_${lang}_${targetScopeUid}`, '{}');
+            localStorage.setItem(`fp_aurora_daily_${lang}_${targetScopeUid}`, JSON.stringify({ date: today, count: 0, learnedWords: [] }));
+            localStorage.setItem(`fp_aurora_points_${lang}_${targetScopeUid}`, '0');
+            localStorage.setItem(`fp_aurora_topic_${lang}_${targetScopeUid}`, '');
+        });
 
-        localStorage.setItem(getUserKey('fp_aurora_streak_history'), JSON.stringify(streakHistory));
-        localStorage.setItem(getUserKey('fp_aurora_time'), '0');
-        localStorage.setItem(getUserKey('fp_aurora_time_week'), '0');
-        localStorage.setItem(getUserKey('fp_aurora_time_month'), '0');
+        localStorage.setItem(`fp_aurora_streak_history_${targetScopeUid}`, '[]');
+        localStorage.setItem(`fp_aurora_time_${targetScopeUid}`, '0');
+        localStorage.setItem(`fp_aurora_time_week_${targetScopeUid}`, '0');
+        localStorage.setItem(`fp_aurora_time_month_${targetScopeUid}`, '0');
 
-        // Nếu là khách hoặc user mới migrate, dọn dẹp thêm key un-scoped legacy
+        // Chỉ dọn dẹp key legacy chưa gắn UID khi đang xoá với tư cách Khách (tránh đụng chạm dữ liệu thiết bị của người khác)
         if (!uid) {
-            localStorage.removeItem(`fp_aurora_srs_${currentLang}`);
-            localStorage.removeItem(`fp_aurora_mastered_${currentLang}`);
-            localStorage.removeItem(`fp_aurora_score_history_${currentLang}`);
-            localStorage.removeItem(`fp_aurora_daily_${currentLang}`);
-            localStorage.removeItem(`fp_aurora_points_${currentLang}`);
-            localStorage.removeItem(`fp_aurora_topic_${currentLang}`);
+            langs.forEach((lang) => {
+                localStorage.removeItem(`fp_aurora_srs_${lang}`);
+                localStorage.removeItem(`fp_aurora_mastered_${lang}`);
+                localStorage.removeItem(`fp_aurora_score_history_${lang}`);
+                localStorage.removeItem(`fp_aurora_daily_${lang}`);
+                localStorage.removeItem(`fp_aurora_points_${lang}`);
+                localStorage.removeItem(`fp_aurora_topic_${lang}`);
+            });
             localStorage.removeItem('fp_aurora_streak_history');
             localStorage.removeItem('fp_aurora_time');
             localStorage.removeItem('fp_aurora_time_week');
@@ -7295,58 +7276,49 @@ window.resetProgress = async function() {
             trialCount = 0;
         }
 
-        // 2. Nếu ĐÃ ĐĂNG NHẬP: Reset dữ liệu học trên Firebase Firestore cho RIÊNG tài khoản này
+        // 2. Nếu ĐÃ ĐĂNG NHẬP: Reset dữ liệu học trên Firebase Firestore cho DUY NHẤT tài khoản uid hiện tại
         if (uid && db) {
-            const srsKey = `srsData_${currentLang}`;
-            const masterKey = `masteredWords_${currentLang}`;
-            const topicKey = `currentTopicKey_${currentLang}`;
-            const scoreKey = `score_${currentLang}`;
-            const scoreWKey = `score_week_${currentLang}`;
-            const scoreMKey = `score_month_${currentLang}`;
-            const historyKey = `history_score_${currentLang}`;
-            const learnedCountKey = `learnedCount_${currentLang}`;
-
-            await setDoc(doc(db, "leaderboard", uid), {
+            const resetPayload = {
                 displayName: user.displayName || "Học viên",
                 photoURL: user.photoURL || "",
                 email: user.email || "",
-                [scoreKey]: 0,
-                [scoreWKey]: 0,
-                [scoreMKey]: 0,
-                [historyKey]: "{}",
-                [srsKey]: "{}",
-                [masterKey]: "{}",
-                [learnedCountKey]: 0,
-                [topicKey]: "",
                 score: 0,
                 studyTime: 0,
                 time_week: 0,
                 time_month: 0,
                 streakHistory: "[]",
                 lastUpdated: Date.now()
-            }, { merge: true });
+            };
+            langs.forEach((lang) => {
+                resetPayload[`score_${lang}`] = 0;
+                resetPayload[`score_week_${lang}`] = 0;
+                resetPayload[`score_month_${lang}`] = 0;
+                resetPayload[`history_score_${lang}`] = "{}";
+                resetPayload[`srsData_${lang}`] = "{}";
+                resetPayload[`masteredWords_${lang}`] = "{}";
+                resetPayload[`learnedCount_${lang}`] = 0;
+                resetPayload[`currentTopicKey_${lang}`] = "";
+            });
 
-            if (window.hihiUpdateScore) {
-                window.hihiUpdateScore("tuvung", 0);
-            }
-            try {
-                await setDoc(doc(db, "hihi_leaderboard", uid), {
-                    tuvung_score: 0,
-                    lastActive: Date.now()
-                }, { merge: true });
-            } catch(e) {
-                console.warn("Reset hihi_leaderboard score warning:", e);
+            await setDoc(doc(db, "leaderboard", uid), resetPayload, { merge: true });
+
+            if (typeof window.hihiResetTuvungScore === 'function') {
+                await window.hihiResetTuvungScore(uid);
             }
         }
 
+        try {
+            sessionStorage.removeItem("hihi_lb_cache");
+        } catch (e) {}
+
         const gameOverlay = document.getElementById('gameOverlay');
         const wordListOverlay = document.getElementById('wordListOverlay');
-        if(gameOverlay) gameOverlay.style.display = 'none';
-        if(wordListOverlay) wordListOverlay.style.display = 'none';
+        if (gameOverlay) gameOverlay.style.display = 'none';
+        if (wordListOverlay) wordListOverlay.style.display = 'none';
 
         updateUserPointsUI();
         renderDashboard();
-        showToast(user ? `Đã xoá toàn bộ dữ liệu học của ${accountName}!` : "Đã xoá toàn bộ dữ liệu học của Khách!", "success");
+        showToast(uid ? `Đã xoá toàn bộ dữ liệu học của riêng tài khoản ${accountName}!` : "Đã xoá toàn bộ dữ liệu học của Khách!", "success");
         playSound(SFX.POP);
     } catch (e) {
         console.error("resetProgress error:", e);
@@ -8125,6 +8097,8 @@ onAuthStateChanged(auth, async (user) => {
     if (dropEmail) dropEmail.textContent = user.email;
     if (adminBadge) adminBadge.style.display = isAdmin ? "inline-block" : "none";
     if (adminStudioBtn) adminStudioBtn.style.display = isAdmin ? "flex" : "none";
+    const scopeNote = document.getElementById("resetAccountScopeNote");
+    if (scopeNote) scopeNote.textContent = `Chỉ xoá dữ liệu học của riêng tài khoản: ${user.displayName || user.email} (không ảnh hưởng tài khoản khác).`;
 
     window.dispatchEvent(new CustomEvent('hihi-auth-changed', {
       detail: { user, isAdmin }
@@ -8170,6 +8144,8 @@ onAuthStateChanged(auth, async (user) => {
     if (adminStudioBtn) adminStudioBtn.style.display = "none";
     if (dropName) dropName.textContent = "Khách";
     if (dropEmail) dropEmail.textContent = "Chưa đăng nhập";
+    const scopeNote = document.getElementById("resetAccountScopeNote");
+    if (scopeNote) scopeNote.textContent = "Chưa đăng nhập: chỉ xoá dữ liệu tạm của Khách trên trình duyệt này (không ảnh hưởng tài khoản khác).";
 
     window.dispatchEvent(new CustomEvent('hihi-auth-changed', {
       detail: { user: null, isAdmin: false }
@@ -8205,6 +8181,51 @@ function hihiMonthKey(d) {
 
 let hihiScoreDebounceTimer = null;
 let hihiPendingScores = { tuvung: 0, chinhta: 0, dich: 0 };
+
+window.hihiResetTuvungScore = async function(targetUid) {
+  const user = auth.currentUser;
+  if (!user || (targetUid && user.uid !== targetUid)) return;
+  clearTimeout(hihiScoreDebounceTimer);
+  hihiPendingScores.tuvung = 0;
+
+  try {
+    const userRef = doc(db, "hihi_leaderboard", user.uid);
+    const snap = await getDoc(userRef);
+    const d = snap.exists() ? snap.data() : {};
+    const mk = hihiMonthKey();
+
+    const chinhta = d.chinhta_score || 0;
+    const dich = d.dich_score || 0;
+    const weekChinhta = d.week_chinhta || 0;
+    const weekDich = d.week_dich || 0;
+    const monthChinhta = d.month_chinhta || 0;
+    const monthDich = d.month_dich || 0;
+
+    const updatedMonthly = { ...(d.monthly || {}) };
+    if (updatedMonthly[mk]) {
+      const mC = updatedMonthly[mk].chinhta || 0;
+      const mD = updatedMonthly[mk].dich || 0;
+      updatedMonthly[mk] = { ...updatedMonthly[mk], tuvung: 0, score: mC + mD };
+    }
+
+    const resetPatch = {
+      tuvung_score: 0,
+      total_score: chinhta + dich,
+      week_tuvung: 0,
+      week_score: weekChinhta + weekDich,
+      month_tuvung: 0,
+      month_score: monthChinhta + monthDich,
+      monthly: updatedMonthly,
+      lastActive: Date.now()
+    };
+
+    await setDoc(userRef, resetPatch, { merge: true });
+    window.hihiCurrentUserData = { ...(window.hihiCurrentUserData || d), ...resetPatch };
+    hihiUpdateScoreUI(window.hihiCurrentUserData);
+  } catch (e) {
+    console.warn("Reset hihi_leaderboard tuvung score:", e);
+  }
+};
 
 window.hihiUpdateScore = function(appKey, pointsToAdd) {
   const user = auth.currentUser;

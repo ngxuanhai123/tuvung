@@ -2,12 +2,37 @@
   "rules": {
     "leaderboard": {
       "$month": {
+        ".read": true,
         "$uid": {
-          ".read": true,
-          ".write": "auth != null && auth.uid === $uid && newData.child('score').val() <= 10000 && newData.child('score').val() >= 0",
-          ".validate": "newData.hasChildren(['score', 'displayName'])"
+          ".write": "auth != null && auth.uid === $uid",
+          ".validate": "newData.hasChildren(['name', 'score']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 100 && newData.child('score').isNumber() && newData.child('score').val() >= 0 && newData.child('score').val() <= 9999999",
+          "name": { ".validate": "newData.isString() && newData.val().length <= 100" },
+          "photo": { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 1000 && (newData.val().length === 0 || newData.val().beginsWith('https://')))" },
+          "score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999999" },
+          "sentences": { ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000)" },
+          "wpm": { ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 350)" },
+          "acc": { ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 100)" },
+          "lastPlayed": { ".validate": "!newData.exists() || newData.isNumber()" },
+          "$other": { ".validate": false }
         }
       }
-    }
+    },
+    "chinhta_summary": {
+      "$uid": {
+        ".read": "auth != null && auth.uid === $uid",
+        ".write": "auth != null && auth.uid === $uid",
+        ".validate": "newData.hasChildren(['total_score', 'uid'])",
+        "uid": { ".validate": "newData.isString() && newData.val() === auth.uid" },
+        "total_score": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 10000000" },
+        "total_sentences": { ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000000)" },
+        "best_wpm": { ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 350)" },
+        "best_acc": { ".validate": "!newData.exists() || (newData.isNumber() && newData.val() >= 0 && newData.val() <= 100)" },
+        "displayName": { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 100)" },
+        "photoURL": { ".validate": "!newData.exists() || (newData.isString() && newData.val().length <= 1000 && (newData.val().length === 0 || newData.val().beginsWith('https://')))" },
+        "lastUpdated": { ".validate": "!newData.exists() || newData.isNumber()" },
+        "$other": { ".validate": false }
+      }
+    },
+    "$other": { ".read": false, ".write": false }
   }
 }

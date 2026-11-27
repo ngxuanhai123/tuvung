@@ -120,7 +120,9 @@ async function runTests() {
   try {
     const hasHihiLbQuery = html.includes('hihi_leaderboard');
     const hasHihiAuth = html.includes('window.hihiAuth') && html.includes('tuvung-88e8d');
-    const hasUnifiedModal = html.includes('hihiLeaderboardModal') && html.includes('hihiOpenLeaderboard');
+    const lbPath = path.join(dir, 'hihi-leaderboard.js');
+    const lbJs = fs.existsSync(lbPath) ? fs.readFileSync(lbPath, 'utf8') : '';
+    const hasUnifiedModal = (html.includes('hihiLeaderboardModal') || (html.includes('hihi-leaderboard.js') && lbJs.includes('hihiLeaderboardModal'))) && html.includes('hihiOpenLeaderboard');
     const passed = hasHihiLbQuery && hasHihiAuth && hasUnifiedModal;
     recordResult('8. Đồng bộ Bảng Xếp Hạng toàn hệ sinh thái & Single Sign-On (SSO)', passed, passed ? 'Đã liên kết hihi_leaderboard & SSO tuvung-88e8d' : 'Chưa đồng bộ BXH chung');
   } catch (e) {

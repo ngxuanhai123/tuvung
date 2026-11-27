@@ -2742,6 +2742,62 @@ const PEXELS_LOCALE_MAP = {
 let currentUser = null;
 let currentLang = localStorage.getItem('fp_aurora_lang') || 'en';
 
+function escapeHtml(str) {
+    if (str === null || str === undefined) return '';
+    return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+}
+
+function escapeRegex(str) {
+    return String(str || '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function sanitizePhotoUrl(url) {
+    const fallback = 'https://www.gravatar.com/avatar/?d=mp';
+    if (!url || typeof url !== 'string') return fallback;
+    try {
+        const parsed = new URL(url.trim());
+        if (parsed.protocol === 'https:' || parsed.protocol === 'http:') return parsed.href;
+    } catch (_) {}
+    return fallback;
+}
+
+function sanitizeAiHtml(raw) {
+    if (!raw || typeof raw !== 'string') return '';
+    try {
+        const doc = new DOMParser().parseFromString(raw, 'text/html');
+        const allowedTags = new Set(['b', 'strong', 'i', 'em', 'u', 'br', 'p', 'ul', 'ol', 'li', 'small', 'code', 'pre', 'div', 'span', 'hr']);
+        const walk = (node) => {
+            for (const child of Array.from(node.childNodes)) {
+                if (child.nodeType === 1) {
+                    const tag = child.tagName.toLowerCase();
+                    if (tag === 'script' || tag === 'style' || tag === 'iframe' || tag === 'object' || tag === 'embed' || tag === 'svg') {
+                        child.remove();
+                        continue;
+                    }
+                    if (!allowedTags.has(tag)) {
+                        const span = doc.createTextNode(child.textContent || '');
+                        child.replaceWith(span);
+                        continue;
+                    }
+                    for (const attr of Array.from(child.attributes)) {
+                        if (attr.name.toLowerCase() !== 'class') child.removeAttribute(attr.name);
+                    }
+                    walk(child);
+                }
+            }
+        };
+        walk(doc.body);
+        return doc.body.innerHTML;
+    } catch (_) {
+        return escapeHtml(raw).replace(/\n/g, '<br>');
+    }
+}
+
 // --- USER-SCOPED DATA HELPERS (Chống lẫn lộn dữ liệu giữa các tài khoản & khách) ---
 function getCurrentUserUid() {
     const u = (typeof auth !== 'undefined' && auth && auth.currentUser) || currentUser;
@@ -3428,13 +3484,13 @@ window.initLeaderboardListener = () => {
             if (!users[idx]) return;
             const u = users[idx];
             const rank = idx + 1;
-            let avatarHTML = `<img src="${u.photoURL || 'https://www.gravatar.com/avatar/?d=mp'}" class="podium-avatar">`;
+            let avatarHTML = `<img src="${escapeHtml(sanitizePhotoUrl(u.photoURL))}" class="podium-avatar">`;
             if (rank === 1) avatarHTML = `<i class="fas fa-crown crown-icon"></i>` + avatarHTML;
             
             podiumHTML += `
                 <div class="podium-item rank-${rank}-stage animate__animated animate__fadeInUp">
                     ${avatarHTML}
-                    <div class="podium-name">${u.displayName ? u.displayName.split(' ')[0] : 'Học viên'}</div>
+                    <div class="podium-name">${escapeHtml(u.displayName ? u.displayName.split(' ')[0] : 'Học viên')}</div>
                     <div class="podium-score">${(u.displayScore || 0).toLocaleString()} XP</div>
                     <div class="podium-rank">${rank}</div>
                 </div>
@@ -3458,17 +3514,17 @@ window.initLeaderboardListener = () => {
             if (rank === 3) extraStyle += ' border-right: 3px solid #cd7f32;';
 
             const rankObj = (typeof getRankInfo === 'function') ? getRankInfo(u.total_score || u.displayScore || 0) : { color: '#38bdf8', bg: 'rgba(56,189,248,0.1)', icon: 'fas fa-graduation-cap', title: 'Học viên' };
-            const subBadges = `TV: ${u.tuvung_score || 0} • CT: ${u.chinhta_score || 0} • Dịch: ${u.dich_score || 0}`;
+            const subBadges = `TV: ${Number(u.tuvung_score) || 0} • CT: ${Number(u.chinhta_score) || 0} • Dịch: ${Number(u.dich_score) || 0}`;
 
             listHTML += `
                 <div class="leaderboard-row animate__animated animate__fadeIn" style="${extraStyle}">
                     <div class="rank-num" style="${rank <= 3 ? 'color:#fbbf24; font-size:1.1rem; font-weight:bold;' : ''}">${rank}</div>
-                    <img src="${u.photoURL || 'https://www.gravatar.com/avatar/?d=mp'}" class="lb-avatar">
+                    <img src="${escapeHtml(sanitizePhotoUrl(u.photoURL))}" class="lb-avatar">
                     <div class="lb-info">
-                        <div class="lb-name">${u.displayName || 'Học viên'} ${isMe ? '<span style="color:#60a5fa;font-size:0.75rem;">(Bạn)</span>' : ''}</div>
+                        <div class="lb-name">${escapeHtml(u.displayName || 'Học viên')} ${isMe ? '<span style="color:#60a5fa;font-size:0.75rem;">(Bạn)</span>' : ''}</div>
                         <div class="lb-meta">
-                            <span class="rank-badge" style="color:${rankObj.color}; background:${rankObj.bg}; border: 1px solid ${rankObj.color}">
-                                <i class="${rankObj.icon}"></i> ${rankObj.title}
+                            <span class="rank-badge" style="color:${escapeHtml(rankObj.color)}; background:${escapeHtml(rankObj.bg)}; border: 1px solid ${escapeHtml(rankObj.color)}">
+                                <i class="${escapeHtml(rankObj.icon)}"></i> ${escapeHtml(rankObj.title)}
                             </span>
                             <span style="font-size:0.65rem; opacity:0.7; margin-left:6px;">• ${subBadges}</span>
                         </div>
@@ -3489,12 +3545,12 @@ window.initLeaderboardListener = () => {
                 <div style="text-align:center; padding:10px; opacity:0.5;">...</div>
                 <div class="leaderboard-row animate__animated animate__fadeIn" style="background:rgba(59, 130, 246, 0.15); border-left: 3px solid #60a5fa;">
                     <div class="rank-num">-</div>
-                    <img src="${currentUser.photoURL || 'https://www.gravatar.com/avatar/?d=mp'}" class="lb-avatar">
+                    <img src="${escapeHtml(sanitizePhotoUrl(currentUser.photoURL))}" class="lb-avatar">
                     <div class="lb-info">
-                        <div class="lb-name">${currentUser.displayName} <span style="color:#60a5fa;font-size:0.75rem;">(Bạn)</span></div>
+                        <div class="lb-name">${escapeHtml(currentUser.displayName || 'Bạn')} <span style="color:#60a5fa;font-size:0.75rem;">(Bạn)</span></div>
                         <div class="lb-meta">
-                            <span class="rank-badge" style="color:${rankObj.color}; background:${rankObj.bg}; border: 1px solid ${rankObj.color}">
-                                <i class="${rankObj.icon}"></i> ${rankObj.title}
+                            <span class="rank-badge" style="color:${escapeHtml(rankObj.color)}; background:${escapeHtml(rankObj.bg)}; border: 1px solid ${escapeHtml(rankObj.color)}">
+                                <i class="${escapeHtml(rankObj.icon)}"></i> ${escapeHtml(rankObj.title)}
                             </span>
                         </div>
                     </div>
@@ -5114,20 +5170,20 @@ window.activeGameType = 'flashcard';
             <div class="card" id="flashcardObj" onclick="window.flipCard()">
                 <div class="card__face card__face--front">
                     ${badge}
-                    <div class="word-en">${w.english}</div>
-                    <div class="ipa">${w.ipa || ''}</div>
+                    <div class="word-en">${escapeHtml(w.english)}</div>
+                    <div class="ipa">${escapeHtml(w.ipa || '')}</div>
                     
-                    <img src="${loadingSrc}" id="${imgId}" class="flashcard-img" alt="${w.english}" onerror="this.style.display='none'" />
+                    <img src="${loadingSrc}" id="${imgId}" class="flashcard-img" alt="${escapeHtml(w.english)}" onerror="this.style.display='none'" />
                     
                     <div style="font-size:0.8rem; opacity:0.7; margin-bottom:5px;">Ví dụ mẫu:</div>
-                    <div class="example-box">"${w.example || ''}"</div>
+                    <div class="example-box">"${escapeHtml(w.example || '')}"</div>
                     
                     <div style="margin-top:auto; opacity:0.6; font-size:0.8rem;"><i class="fas fa-touch-app"></i> Chạm để lật</div>
                 </div>
 
                 <div class="card__face card__face--back">
                     <div style="font-size:0.8rem; opacity:0.6; margin-bottom:15px; font-weight:700; letter-spacing:1px; text-transform:uppercase;">Nghĩa Tiếng Việt</div>
-                    <div class="word-vn">${w.vietnamese}</div>
+                    <div class="word-vn">${escapeHtml(w.vietnamese)}</div>
                     
                     <div style="width:100%; border-top:1px dashed rgba(0,0,0,0.1); margin: 20px 0;"></div>
                     <div style="font-size:0.8rem; opacity:0.7; margin-bottom:5px;">Dịch ví dụ:</div>
@@ -5221,9 +5277,9 @@ window.askAI = async function() {
     if(backdrop) backdrop.classList.add('show');
     if(box) box.classList.add('active');
 
-    // Kiểm tra Cache (Nếu có rồi thì hiện luôn)
+    // Kiểm tra Cache (Nếu có rồi thì hiện luôn, luôn sanitize chống XSS)
     if (typeof aiCache !== 'undefined' && aiCache[cacheKey]) {
-        content.innerHTML = aiCache[cacheKey] + `
+        content.innerHTML = sanitizeAiHtml(aiCache[cacheKey]) + `
             <div style="text-align:right; margin-top:10px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:5px;">
                 <span style="font-size:0.6rem; opacity:0.5;"><i class="fas fa-hdd"></i> Từ bộ nhớ</span>
             </div>`;
@@ -5309,8 +5365,8 @@ window.askAI = async function() {
              text = data.choices[0].message.content || text;
         }
 
-        // Xử lý xuống dòng nếu AI trả về \n thay vì <br>
-        text = text.replace(/\n/g, "<br>");
+        // Xử lý xuống dòng nếu AI trả về \n thay vì <br> và sanitize HTML chống XSS
+        text = sanitizeAiHtml(text.replace(/\n/g, "<br>"));
 
         // Lưu Cache
         if (typeof aiCache !== 'undefined') {
@@ -5333,7 +5389,7 @@ window.askAI = async function() {
             <div style="text-align:center; color:#ef4444; padding:20px;">
                 <i class="fas fa-exclamation-triangle" style="font-size:2rem; margin-bottom:10px;"></i><br>
                 <b>Kết nối thất bại!</b><br>
-                <div style="font-size:0.7rem; margin-top:5px; opacity:0.8;">${e.message}</div>
+                <div style="font-size:0.7rem; margin-top:5px; opacity:0.8;">${escapeHtml(e.message)}</div>
                 <button onclick="window.askAI()" class="btn-primary" style="margin-top:15px; font-size:0.8rem; padding:8px 15px; width:auto;">Thử lại</button>
             </div>`;
     }
@@ -5389,7 +5445,7 @@ function renderSpelling() {
     document.getElementById('gameContent').innerHTML = `
         <div class="glass-panel animate__animated animate__fadeInDown" style="padding:20px; width:95%; text-align:center;">
             <div style="font-size:1.8rem; font-weight:800; color:var(--color-ink); margin-bottom:5px;">
-                ${w.vietnamese}
+                ${escapeHtml(w.vietnamese)}
             </div>
             <div style="color:var(--color-muted); font-weight:600; font-size:0.9rem;">Gõ chính xác từng ký tự</div>
         </div>
@@ -5582,7 +5638,7 @@ window.revealSentenceHint = function() {
     }
     
     if(foundIdx !== -1) {
-        window.moveWord(foundIdx, nextWord.replace(/'/g, "\\'"));
+        window.moveWord(foundIdx, nextWord);
     }
 }
 
@@ -5642,19 +5698,19 @@ async function renderSentence() {
 
     document.getElementById('gameContent').innerHTML = `
         <div class="glass-panel animate__animated animate__zoomIn" style="padding:20px; width:95%; text-align:center; margin-bottom:15px;">
-             <div style="color:var(--color-muted); font-size:0.82rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-bottom:5px;">${guideStr}</div>
-             <div style="font-size:1.15rem; font-weight:800; color:var(--color-ink); line-height: 1.4;">${promptStr}</div>
+             <div style="color:var(--color-muted); font-size:0.82rem; font-weight:800; text-transform:uppercase; letter-spacing:1px; margin-bottom:5px;">${escapeHtml(guideStr)}</div>
+             <div style="font-size:1.15rem; font-weight:800; color:var(--color-ink); line-height: 1.4;">${escapeHtml(promptStr)}</div>
              <div style="font-size:0.88rem; color:var(--color-muted); margin-top:5px; font-style:italic;">(Hãy sắp xếp các từ bên dưới)</div>
         </div>
 
         <div id="answerArea" class="answer-slot-container"></div>
 
         <div id="sourceArea" class="sentence-area">
-             ${shuffled.map((word, i) => `<div class="word-chip" id="chip-${i}" onclick="window.moveWord(${i}, '${word.replace(/'/g, "\\'")}')">${word}</div>`).join('')}
+             ${shuffled.map((word, i) => `<div class="word-chip" id="chip-${i}" data-idx="${i}" data-word="${escapeHtml(word)}" onclick="window.moveWord(${i}, this.dataset.word)">${escapeHtml(word)}</div>`).join('')}
         </div>
 
         <div style="display:flex; gap:15px; margin-top:10px;">
-             <button class="btn-speak-round" onclick="window.speakText('${sourceEnglish.replace(/'/g, "\\'")}')"><i class="fas fa-volume-up"></i></button>
+             <button class="btn-speak-round" onclick="window.speakText(window.sentenceState && window.sentenceState.textToSpeak)"><i class="fas fa-volume-up"></i></button>
              <button class="btn-hint animate__animated animate__fadeIn" onclick="window.revealSentenceHint()" style="width:50px; height:50px; border-radius:16px; font-size:1.2rem;"><i class="fas fa-lightbulb"></i></button>
              <button class="action-btn" style="width:50px; flex:none; background:var(--color-surface2); border:2px solid var(--color-ink); color:var(--color-ink);" onclick="window.resetSentence()"><i class="fas fa-redo"></i></button>
         </div>
@@ -5748,20 +5804,14 @@ function renderFill() {
     
     // Tạo câu ví dụ (ẩn từ chính đi)
     const sentence = w.example || `The word is ${w.english}`;
-    // Regex thay thế từ tiếng Anh bằng dấu gạch dưới (không phân biệt hoa thường)
-    const hidden = sentence.replace(new RegExp(w.english, 'gi'), '_____');
+    const hidden = sentence.replace(new RegExp(escapeRegex(w.english), 'gi'), '_____');
     
-    // Xử lý ký tự đặc biệt (như dấu nháy đơn) để không lỗi JS
-    const safeWord = w.english.replace(/'/g, "\\'");
-    
-    // KỸ THUẬT CHỐNG AUTO-FILL: Tạo tên field ngẫu nhiên
-    // Giúp trình duyệt không nhận ra đây là trường cũ để điền bậy
     const randomName = 'field_' + Math.random().toString(36).substring(7);
 
     document.getElementById('gameContent').innerHTML = `
         <div class="glass-panel animate__animated animate__zoomIn" style="padding:30px; width:95%; text-align:center; margin-bottom:25px;">
-            <div style="font-size:1.4rem; margin-bottom:15px; line-height:1.5; font-weight:700; color:var(--color-ink);">${hidden}</div>
-            <div style="font-size:1rem; color:var(--color-cyan-deep, #0e9f9b); font-weight:700;">Gợi ý: ${w.vietnamese}</div>
+            <div style="font-size:1.4rem; margin-bottom:15px; line-height:1.5; font-weight:700; color:var(--color-ink);">${escapeHtml(hidden)}</div>
+            <div style="font-size:1rem; color:var(--color-cyan-deep, #0e9f9b); font-weight:700;">Gợi ý: ${escapeHtml(w.vietnamese)}</div>
         </div>
         
         <div style="width:95%; display:flex; gap:10px;">
@@ -5777,14 +5827,14 @@ function renderFill() {
                    autocapitalize="off" 
                    spellcheck="false"
                    data-lpignore="true" 
-                   oninput="window.checkAutoFill(this, '${safeWord}')"
-                   onkeypress="if(event.key==='Enter') window.checkFill('${safeWord}')">
+                   oninput="window.checkAutoFill(this)"
+                   onkeypress="if(event.key==='Enter') window.checkFill()">
             
-            <button class="btn-hint" onclick="window.showHint('${safeWord}')" title="Gợi ý"><i class="fas fa-lightbulb"></i></button>
+            <button class="btn-hint" onclick="window.showHint()" title="Gợi ý"><i class="fas fa-lightbulb"></i></button>
         </div>
         
         <div style="width:95%; margin-top:15px;">
-             <button class="btn-primary" onclick="window.checkFill('${safeWord}')">KIỂM TRA</button>
+             <button class="btn-primary" onclick="window.checkFill()">KIỂM TRA</button>
         </div>
         
         <button class="btn-speak-round" style="margin-top:20px; width:50px; height:50px; font-size:1.2rem;" onclick="window.speakWord()"><i class="fas fa-volume-up"></i></button>
@@ -5811,7 +5861,8 @@ function renderFill() {
 
 // --- UPDATED SMART HINT LOGIC ---
 window.showHint = function(ans) {
-    // Hint Penalty Logic
+    ans = ans || (sessionQueue[sessionIndex] && sessionQueue[sessionIndex].english) || '';
+    if (!ans) return;
     window.currentHintCount++;
     if(window.currentHintCount === 2) {
         const w = sessionQueue[sessionIndex];
@@ -5822,14 +5873,12 @@ window.showHint = function(ans) {
     const inp = document.getElementById('fillInp');
     const val = inp.value;
     
-    // Find first deviation
     let correctPrefix = "";
     for(let i=0; i<ans.length; i++) {
         if (val[i] && val[i].toLowerCase() === ans[i].toLowerCase()) {
-            correctPrefix += ans[i]; // Use casing from answer
+            correctPrefix += ans[i];
         } else {
-            // Found deviation or end of input
-            correctPrefix += ans[i]; // Add the hint char
+            correctPrefix += ans[i];
             break;
         }
     }
@@ -5841,14 +5890,16 @@ window.showHint = function(ans) {
 }
 
 window.checkAutoFill = function(el, ans) {
-    if(isProcessing) return;
+    ans = ans || (sessionQueue[sessionIndex] && sessionQueue[sessionIndex].english) || '';
+    if(isProcessing || !ans) return;
     if(el.value.trim().toLowerCase() === ans.toLowerCase()) {
         window.checkFill(ans);
     }
 }
 
 window.checkFill = function(ans) {
-    if(isProcessing) return;
+    ans = ans || (sessionQueue[sessionIndex] && sessionQueue[sessionIndex].english) || '';
+    if(isProcessing || !ans) return;
     const val = document.getElementById('fillInp').value.trim();
     const correct = val.toLowerCase() === ans.toLowerCase();
     
@@ -5914,7 +5965,7 @@ function setupMatching() {
     
     let html = `<div class="matching-grid animate__animated animate__fadeInUp">`;
     items.forEach((item, idx) => {
-        html += `<div class="match-card" id="m-${idx}" onclick="window.matchClick(${idx}, ${item.id})">${item.txt}</div>`;
+        html += `<div class="match-card" id="m-${idx}" onclick="window.matchClick(${idx}, ${item.id})">${escapeHtml(item.txt)}</div>`;
     });
     html += `</div>`;
     
@@ -6014,14 +6065,14 @@ function setupQuiz() {
     options.sort(() => Math.random() - 0.5);
     
     let html = `<div style="text-align:center; margin-bottom:30px;" class="animate__animated animate__fadeInDown">
-        <div style="font-size:2.6rem; font-weight:900; margin-bottom:12px; color:var(--color-ink);">${w.english}</div>
+        <div style="font-size:2.6rem; font-weight:900; margin-bottom:12px; color:var(--color-ink);">${escapeHtml(w.english)}</div>
         <button class="btn-speak-round" style="margin:0 auto; width:50px; height:50px; font-size:1.2rem;" onclick="window.speakWord()"><i class="fas fa-volume-up"></i></button>
     </div>
     <div style="width:100%; display:grid; gap:15px;" class="animate__animated animate__fadeInUp">`;
     
     options.forEach(opt => {
         const isCorrect = getWordKey(opt) === getWordKey(w);
-        html += `<button class="action-btn" data-correct="${isCorrect}" style="width:100%; background:var(--color-surface); color:var(--color-ink); border:2px solid var(--color-ink); box-shadow:var(--shadow-hard-sm);" onclick="window.handleQuiz(this, ${isCorrect})">${opt.vietnamese}</button>`;
+        html += `<button class="action-btn" data-correct="${isCorrect}" style="width:100%; background:var(--color-surface); color:var(--color-ink); border:2px solid var(--color-ink); box-shadow:var(--shadow-hard-sm);" onclick="window.handleQuiz(this, ${isCorrect})">${escapeHtml(opt.vietnamese)}</button>`;
     });
     html += `</div>`;
     document.getElementById('gameContent').innerHTML = html;
@@ -6386,21 +6437,25 @@ window.openWordList = async function(type) {
             
             let undoBtn = '';
             if(type === 'mastered') {
-                undoBtn = `<button onclick="window.unmarkMastered('${w.english}')" class="btn-undo"><i class="fas fa-undo"></i></button>`;
+                undoBtn = `<button class="btn-undo" type="button"><i class="fas fa-undo"></i></button>`;
             }
 
             div.innerHTML = `
                 <div>
-                    <div class="list-word-main">${w.english}</div>
-                    <div class="list-word-sub">${w.vietnamese}</div>
+                    <div class="list-word-main">${escapeHtml(w.english)}</div>
+                    <div class="list-word-sub">${escapeHtml(w.vietnamese)}</div>
                 </div>
                 <div style="display:flex; align-items:center; gap:10px;">
-                    <div style="opacity:0.6; cursor:pointer;" onclick="window.speakText('${w.english}')">
+                    <div class="btn-word-speak" style="opacity:0.6; cursor:pointer;">
                         <i class="fas fa-volume-up"></i>
                     </div>
                     ${undoBtn}
                 </div>
             `;
+            const speakBtn = div.querySelector('.btn-word-speak');
+            if (speakBtn) speakBtn.onclick = () => window.speakText(w.english);
+            const undoEl = div.querySelector('.btn-undo');
+            if (undoEl) undoEl.onclick = () => window.unmarkMastered(w.english);
             content.appendChild(div);
         });
     }
@@ -6527,7 +6582,7 @@ function renderTopicList() {
             <div style="width:100%">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div style="font-weight:700; font-size:1.1rem;">
-                        ${topicName} 
+                        ${escapeHtml(topicName)} 
                         ${!isLoaded ? '<i class="fas fa-cloud-download-alt" style="opacity:0.5; font-size:0.9rem; margin-left:5px;"></i>' : ''}
                     </div>
                     ${key===currentTopicKey ? '<i class="fas fa-check-circle" style="color:var(--success-color); font-size:1.2rem;"></i>' : ''}
@@ -7368,7 +7423,7 @@ function renderPlaylist() {
         const div = document.createElement('div');
         div.className = `track-item ${idx === currentTrackIdx ? 'active' : ''}`;
         div.onclick = () => window.playTrack(idx);
-        div.innerHTML = `<span>${idx + 1}. ${track.name}</span> <i class="fas fa-music track-playing-icon" style="font-size:0.7rem;"></i>`;
+        div.innerHTML = `<span>${idx + 1}. ${escapeHtml(track.name)}</span> <i class="fas fa-music track-playing-icon" style="font-size:0.7rem;"></i>`;
         container.appendChild(div);
     });
 }
@@ -8605,6 +8660,16 @@ window.hihiParseBulkInput = function() {
   alert(`Đã nạp thành công ${count} từ vựng từ văn bản!`);
 };
 
+function escapeHtml(str) {
+  if (str === null || str === undefined) return "";
+  return String(str)
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
 function hihiRenderWordTable() {
   const countEl = document.getElementById("hihiWordCount") || document.getElementById("hihiWordCountBadge");
   const tbody = document.getElementById("hihiWordTableBody") || document.getElementById("hihiStagedTableBody");
@@ -8620,10 +8685,10 @@ function hihiRenderWordTable() {
   tbody.innerHTML = window.hihiStagedWords.map((item, idx) => `
     <tr>
       <td style="color:#94a3b8;font-size:0.75rem;width:30px;">${idx + 1}</td>
-      <td style="font-weight:600;color:var(--color-ink);">${item.word || item.english}</td>
-      <td>${item.meaning || item.vietnamese}</td>
-      <td style="color:#38bdf8;font-size:0.82rem;">${item.phonetic || item.ipa || "-"}</td>
-      <td style="font-size:0.8rem;color:#94a3b8;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${item.example || "-"}</td>
+      <td style="font-weight:600;color:var(--color-ink);">${escapeHtml(item.word || item.english)}</td>
+      <td>${escapeHtml(item.meaning || item.vietnamese)}</td>
+      <td style="color:#38bdf8;font-size:0.82rem;">${escapeHtml(item.phonetic || item.ipa || "-")}</td>
+      <td style="font-size:0.8rem;color:#94a3b8;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${escapeHtml(item.example || "-")}</td>
       <td style="text-align:right;width:40px;">
         <button class="hihi-btn-secondary" style="padding:2px 8px;font-size:0.75rem;color:#ef4444;" onclick="hihiRemoveWord(${idx})"><i class="fas fa-times"></i></button>
       </td>
@@ -8725,20 +8790,20 @@ async function hihiLoadCustomTopicsList() {
       div.innerHTML = `
         <div>
           <div style="font-weight:700;color:var(--color-ink);">
-            <span style="margin-right:6px;">${flag}</span>${t.name}
-            <span style="display:inline-block;margin-left:6px;font-size:0.7rem;padding:1px 6px;border-radius:4px;background:rgba(56,189,248,0.15);color:#38bdf8;font-weight:600;">${langLabel}</span>
+            <span style="margin-right:6px;">${escapeHtml(flag)}</span>${escapeHtml(t.name)}
+            <span style="display:inline-block;margin-left:6px;font-size:0.7rem;padding:1px 6px;border-radius:4px;background:rgba(56,189,248,0.15);color:#38bdf8;font-weight:600;">${escapeHtml(langLabel)}</span>
           </div>
           <div style="font-size:0.75rem;color:#94a3b8;margin-top:2px;">${t.words?.length || 0} từ vựng</div>
         </div>
         <div style="display:flex;gap:6px;">
-          <button class="hihi-btn-secondary" style="padding:4px 8px;font-size:0.75rem;" onclick="hihiLoadTopicToEdit('${dSnap.id}')"><i class="fas fa-edit"></i> Nạp</button>
-          <button class="hihi-btn-secondary" style="padding:4px 8px;font-size:0.75rem;color:#ef4444;" onclick="hihiDeleteTopic('${dSnap.id}')"><i class="fas fa-trash"></i></button>
+          <button class="hihi-btn-secondary" style="padding:4px 8px;font-size:0.75rem;" onclick="hihiLoadTopicToEdit(this.dataset.topicId)" data-topic-id="${escapeHtml(dSnap.id)}"><i class="fas fa-edit"></i> Nạp</button>
+          <button class="hihi-btn-secondary" style="padding:4px 8px;font-size:0.75rem;color:#ef4444;" onclick="hihiDeleteTopic(this.dataset.topicId)" data-topic-id="${escapeHtml(dSnap.id)}"><i class="fas fa-trash"></i></button>
         </div>
       `;
       container.appendChild(div);
     });
   } catch(e) {
-    container.innerHTML = `<span style="color:#ef4444;">Lỗi tải: ${e.message}</span>`;
+    container.innerHTML = `<span style="color:#ef4444;">Lỗi tải: ${escapeHtml(e.message)}</span>`;
   }
 }
 
@@ -8980,12 +9045,12 @@ function hihiRenderTopicCards(list) {
     const flag = t.flag || (HIHI_LANGUAGES[t.lang]?.flag) || '🇺🇸';
     const langName = t.langName || (HIHI_LANGUAGES[t.lang]?.name) || 'Tiếng Anh';
     return `
-    <div onclick="hihiSelectTopic('${t.id}')" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:var(--color-surface);border:2px solid var(--color-ink);box-shadow:var(--shadow-hard-xs);cursor:pointer;transition:transform 0.12s ease;">
+    <div onclick="hihiSelectTopic(this.dataset.topicId)" data-topic-id="${escapeHtml(t.id)}" style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;border-radius:14px;background:var(--color-surface);border:2px solid var(--color-ink);box-shadow:var(--shadow-hard-xs);cursor:pointer;transition:transform 0.12s ease;">
       <div>
-        <div style="font-weight:800;font-size:0.9rem;color:var(--color-ink);">${t.name}</div>
+        <div style="font-weight:800;font-size:0.9rem;color:var(--color-ink);">${escapeHtml(t.name)}</div>
         <div style="font-size:0.74rem;color:var(--color-muted);margin-top:4px;font-weight:700;">
-          <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:var(--color-cyan);color:#1e1e1e;border:1.5px solid var(--color-ink);font-weight:800;margin-right:6px;">${flag} ${langName}</span>
-          <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:var(--color-surface2);color:var(--color-ink);border:1.5px solid var(--color-ink);font-weight:700;margin-right:6px;">${t.category || "Chủ đề"}</span>
+          <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:var(--color-cyan);color:#1e1e1e;border:1.5px solid var(--color-ink);font-weight:800;margin-right:6px;">${escapeHtml(flag)} ${escapeHtml(langName)}</span>
+          <span style="display:inline-block;padding:2px 8px;border-radius:999px;background:var(--color-surface2);color:var(--color-ink);border:1.5px solid var(--color-ink);font-weight:700;margin-right:6px;">${escapeHtml(t.category || "Chủ đề")}</span>
           ${t.isCustom ? "⭐ Tùy chỉnh" : "📚 Kho GitHub"}
         </div>
       </div>
